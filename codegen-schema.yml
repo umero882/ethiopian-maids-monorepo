@@ -1,0 +1,9 @@
+overwrite: true
+schema:
+  - https://ethio-maids-01.hasura.app/v1/graphql:
+      headers:
+        x-hasura-admin-secret: ${HASURA_ADMIN_SECRET}
+generates:
+  schema.graphql:
+    plugins:
+      - schema-ast

@@ -1,0 +1,222 @@
+# Placement Workflow Queries
+# These queries support the placement workflow tracking system
+
+query GetPlacementWorkflow($id: uuid!) {
+  placement_workflows_by_pk(id: $id) {
+    id
+    sponsor_id
+    agency_id
+    maid_id
+    status
+    platform_fee_amount
+    platform_fee_currency
+    fee_status
+    contact_date
+    interview_scheduled_date
+    interview_completed_date
+    trial_start_date
+    trial_end_date
+    placement_confirmed_date
+    sponsor_confirmed
+    agency_confirmed
+    interview_outcome
+    trial_outcome
+    failure_reason
+    failure_stage
+    guarantee_end_date
+    guarantee_claimed
+    notes
+    metadata
+    created_at
+    updated_at
+  }
+}
+
+query GetSponsorPlacementWorkflows($sponsorId: String!, $status: String) {
+  placement_workflows(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      status: { _eq: $status }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    maid_id
+    agency_id
+    status
+    platform_fee_amount
+    platform_fee_currency
+    fee_status
+    contact_date
+    interview_scheduled_date
+    trial_start_date
+    trial_end_date
+    sponsor_confirmed
+    agency_confirmed
+    created_at
+    updated_at
+  }
+}
+
+query GetAgencyPlacementWorkflows($agencyId: String!, $status: String) {
+  placement_workflows(
+    where: {
+      agency_id: { _eq: $agencyId }
+      status: { _eq: $status }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    sponsor_id
+    maid_id
+    status
+    platform_fee_amount
+    platform_fee_currency
+    fee_status
+    contact_date
+    interview_scheduled_date
+    trial_start_date
+    trial_end_date
+    sponsor_confirmed
+    agency_confirmed
+    created_at
+    updated_at
+  }
+}
+
+query GetMaidActivePlacement($maidId: String!) {
+  placement_workflows(
+    where: {
+      maid_id: { _eq: $maidId }
+      status: { _nin: ["placement_failed", "placement_confirmed"] }
+    }
+    order_by: { created_at: desc }
+    limit: 1
+  ) {
+    id
+    sponsor_id
+    agency_id
+    status
+    trial_start_date
+    trial_end_date
+    sponsor_confirmed
+    agency_confirmed
+    created_at
+  }
+}
+
+query GetExpiringTrials {
+  placement_workflows(
+    where: {
+      status: { _eq: "trial_started" }
+    }
+    order_by: { trial_end_date: asc }
+  ) {
+    id
+    sponsor_id
+    agency_id
+    maid_id
+    trial_start_date
+    trial_end_date
+    sponsor_confirmed
+    agency_confirmed
+  }
+}
+
+query GetPlacementStats($startDate: timestamptz!, $endDate: timestamptz!) {
+  total: placement_workflows_aggregate(
+    where: { created_at: { _gte: $startDate, _lte: $endDate } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  successful: placement_workflows_aggregate(
+    where: {
+      status: { _eq: "placement_confirmed" }
+      created_at: { _gte: $startDate, _lte: $endDate }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  failed: placement_workflows_aggregate(
+    where: {
+      status: { _eq: "placement_failed" }
+      created_at: { _gte: $startDate, _lte: $endDate }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  in_trial: placement_workflows_aggregate(
+    where: { status: { _eq: "trial_started" } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  revenue: placement_workflows_aggregate(
+    where: {
+      fee_status: { _eq: "earned" }
+      created_at: { _gte: $startDate, _lte: $endDate }
+    }
+  ) {
+    aggregate {
+      sum {
+        platform_fee_amount
+      }
+    }
+  }
+}
+
+query GetPlatformFeeRequirements {
+  platform_fee_requirements(
+    where: { is_active: { _eq: true } }
+    order_by: { country_name: asc }
+  ) {
+    id
+    country_code
+    country_name
+    currency
+    amount
+    is_active
+  }
+}
+
+query GetPlatformFeeForCountry($countryCode: String!) {
+  platform_fee_requirements(
+    where: {
+      country_code: { _eq: $countryCode }
+      is_active: { _eq: true }
+    }
+    limit: 1
+  ) {
+    id
+    country_code
+    country_name
+    currency
+    amount
+  }
+}
+
+query GetRecentPlacements($limit: Int = 10) {
+  placement_workflows(
+    order_by: { created_at: desc }
+    limit: $limit
+  ) {
+    id
+    sponsor_id
+    agency_id
+    maid_id
+    status
+    fee_status
+    platform_fee_amount
+    platform_fee_currency
+    contact_date
+    placement_confirmed_date
+    created_at
+  }
+}

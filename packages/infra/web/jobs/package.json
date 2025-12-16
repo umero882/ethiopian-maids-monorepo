@@ -1,0 +1,13 @@
+{
+  "name": "@ethio/infra-web-jobs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@ethio/app-jobs": "workspace:*",
+    "@ethio/domain-jobs": "workspace:*",
+    "@ethio/api-client": "workspace:*"
+  }
+}

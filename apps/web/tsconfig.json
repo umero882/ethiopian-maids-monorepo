@@ -1,0 +1,70 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noUncheckedIndexedAccess": false,
+    "noEmit": true
+  },
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../packages/api-client"
+    },
+    {
+      "path": "../../packages/infra/web/communications"
+    },
+    {
+      "path": "../../packages/infra/web/jobs"
+    },
+    {
+      "path": "../../packages/infra/web/profiles"
+    },
+    {
+      "path": "../../packages/infra/web/identity"
+    },
+    {
+      "path": "../../packages/app/communications"
+    },
+    {
+      "path": "../../packages/app/jobs"
+    },
+    {
+      "path": "../../packages/app/profiles"
+    },
+    {
+      "path": "../../packages/app/identity"
+    },
+    {
+      "path": "../../packages/domain/communications"
+    },
+    {
+      "path": "../../packages/domain/jobs"
+    },
+    {
+      "path": "../../packages/domain/profiles"
+    },
+    {
+      "path": "../../packages/domain/identity"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}

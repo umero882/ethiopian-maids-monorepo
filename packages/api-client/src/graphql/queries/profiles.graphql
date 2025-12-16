@@ -1,0 +1,223 @@
+# Basic profile queries matching actual schema
+
+query GetProfile($id: String!) {
+  profiles_by_pk(id: $id) {
+    id
+    full_name
+    email
+    phone
+    user_type
+    avatar_url
+    country
+    location
+    registration_complete
+    is_active
+    profile_completion
+    verification_status
+    created_at
+    updated_at
+  }
+}
+
+query GetAllProfiles($limit: Int = 20, $offset: Int = 0, $where: profiles_bool_exp) {
+  profiles(
+    limit: $limit
+    offset: $offset
+    where: $where
+    order_by: { created_at: desc }
+  ) {
+    id
+    full_name
+    email
+    user_type
+    avatar_url
+    location
+    country
+    created_at
+  }
+  profiles_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+query GetProfileByEmail($email: String!) {
+  profiles(where: { email: { _eq: $email } }, limit: 1) {
+    id
+    full_name
+    email
+    user_type
+    avatar_url
+  }
+}
+
+mutation UpdateProfile($id: String!, $data: profiles_set_input!) {
+  update_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
+    id
+    full_name
+    email
+    phone
+    avatar_url
+    location
+    country
+    updated_at
+  }
+}
+
+# ============================================
+# ProfileService Migration Queries
+# ============================================
+
+# Get maid profile with related data via profiles table
+query GetMaidProfileData($userId: String!) {
+  profiles_by_pk(id: $userId) {
+    id
+    email
+    full_name
+    phone
+    country
+    avatar_url
+    user_type
+    created_at
+    updated_at
+    maid_profile {
+      id
+      user_id
+      first_name
+      middle_name
+      last_name
+      full_name
+      date_of_birth
+      marital_status
+      nationality
+      country
+      current_location
+      street_address
+      suburb
+      state_province
+      languages
+      profile_photo_url
+      primary_profession
+      primary_profession_other
+      visa_status
+      current_visa_status
+      skills
+      special_skills
+      experience_years
+      key_responsibilities
+      preferred_salary_min
+      preferred_salary_max
+      preferred_currency
+      availability_status
+      available_from
+      about_me
+      additional_services
+      work_preferences
+      introduction_video_url
+      phone_number
+      phone_country_code
+      education_level
+      religion
+      children_count
+    }
+  }
+}
+
+# Get sponsor profile with related data via profiles table
+query GetSponsorProfileData($userId: String!) {
+  profiles_by_pk(id: $userId) {
+    id
+    email
+    full_name
+    phone
+    country
+    avatar_url
+    user_type
+    created_at
+    updated_at
+    sponsor_profile {
+      id
+      full_name
+      household_size
+      number_of_children
+      children_ages
+      elderly_care_needed
+      pets
+      pet_types
+      city
+      country
+      address
+      phone_number
+      religion
+      accommodation_type
+      preferred_nationality
+      preferred_experience_years
+      required_skills
+      preferred_languages
+      salary_budget_min
+      salary_budget_max
+      currency
+      live_in_required
+      working_hours_per_day
+      days_off_per_week
+      overtime_available
+      additional_benefits
+    }
+  }
+}
+
+# Get agency profile with related data via profiles table
+query GetAgencyProfileData($userId: String!) {
+  profiles_by_pk(id: $userId) {
+    id
+    email
+    full_name
+    phone
+    country
+    avatar_url
+    user_type
+    created_at
+    updated_at
+    agency_profile {
+      id
+      full_name
+      agency_description
+      license_number
+      license_expiry_date
+      business_email
+      business_phone
+      address
+      city
+      country
+      website_url
+      logo_url
+      authorized_person_name
+      authorized_person_email
+      authorized_person_phone
+      service_countries
+      specialization
+      total_maids
+      active_listings
+      successful_placements
+      average_rating
+      verification_status
+      verified
+    }
+  }
+}
+
+# Generic profile query (for unknown user type)
+query GetUserProfileData($userId: String!) {
+  profiles_by_pk(id: $userId) {
+    id
+    email
+    full_name
+    phone
+    country
+    avatar_url
+    user_type
+    created_at
+    updated_at
+  }
+}

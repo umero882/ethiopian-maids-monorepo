@@ -1,0 +1,12 @@
+{
+  "name": "@ethio/infra-web-communications",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@ethio/app-communications": "workspace:*",
+    "@ethio/domain-communications": "workspace:*"
+  }
+}

@@ -1,0 +1,247 @@
+# =====================================================
+# Bookings Service - GraphQL Queries
+# Queries for booking_requests table
+# =====================================================
+
+# =====================================================
+# Query 1: Get Complete Booking Request
+# Returns all booking details including relations
+# =====================================================
+query GetBookingRequestComplete($id: uuid!) {
+  booking_requests_by_pk(id: $id) {
+    id
+    maid_id
+    sponsor_id
+    agency_id
+    status
+    requested_start_date
+    requested_duration_months
+    offered_salary
+    currency
+    message
+    rejection_reason
+    start_date
+    end_date
+    special_requirements
+    amount
+    payment_status
+    payment_method
+    payment_date
+    payment_reference
+    created_at
+    updated_at
+    responded_at
+  }
+}
+
+# =====================================================
+# Query 2: Get Booking Request (Basic)
+# Returns basic booking information
+# =====================================================
+query GetBookingRequest($id: uuid!) {
+  booking_requests_by_pk(id: $id) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    special_requirements
+    amount
+    currency
+    payment_status
+    created_at
+    updated_at
+  }
+}
+
+# =====================================================
+# Query 3: List Booking Requests
+# Returns paginated list of bookings with filtering
+# =====================================================
+query ListBookingRequests(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: booking_requests_bool_exp
+  $orderBy: [booking_requests_order_by!] = [{created_at: desc}]
+) {
+  booking_requests(
+    limit: $limit
+    offset: $offset
+    where: $where
+    order_by: $orderBy
+  ) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    amount
+    currency
+    payment_status
+    created_at
+    updated_at
+  }
+  booking_requests_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 4: Get Sponsor Bookings
+# Returns all bookings for a specific sponsor
+# =====================================================
+query GetSponsorBookings(
+  $sponsorId: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  booking_requests(
+    where: {sponsor_id: {_eq: $sponsorId}}
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    amount
+    currency
+    payment_status
+    created_at
+    updated_at
+  }
+  booking_requests_aggregate(where: {sponsor_id: {_eq: $sponsorId}}) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 5: Get Maid Bookings
+# Returns all bookings for a specific maid
+# =====================================================
+query GetMaidBookings(
+  $maidId: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  booking_requests(
+    where: {maid_id: {_eq: $maidId}}
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    amount
+    currency
+    payment_status
+    created_at
+    updated_at
+  }
+  booking_requests_aggregate(where: {maid_id: {_eq: $maidId}}) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 6: Get Bookings by Status
+# Returns bookings filtered by status
+# =====================================================
+query GetBookingsByStatus(
+  $status: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  booking_requests(
+    where: {status: {_eq: $status}}
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    amount
+    currency
+    payment_status
+    created_at
+    updated_at
+  }
+  booking_requests_aggregate(where: {status: {_eq: $status}}) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 7: Get Booking Statistics
+# Returns aggregated booking statistics
+# =====================================================
+query GetBookingStatistics($sponsorId: String) {
+  total: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  pending: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}, status: {_eq: "pending"}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  accepted: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}, status: {_eq: "accepted"}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  rejected: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}, status: {_eq: "rejected"}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  cancelled: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}, status: {_eq: "cancelled"}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  completed: booking_requests_aggregate(
+    where: {sponsor_id: {_eq: $sponsorId}, status: {_eq: "completed"}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+}

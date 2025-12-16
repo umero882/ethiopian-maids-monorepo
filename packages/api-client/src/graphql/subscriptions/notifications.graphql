@@ -1,0 +1,101 @@
+# =====================================================
+# Notifications Service - GraphQL Subscriptions
+# Real-time subscriptions for notifications
+# =====================================================
+
+# Subscription 1: Subscribe to new notifications for a user
+subscription OnNewNotification($userId: String!) {
+  notifications(
+    where: {
+      user_id: { _eq: $userId }
+    }
+    order_by: { created_at: desc }
+    limit: 1
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    priority
+    created_at
+    expires_at
+  }
+}
+
+# Subscription 2: Subscribe to all user notifications (with updates)
+subscription OnNotificationsUpdated($userId: String!, $limit: Int = 20) {
+  notifications(
+    where: {
+      user_id: { _eq: $userId }
+      _or: [
+        { expires_at: { _is_null: true } }
+        { expires_at: { _gt: "now()" } }
+      ]
+    }
+    order_by: { created_at: desc }
+    limit: $limit
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    read_at
+    priority
+    created_at
+    expires_at
+  }
+}
+
+# Subscription 3: Subscribe to unread notification count
+subscription OnUnreadNotificationCount($userId: String!) {
+  notifications_aggregate(
+    where: {
+      user_id: { _eq: $userId }
+      read: { _eq: false }
+      _or: [
+        { expires_at: { _is_null: true } }
+        { expires_at: { _gt: "now()" } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 4: Subscribe to urgent/high priority notifications
+subscription OnUrgentNotifications($userId: String!) {
+  notifications(
+    where: {
+      user_id: { _eq: $userId }
+      read: { _eq: false }
+      priority: { _in: ["urgent", "high"] }
+      _or: [
+        { expires_at: { _is_null: true } }
+        { expires_at: { _gt: "now()" } }
+      ]
+    }
+    order_by: [{ priority: desc }, { created_at: desc }]
+    limit: 10
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    priority
+    created_at
+  }
+}

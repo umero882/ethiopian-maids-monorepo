@@ -1,0 +1,212 @@
+# =====================================================
+# Bookings Service - GraphQL Mutations
+# Mutations for booking_requests table
+# =====================================================
+
+# =====================================================
+# Mutation 1: Create Booking Request
+# Creates a new booking request
+# =====================================================
+mutation CreateBookingRequest($data: booking_requests_insert_input!) {
+  insert_booking_requests_one(object: $data) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    special_requirements
+    amount
+    currency
+    payment_status
+    created_at
+  }
+}
+
+# =====================================================
+# Mutation 2: Update Booking Request
+# Updates an existing booking request
+# =====================================================
+mutation UpdateBookingRequest($id: uuid!, $data: booking_requests_set_input!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    maid_id
+    sponsor_id
+    status
+    start_date
+    end_date
+    message
+    special_requirements
+    amount
+    currency
+    payment_status
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 3: Update Booking Status
+# Updates only the status of a booking
+# =====================================================
+mutation UpdateBookingStatus($id: uuid!, $status: String!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: $status, updated_at: "now()"}
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 4: Accept Booking Request
+# Accepts a booking and sets responded_at timestamp
+# =====================================================
+mutation AcceptBookingRequest($id: uuid!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: "accepted", responded_at: "now()", updated_at: "now()"}
+  ) {
+    id
+    status
+    responded_at
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 5: Reject Booking Request
+# Rejects a booking with optional rejection reason
+# =====================================================
+mutation RejectBookingRequest($id: uuid!, $rejectionReason: String) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      status: "rejected"
+      rejection_reason: $rejectionReason
+      responded_at: "now()"
+      updated_at: "now()"
+    }
+  ) {
+    id
+    status
+    rejection_reason
+    responded_at
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 6: Cancel Booking Request
+# Cancels a booking request
+# =====================================================
+mutation CancelBookingRequest($id: uuid!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: "cancelled", updated_at: "now()"}
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 7: Complete Booking Request
+# Marks a booking as completed
+# =====================================================
+mutation CompleteBookingRequest($id: uuid!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: "completed", updated_at: "now()"}
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 8: Update Payment Status
+# Updates payment information for a booking
+# =====================================================
+mutation UpdateBookingPayment(
+  $id: uuid!
+  $paymentStatus: String!
+  $paymentMethod: String
+  $paymentReference: String
+) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      payment_status: $paymentStatus
+      payment_method: $paymentMethod
+      payment_reference: $paymentReference
+      payment_date: "now()"
+      updated_at: "now()"
+    }
+  ) {
+    id
+    payment_status
+    payment_method
+    payment_date
+    payment_reference
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 9: Delete Booking Request
+# Deletes a booking request
+# =====================================================
+mutation DeleteBookingRequest($id: uuid!) {
+  delete_booking_requests_by_pk(id: $id) {
+    id
+    status
+  }
+}
+
+# =====================================================
+# Mutation 10: Bulk Update Booking Status
+# Updates status for multiple bookings at once
+# =====================================================
+mutation BulkUpdateBookingStatus($ids: [uuid!]!, $status: String!) {
+  update_booking_requests(
+    where: {id: {_in: $ids}}
+    _set: {status: $status, updated_at: "now()"}
+  ) {
+    affected_rows
+    returning {
+      id
+      status
+      updated_at
+    }
+  }
+}
+
+# =====================================================
+# Mutation 11: Reschedule Booking
+# Updates booking dates
+# =====================================================
+mutation RescheduleBooking($id: uuid!, $startDate: date!, $endDate: date!) {
+  update_booking_requests_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      start_date: $startDate
+      end_date: $endDate
+      status: "rescheduled"
+      updated_at: "now()"
+    }
+  ) {
+    id
+    start_date
+    end_date
+    status
+    updated_at
+  }
+}

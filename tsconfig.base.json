@@ -16,6 +16,30 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@ethiopian-maids-monorepo/source"]
+    "baseUrl": ".",
+    "customConditions": ["@ethiopian-maids-monorepo/source"],
+    "paths": {
+      "@ethio/utils": ["packages/utils/src/index.ts"],
+      "@ethio/api-client": ["packages/api-client/src/index.ts"],
+      "@ethio/app": ["packages/app/src/index.ts"],
+      "@ethio/ui-shared": ["packages/ui-shared/src/index.ts"],
+      "@ethio/ui-web": ["packages/ui-web/src/index.ts"],
+      "@ethio/ui-native": ["packages/ui-native/src/index.ts"],
+      "@ethio/domain-auth": ["packages/domain/auth/src/index.ts"],
+      "@ethio/domain-identity": ["packages/domain/identity/src/index.ts"],
+      "@ethio/domain-profiles": ["packages/domain/profiles/src/index.ts"],
+      "@ethio/domain-jobs": ["packages/domain/jobs/src/index.ts"],
+      "@ethio/domain-communications": ["packages/domain/communications/src/index.ts"],
+      "@ethio/domain-payments": ["packages/domain/payments/src/index.ts"],
+      "@ethio/domain-chat": ["packages/domain/chat/src/index.ts"],
+      "@ethio/app-identity": ["packages/app/identity/src/index.ts"],
+      "@ethio/app-profiles": ["packages/app/profiles/src/index.ts"],
+      "@ethio/app-jobs": ["packages/app/jobs/src/index.ts"],
+      "@ethio/app-communications": ["packages/app/communications/src/index.ts"],
+      "@ethio/infra-web-identity": ["packages/infra/web/identity/src/index.ts"],
+      "@ethio/infra-web-profiles": ["packages/infra/web/profiles/src/index.ts"],
+      "@ethio/infra-web-jobs": ["packages/infra/web/jobs/src/index.ts"],
+      "@ethio/infra-web-communications": ["packages/infra/web/communications/src/index.ts"]
+    }
   }
 }

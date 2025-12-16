@@ -1,0 +1,190 @@
+# ============================================================================
+# AGENCIES QUERIES
+# GraphQL queries for agency profiles management
+# ============================================================================
+
+# Get complete agency profile with all details
+query GetAgencyProfileComplete($id: String!) {
+  agency_profiles_by_pk(id: $id) {
+    id
+    full_name
+    license_number
+    registration_country
+    established_year
+    business_address
+    business_phone
+    business_email
+    website_url
+    contact_person_name
+    contact_person_title
+    head_office_address
+    agency_description
+    support_hours_start
+    support_hours_end
+    emergency_contact_phone
+
+    # Authorized person details
+    authorized_person_name
+    authorized_person_position
+    authorized_person_phone
+    authorized_person_email
+    authorized_person_id_number
+
+    # Verification fields
+    contact_phone_verified
+    official_email_verified
+    authorized_person_phone_verified
+    authorized_person_email_verified
+
+    # Service information
+    specialization
+    service_countries
+    placement_fee_percentage
+    guarantee_period_months
+
+    # Verification & Credentials
+    license_verified
+    accreditation_bodies
+    certifications
+    license_expiry_date
+
+    # Business Metrics
+    total_maids_managed
+    successful_placements
+    active_listings
+    average_rating
+
+    # Subscription
+    subscription_tier
+    subscription_expires_at
+
+    # Document URLs
+    logo_url
+    logo_file_preview
+    trade_license_document
+    authorized_person_id_document
+    agency_contract_template
+
+    # Verification statuses
+    trade_license_verification_status
+    authorized_person_id_verification_status
+    contract_template_verification_status
+
+    created_at
+    updated_at
+  }
+}
+
+# Get agency profile (basic info)
+query GetAgencyProfile($id: String!) {
+  agency_profiles_by_pk(id: $id) {
+    id
+    full_name
+    license_number
+    registration_country
+    business_phone
+    business_email
+    website_url
+    agency_description
+    specialization
+    service_countries
+    average_rating
+    total_maids_managed
+    successful_placements
+    active_listings
+    subscription_tier
+    created_at
+    updated_at
+  }
+}
+
+# List agency profiles with pagination and filtering
+query ListAgencyProfiles(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: agency_profiles_bool_exp
+  $orderBy: [agency_profiles_order_by!] = [{created_at: desc}]
+) {
+  agency_profiles(
+    limit: $limit
+    offset: $offset
+    where: $where
+    order_by: $orderBy
+  ) {
+    id
+    full_name
+    license_number
+    registration_country
+    business_phone
+    website_url
+    specialization
+    service_countries
+    average_rating
+    total_maids_managed
+    successful_placements
+    license_verified
+    subscription_tier
+    created_at
+  }
+
+  agency_profiles_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Get agency settings (for settings page)
+query GetAgencySettings($id: String!) {
+  agency_profiles_by_pk(id: $id) {
+    id
+    full_name
+    business_phone
+    business_email
+    website_url
+    agency_description
+    head_office_address
+    support_hours_start
+    support_hours_end
+    emergency_contact_phone
+    authorized_person_name
+    authorized_person_position
+    authorized_person_phone
+    authorized_person_email
+    contact_phone_verified
+    official_email_verified
+    authorized_person_phone_verified
+    authorized_person_email_verified
+    logo_url
+    created_at
+    updated_at
+  }
+}
+
+# Search agencies by name or location
+query SearchAgencies(
+  $searchTerm: String!
+  $limit: Int = 10
+) {
+  agency_profiles(
+    where: {
+      _or: [
+        {full_name: {_ilike: $searchTerm}}
+        {registration_country: {_ilike: $searchTerm}}
+        {service_countries: {_contains: [$searchTerm]}}
+      ]
+      license_verified: {_eq: true}
+    }
+    limit: $limit
+    order_by: [{average_rating: desc_nulls_last}, {created_at: desc}]
+  ) {
+    id
+    full_name
+    registration_country
+    average_rating
+    total_maids_managed
+    successful_placements
+    specialization
+    service_countries
+  }
+}

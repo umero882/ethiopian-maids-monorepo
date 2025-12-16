@@ -1,0 +1,491 @@
+# ============================================
+# Relay-Style Connection Queries
+# ============================================
+# These queries use Hasura's Relay connection pattern with cursor-based pagination
+# Benefits:
+# - Type-safe pagination with TypeScript
+# - Better performance with cursor-based navigation
+# - Standard GraphQL Relay specification
+# - Handles base64-encoded IDs properly
+
+# Get all profiles with Relay connection
+query GetAllProfilesConnection(
+  $first: Int
+  $after: String
+  $where: profiles_bool_exp
+  $order_by: [profiles_order_by!]
+) {
+  profiles_connection(
+    first: $first
+    after: $after
+    where: $where
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        name
+        email
+        phone
+        user_type
+        avatar_url
+        country
+        location
+        created_at
+        updated_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Get maid profiles with Relay connection
+query GetMaidProfilesConnection(
+  $first: Int
+  $after: String
+  $where: maid_profiles_bool_exp
+  $order_by: [maid_profiles_order_by!]
+) {
+  maid_profiles_connection(
+    first: $first
+    after: $after
+    where: $where
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        user_id
+        first_name
+        middle_name
+        last_name
+        full_name
+        date_of_birth
+        marital_status
+        nationality
+        country
+        current_location
+        street_address
+        suburb
+        state_province
+        languages
+        profile_photo_url
+        primary_profession
+        primary_profession_other
+        visa_status
+        current_visa_status
+        skills
+        special_skills
+        experience_years
+        key_responsibilities
+        preferred_salary_min
+        preferred_salary_max
+        preferred_currency
+        availability_status
+        available_from
+        about_me
+        additional_services
+        work_preferences
+        introduction_video_url
+        phone_number
+        phone_country_code
+        education_level
+        religion
+        children_count
+        created_at
+        updated_at
+        # Nested profile data
+        profile {
+          id
+          email
+          name
+          phone
+          avatar_url
+          user_type
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Get available maids with Relay connection
+query GetAvailableMaidsConnection(
+  $first: Int
+  $after: String
+  $order_by: [maid_profiles_order_by!]
+) {
+  maid_profiles_connection(
+    first: $first
+    after: $after
+    where: { availability_status: { _eq: "available" } }
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        user_id
+        full_name
+        profile_photo_url
+        nationality
+        country
+        current_location
+        languages
+        primary_profession
+        skills
+        special_skills
+        experience_years
+        preferred_salary_min
+        preferred_salary_max
+        preferred_currency
+        availability_status
+        available_from
+        about_me
+        introduction_video_url
+        average_rating
+        total_reviews
+        profile {
+          id
+          email
+          avatar_url
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Get sponsor profiles with Relay connection
+query GetSponsorProfilesConnection(
+  $first: Int
+  $after: String
+  $where: sponsor_profiles_bool_exp
+  $order_by: [sponsor_profiles_order_by!]
+) {
+  sponsor_profiles_connection(
+    first: $first
+    after: $after
+    where: $where
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        user_id
+        full_name
+        household_size
+        number_of_children
+        children_ages
+        elderly_care_needed
+        pets
+        pet_types
+        city
+        country
+        address
+        phone_number
+        religion
+        accommodation_type
+        preferred_nationality
+        preferred_experience_years
+        required_skills
+        preferred_languages
+        salary_budget_min
+        salary_budget_max
+        currency
+        live_in_required
+        working_hours_per_day
+        days_off_per_week
+        overtime_available
+        additional_benefits
+        created_at
+        updated_at
+        # Nested profile data
+        profile {
+          id
+          email
+          name
+          phone
+          avatar_url
+          user_type
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Get agency profiles with Relay connection
+query GetAgencyProfilesConnection(
+  $first: Int
+  $after: String
+  $where: agency_profiles_bool_exp
+  $order_by: [agency_profiles_order_by!]
+) {
+  agency_profiles_connection(
+    first: $first
+    after: $after
+    where: $where
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        user_id
+        agency_name
+        agency_description
+        license_number
+        license_expiry_date
+        business_email
+        business_phone
+        address
+        city
+        country
+        website_url
+        logo_url
+        authorized_person_name
+        authorized_person_email
+        authorized_person_phone
+        service_countries
+        specialization
+        total_maids
+        active_listings
+        successful_placements
+        average_rating
+        verification_status
+        verified
+        created_at
+        updated_at
+        # Nested profile data
+        profile {
+          id
+          email
+          name
+          phone
+          avatar_url
+          user_type
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Get single profile by ID (no pagination needed)
+# Note: Hasura uses base64-encoded IDs for Relay connections
+query GetProfileById($id: ID!) {
+  node(id: $id) {
+    ... on profiles {
+      id
+      name
+      email
+      phone
+      user_type
+      avatar_url
+      country
+      location
+      created_at
+      updated_at
+    }
+  }
+}
+
+# Get maid profile with full details by connection ID
+query GetMaidProfileById($id: ID!) {
+  node(id: $id) {
+    ... on maid_profiles {
+      id
+      user_id
+      first_name
+      middle_name
+      last_name
+      full_name
+      date_of_birth
+      marital_status
+      nationality
+      country
+      current_location
+      street_address
+      suburb
+      state_province
+      languages
+      profile_photo_url
+      primary_profession
+      primary_profession_other
+      visa_status
+      current_visa_status
+      skills
+      special_skills
+      experience_years
+      key_responsibilities
+      preferred_salary_min
+      preferred_salary_max
+      preferred_currency
+      availability_status
+      available_from
+      about_me
+      additional_services
+      work_preferences
+      introduction_video_url
+      phone_number
+      phone_country_code
+      education_level
+      religion
+      children_count
+      created_at
+      updated_at
+      profile {
+        id
+        email
+        name
+        phone
+        avatar_url
+        user_type
+      }
+    }
+  }
+}
+
+# Search profiles with filters and cursor pagination
+query SearchProfilesConnection(
+  $first: Int = 20
+  $after: String
+  $searchTerm: String
+  $userType: String
+  $country: String
+  $order_by: [profiles_order_by!] = [{ created_at: desc }]
+) {
+  profiles_connection(
+    first: $first
+    after: $after
+    where: {
+      _and: [
+        { user_type: { _eq: $userType } }
+        {
+          _or: [
+            { name: { _ilike: $searchTerm } }
+            { email: { _ilike: $searchTerm } }
+            { location: { _ilike: $searchTerm } }
+          ]
+        }
+        { country: { _eq: $country } }
+      ]
+    }
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        name
+        email
+        phone
+        user_type
+        avatar_url
+        country
+        location
+        created_at
+        updated_at
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+
+# Search available maids with advanced filters
+query SearchAvailableMaidsConnection(
+  $first: Int = 20
+  $after: String
+  $nationality: String
+  $minExperience: Int
+  $maxSalary: Int
+  $languages: [String!]
+  $skills: jsonb
+  $order_by: [maid_profiles_order_by!] = [{ created_at: desc }]
+) {
+  maid_profiles_connection(
+    first: $first
+    after: $after
+    where: {
+      _and: [
+        { availability_status: { _eq: "available" } }
+        { nationality: { _eq: $nationality } }
+        { experience_years: { _gte: $minExperience } }
+        { preferred_salary_max: { _lte: $maxSalary } }
+        { languages: { _has_keys_any: $languages } }
+        { skills: { _contains: $skills } }
+      ]
+    }
+    order_by: $order_by
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        user_id
+        full_name
+        profile_photo_url
+        nationality
+        country
+        current_location
+        languages
+        primary_profession
+        skills
+        special_skills
+        experience_years
+        preferred_salary_min
+        preferred_salary_max
+        preferred_currency
+        availability_status
+        about_me
+        average_rating
+        total_reviews
+        profile {
+          id
+          email
+          avatar_url
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}

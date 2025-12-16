@@ -1,0 +1,433 @@
+# Job queries for GraphQL API
+# Following the successful pattern from maids and profiles migrations
+
+# Get complete job details with all relationships
+query GetJobComplete($id: uuid!) {
+  jobs_by_pk(id: $id) {
+    # Basic Information
+    id
+    title
+    description
+
+    # Job Details
+    job_type
+    country
+    city
+    address
+
+    # Requirements
+    required_skills
+    preferred_nationality
+    languages_required
+    minimum_experience_years
+    age_preference_min
+    age_preference_max
+    education_requirement
+
+    # Work Conditions
+    working_hours_per_day
+    working_days_per_week
+    days_off_per_week
+    overtime_available
+    live_in_required
+
+    # Salary & Benefits
+    salary_min
+    salary_max
+    currency
+    salary_period
+    benefits
+
+    # Contract Details
+    contract_duration_months
+    start_date
+    end_date
+    probation_period_months
+
+    # Status & Management
+    status
+    urgency_level
+    max_applications
+    auto_expire_days
+    requires_approval
+    featured
+    featured_until
+    expires_at
+
+    # Metadata
+    applications_count
+    views_count
+
+    # Timestamps
+    created_at
+    updated_at
+
+    # Sponsor Relationship
+    sponsor_profile {
+      id
+      full_name
+      phone_number
+      avatar_url
+      country
+    }
+
+    # Applications for this job (if user is sponsor)
+    applications(order_by: { created_at: desc }, limit: 50) {
+      id
+      status
+      application_status
+      cover_letter
+      notes
+      match_score
+      offer_amount
+      offer_currency
+      created_at
+      updated_at
+
+      # Maid who applied
+      maid_profile {
+        id
+        first_name
+        last_name
+        profile_photo_url
+        verification_status
+      }
+    }
+  }
+}
+
+# List jobs with filtering and pagination
+query GetJobsWithFilters(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: jobs_bool_exp
+  $orderBy: [jobs_order_by!] = [{ created_at: desc }]
+) {
+  # Main data
+  jobs(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    title
+    description
+    job_type
+    country
+    city
+    required_skills
+    languages_required
+    salary_min
+    salary_max
+    currency
+    salary_period
+    status
+    urgency_level
+    applications_count
+    views_count
+    featured
+    expires_at
+    created_at
+    live_in_required
+
+    # Sponsor info for list view
+    sponsor_profile {
+      id
+      full_name
+      avatar_url
+    }
+  }
+
+  # Total count for pagination
+  jobs_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Get jobs posted by a specific sponsor
+query GetSponsorJobs(
+  $sponsorId: String!
+  $status: String
+  $limit: Int = 50
+  $offset: Int = 0
+  $orderBy: [jobs_order_by!] = [{ created_at: desc }]
+) {
+  jobs(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      _and: [
+        { status: { _eq: $status } }
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    title
+    description
+    job_type
+    country
+    city
+    status
+    salary_min
+    salary_max
+    currency
+    applications_count
+    views_count
+    featured
+    created_at
+    updated_at
+  }
+
+  jobs_aggregate(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      _and: [
+        { status: { _eq: $status } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Get job applications for a specific job
+query GetJobApplications($jobId: uuid!) {
+  applications(
+    where: { job_id: { _eq: $jobId } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    status
+    application_status
+    cover_letter
+    notes
+    match_score
+    offer_amount
+    offer_currency
+    created_at
+    updated_at
+
+    # Maid who applied
+    maid_profile {
+      id
+      first_name
+      last_name
+      profile_photo_url
+      verification_status
+    }
+
+    # Job details
+    job {
+      id
+      title
+      sponsor_id
+    }
+  }
+}
+
+# Get applications submitted by a maid
+query GetMaidApplications(
+  $maidId: String!
+  $status: String
+  $limit: Int = 50
+  $offset: Int = 0
+) {
+  applications(
+    where: {
+      maid_id: { _eq: $maidId }
+      _and: [
+        { status: { _eq: $status } }
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+  ) {
+    id
+    status
+    application_status
+    cover_letter
+    notes
+    match_score
+    offer_amount
+    offer_currency
+    created_at
+    updated_at
+
+    # Job details
+    job {
+      id
+      title
+      description
+      country
+      city
+      job_type
+      salary_min
+      salary_max
+      currency
+      status
+
+      # Sponsor who posted
+      sponsor_profile {
+        id
+        full_name
+        avatar_url
+      }
+    }
+  }
+
+  applications_aggregate(
+    where: {
+      maid_id: { _eq: $maidId }
+      _and: [
+        { status: { _eq: $status } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Get a single application by ID
+query GetApplicationById($id: uuid!) {
+  applications_by_pk(id: $id) {
+    id
+    status
+    application_status
+    cover_letter
+    notes
+    match_score
+    offer_amount
+    offer_currency
+    created_at
+    updated_at
+
+    # Maid
+    maid_profile {
+      id
+      first_name
+      last_name
+      profile_photo_url
+      verification_status
+    }
+
+    # Job
+    job {
+      id
+      title
+      description
+      country
+      city
+      salary_min
+      salary_max
+      currency
+      status
+      sponsor_id
+
+      # Sponsor
+      sponsor_profile {
+        id
+        full_name
+        avatar_url
+      }
+    }
+  }
+}
+
+# Get sponsor job statistics
+query GetSponsorJobStats($sponsorId: String!) {
+  # All jobs
+  all_jobs: jobs_aggregate(
+    where: { sponsor_id: { _eq: $sponsorId } }
+  ) {
+    aggregate {
+      count
+      sum {
+        applications_count
+        views_count
+      }
+    }
+  }
+
+  # Active jobs
+  active_jobs: jobs_aggregate(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      status: { _eq: "active" }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Draft jobs
+  draft_jobs: jobs_aggregate(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      status: { _eq: "draft" }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Filled jobs
+  filled_jobs: jobs_aggregate(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      status: { _eq: "filled" }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Legacy compatibility query - simple job list
+query GetAvailableJobs(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: jobs_bool_exp
+) {
+  jobs(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+  ) {
+    id
+    title
+    description
+    country
+    city
+    job_type
+    salary_min
+    salary_max
+    currency
+    status
+    created_at
+
+    sponsor_profile {
+      id
+      full_name
+    }
+  }
+
+  jobs_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

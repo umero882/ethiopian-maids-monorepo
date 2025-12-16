@@ -1,0 +1,864 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
+import { countryService } from '@/services/countryService';
+import CountrySelect from '@/components/ui/CountrySelect';
+import { auth } from '@/lib/firebaseClient';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useFirebasePhoneAuth, PHONE_VERIFICATION_STATES } from '@/hooks/useFirebasePhoneAuth';
+import {
+  User,
+  Mail,
+  Lock,
+  Phone,
+  MapPin,
+  Building,
+  Heart,
+  Loader2,
+  Shield,
+  Check,
+  ArrowLeft,
+  UserPlus,
+} from 'lucide-react';
+
+// Country code to dial code mapping
+const COUNTRY_DIAL_CODES = {
+  'AE': '+971',
+  'SA': '+966',
+  'KW': '+965',
+  'QA': '+974',
+  'BH': '+973',
+  'OM': '+968',
+  'ET': '+251',
+  'PH': '+63',
+  'ID': '+62',
+  'LK': '+94',
+  'IN': '+91',
+  'US': '+1',
+  'GB': '+44',
+};
+
+const Register = () => {
+  const { register, user } = useAuth();
+  const navigate = useNavigate();
+  const [userType, setUserType] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    country: '',
+    userType: '',
+  });
+
+  // Firebase Phone Auth hook
+  const {
+    state: phoneAuthState,
+    isSending: isSendingCode,
+    isCodeSent,
+    isVerifying: isVerifyingPhone,
+    isVerified: phoneVerified,
+    hasError: phoneAuthError,
+    error: phoneAuthErrorMessage,
+    sendVerificationCode: sendFirebaseOTP,
+    verifyCode: verifyFirebaseOTP,
+    resendCode: resendFirebaseOTP,
+    reset: resetPhoneAuth,
+    changePhoneNumber: changePhone,
+  } = useFirebasePhoneAuth({
+    buttonId: 'phone-verify-button',
+    onVerificationComplete: (verifiedPhone) => {
+      toast({
+        title: 'Phone Verified',
+        description: 'Your phone number has been successfully verified!',
+      });
+    },
+    onError: (error) => {
+      console.error('Phone verification error:', error);
+    },
+  });
+
+  // Map hook state to component state for compatibility
+  const phoneVerificationStep = phoneVerified ? 'verified' : (isCodeSent ? 'verify' : 'input');
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        setIsLoadingCountries(true);
+        const countriesData = await countryService.getActiveCountries();
+        setCountries(countriesData);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+        toast({
+          title: 'Error Loading Countries',
+          description: 'Could not load country list. Please refresh the page.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  const userTypes = [
+    {
+      type: 'sponsor',
+      title: 'Family/Sponsor',
+      description: 'Looking to hire domestic workers',
+      icon: '/images/Registration icon/sponsor-new.png',
+      color: 'from-blue-500 to-cyan-500',
+    },
+    {
+      type: 'maid',
+      title: 'Domestic Worker',
+      description: 'Seeking employment opportunities',
+      icon: '/images/Registration icon/maid-new.png',
+      color: 'from-purple-500 to-pink-500',
+    },
+    {
+      type: 'agency',
+      title: 'Recruitment Agency',
+      description: 'Connecting workers with families',
+      icon: '/images/Registration icon/agency-new.png',
+      color: 'from-green-500 to-emerald-500',
+    },
+  ];
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleUserTypeSelect = (type) => {
+    setUserType(type);
+    setFormData({
+      ...formData, // Keep existing data
+      userType: type, // Only update userType
+    });
+  };
+
+  // Format phone number to E.164 format
+  const formatPhoneToE164 = useCallback((phone, countryCode) => {
+    if (!phone) return null;
+
+    let cleaned = phone.trim();
+
+    // If already in E.164 format, return as is
+    if (cleaned.startsWith('+') && cleaned.length > 10) {
+      return cleaned;
+    }
+
+    // Remove any non-digit characters except +
+    cleaned = cleaned.replace(/[^\d+]/g, '');
+
+    // If starts with +, validate it
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+
+    // Get dial code from country
+    const dialCode = COUNTRY_DIAL_CODES[countryCode] || COUNTRY_DIAL_CODES['AE'];
+
+    // Remove leading 0 if present (common in local formats)
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.substring(1);
+    }
+
+    return `${dialCode}${cleaned}`;
+  }, []);
+
+  // Validate phone number format
+  const isValidE164 = useCallback((phone) => {
+    if (!phone) return false;
+    const e164Regex = /^\+[1-9]\d{1,14}$/;
+    return e164Regex.test(phone);
+  }, []);
+
+  // Mask phone number for display
+  const maskPhoneNumber = useCallback((phone) => {
+    if (!phone || phone.length < 8) return phone;
+    const lastFour = phone.slice(-4);
+    const countryCode = phone.slice(0, phone.length - 7);
+    return `${countryCode}***${lastFour}`;
+  }, []);
+
+  const handleSendVerificationCode = async () => {
+    if (!formData.phone) {
+      toast({
+        title: 'Phone Number Required',
+        description: 'Please enter your phone number first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Format phone number to E.164 format
+    const countryCode = formData.country || 'AE';
+    const formattedPhone = formatPhoneToE164(formData.phone, countryCode);
+
+    if (!isValidE164(formattedPhone)) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Please enter a valid phone number (e.g., 501234567 for UAE)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Update form data with formatted phone number
+    setFormData({ ...formData, phone: formattedPhone });
+
+    // Send OTP using Firebase Phone Auth
+    const success = await sendFirebaseOTP(formattedPhone);
+
+    if (success) {
+      toast({
+        title: 'Verification Code Sent',
+        description: `Please check your phone at ${maskPhoneNumber(formattedPhone)} for the verification code.`,
+      });
+    } else if (phoneAuthErrorMessage) {
+      toast({
+        title: 'Failed to Send Code',
+        description: phoneAuthErrorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast({
+        title: 'Invalid Code',
+        description: 'Please enter the 6-digit verification code.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Verify OTP using Firebase Phone Auth
+    const success = await verifyFirebaseOTP(verificationCode);
+
+    if (!success && phoneAuthErrorMessage) {
+      toast({
+        title: 'Verification Failed',
+        description: phoneAuthErrorMessage,
+        variant: 'destructive',
+      });
+    }
+    // Success toast is handled by the hook's onVerificationComplete callback
+  };
+
+  const handleResendCode = async () => {
+    // Clear the input field
+    setVerificationCode('');
+
+    // Resend OTP using Firebase Phone Auth
+    const success = await resendFirebaseOTP();
+
+    if (success) {
+      toast({
+        title: 'Code Resent',
+        description: `A new verification code has been sent to ${maskPhoneNumber(formData.phone)}`,
+      });
+    } else if (phoneAuthErrorMessage) {
+      toast({
+        title: 'Failed to Resend Code',
+        description: phoneAuthErrorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Handle going back from verification step
+  const handleBackFromVerification = () => {
+    resetPhoneAuth();
+    setVerificationCode('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!userType) {
+      toast({
+        title: 'User Type Required',
+        description: 'Please select your user type to continue.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: 'Password Mismatch',
+        description: 'Passwords do not match. Please try again.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Enhanced password validation - minimum 8 characters
+    if (formData.password.length < 8) {
+      toast({
+        title: 'Password Too Short',
+        description: 'Password must be at least 8 characters long.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Check for password complexity (at least one uppercase, one lowercase, one number)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      toast({
+        title: 'Weak Password',
+        description: 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!phoneVerified) {
+      toast({
+        title: 'Phone Verification Required',
+        description:
+          'Please verify your phone number before creating your account.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Register user with verified phone
+      const registrationData = {
+        ...formData,
+        phoneVerified: true,
+      };
+
+      const result = await register(registrationData);
+
+      // Check if email verification is required
+      if (result && result.needsVerification) {
+        toast({
+          title: 'Email Verification Required',
+          description: 'Please check your email to verify your account.',
+        });
+        navigate('/verify-email');
+        return;
+      }
+
+      toast({
+        title: 'Registration Successful',
+        description: 'Welcome! Your account has been created successfully.',
+      });
+      // AuthContext's useEffect and ProtectedRouteInner will handle navigation
+    } catch (error) {
+      console.error('Registration error:', error);
+
+      // Provide contextual error recovery guidance
+      let errorTitle = 'We couldn\'t create your account';
+      let errorDescription = error.message || 'Please try again.';
+      let action = null;
+
+      if (error.message.includes('email') && error.message.includes('already')) {
+        errorTitle = 'Email already registered';
+        errorDescription = 'This email is already associated with an account. Try signing in instead.';
+        action = {
+          altText: 'Sign in instead',
+          action: () => navigate('/login')
+        };
+      } else if (error.message.includes('network') || error.message.includes('connection')) {
+        errorTitle = 'Check your internet connection';
+        errorDescription = 'Unable to connect to the server. Please check your network connection and try again.';
+      } else if (error.message.includes('password')) {
+        errorTitle = 'Password issue';
+        errorDescription = 'Please check that your password meets our requirements and try again.';
+      } else if (error.message.includes('phone')) {
+        errorTitle = 'Phone number issue';
+        errorDescription = 'There\'s an issue with your phone number. Please verify and try again.';
+      } else if (error.message.includes('validation')) {
+        errorTitle = 'Please complete all fields';
+        errorDescription = 'Please check that all required fields are filled correctly.';
+      }
+
+      toast({
+        title: errorTitle,
+        description: errorDescription,
+        variant: 'destructive',
+        action
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider) => {
+    try {
+      // Only Google OAuth is supported via Firebase
+      if (provider === 'google') {
+        const googleProvider = new GoogleAuthProvider();
+        await signInWithPopup(auth, googleProvider);
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: 'Not Available',
+          description: `${provider} login is not currently available. Please use email or Google sign-in.`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error(`${provider} login error:`, error);
+      toast({
+        title: 'Login Failed',
+        description: error.message || `Could not sign in with ${provider}. Please try again.`,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center py-12 px-4'>
+      <div className='max-w-md w-full'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className='text-center mb-8'
+        >
+          {/* Ethiopian Maids Logo */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className='flex justify-center mb-6'
+          >
+            <img
+              src='/images/logo/ethiopian-maids-logo.png'
+              alt='Ethiopian Maids'
+              className='h-20 w-auto drop-shadow-2xl'
+            />
+          </motion.div>
+
+          <h1 className='text-4xl font-bold text-white mb-4'>
+            Welcome to{' '}
+            <span className='text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400'>
+              Ethiopian Maids
+            </span>
+          </h1>
+          <p className='text-xl text-gray-200'>
+            Create your account to get started
+          </p>
+        </motion.div>
+
+        {!userType ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Card className='glass-effect border-white/20'>
+              <CardHeader className='text-center'>
+                <CardTitle className='text-2xl text-white'>
+                  Choose Your Account Type
+                </CardTitle>
+                <CardDescription className='text-gray-200'>
+                  Select the option that best describes you
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='grid grid-cols-1 gap-3'>
+                  {userTypes.map((type, index) => {
+                    return (
+                      <motion.div
+                        key={type.type}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.05 }}
+                        onClick={() => handleUserTypeSelect(type.type)}
+                        className='cursor-pointer group'
+                      >
+                        <Card className='h-full card-hover border-white/20 bg-white/5 group-hover:bg-white/10 transition-all duration-300'>
+                          <CardContent className='p-4 flex items-center'>
+                            <div
+                              className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${type.color} rounded-lg overflow-hidden flex-shrink-0`}
+                            >
+                              <img
+                                src={type.icon}
+                                alt={`${type.title} icon`}
+                                className='w-full h-full object-cover'
+                              />
+                            </div>
+                            <div className='ml-4 text-left'>
+                              <h3 className='text-lg font-bold text-white mb-1'>
+                                {type.title}
+                              </h3>
+                              <p className='text-gray-300 text-sm'>
+                                {type.description}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Card className='glass-effect border-white/20'>
+              <CardHeader className='text-center'>
+                <CardTitle className='text-2xl text-white'>
+                  Create Your{' '}
+                  {userTypes.find((t) => t.type === userType)?.title} Account
+                </CardTitle>
+                <CardDescription className='text-gray-200'>
+                  Fill in your details to get started
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className='space-y-4'>
+                  <div className='relative'>
+                    <User className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
+                    <Input
+                      type='text'
+                      name='name'
+                      placeholder='Full Name'
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className='pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-300'
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div className='relative'>
+                    <Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
+                    <Input
+                      type='email'
+                      name='email'
+                      placeholder='Email Address'
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className='pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-300'
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <PasswordInput
+                      name='password'
+                      placeholder='Password (min. 8 characters)'
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      showValidation={true}
+                      className='bg-white/10 border-white/20 text-white placeholder:text-gray-300 focus:border-white/40'
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <PasswordInput
+                      name='confirmPassword'
+                      placeholder='Confirm Password'
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required
+                      showValidation={false}
+                      className='bg-white/10 border-white/20 text-white placeholder:text-gray-300 focus:border-white/40'
+                      disabled={isSubmitting}
+                    />
+                    {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                      <p className='mt-1 text-xs text-red-300'>
+                        Passwords do not match
+                      </p>
+                    )}
+                  </div>
+
+                  <div className='space-y-2'>
+                    <div className='relative'>
+                      <Phone className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5' />
+                      <Input
+                        type='tel'
+                        name='phone'
+                        placeholder='Phone Number (e.g., 501234567)'
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        className='pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-300'
+                        disabled={
+                          isSubmitting || phoneVerified || isCodeSent
+                        }
+                      />
+                      {phoneVerified && (
+                        <Check className='absolute right-3 top-1/2 transform -translate-y-1/2 text-green-400 w-5 h-5' />
+                      )}
+                    </div>
+
+                    {phoneVerificationStep === 'input' && (
+                      <Button
+                        id='phone-verify-button'
+                        type='button'
+                        variant='secondary'
+                        size='sm'
+                        onClick={handleSendVerificationCode}
+                        disabled={isSendingCode || !formData.phone}
+                        className='w-full bg-[#596acd] text-white hover:bg-[#596acd]/90'
+                      >
+                        {isSendingCode ? (
+                          <>
+                            <Loader2 className='mr-2 h-3 w-3 animate-spin' />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Shield className='mr-2 h-3 w-3' />
+                            Verify Phone
+                          </>
+                        )}
+                      </Button>
+                    )}
+
+                    {phoneVerificationStep === 'verify' && (
+                      <div className='space-y-1.5'>
+                        <Input
+                          type='text'
+                          placeholder='6-digit code'
+                          value={verificationCode}
+                          onChange={(e) =>
+                            setVerificationCode(
+                              e.target.value.replace(/\D/g, '').slice(0, 6)
+                            )
+                          }
+                          maxLength={6}
+                          className='bg-white/10 border-white/20 text-white placeholder:text-gray-300 text-center tracking-widest'
+                          disabled={isVerifyingPhone}
+                        />
+                        <div className='flex gap-1.5'>
+                          <Button
+                            type='button'
+                            variant='secondary'
+                            size='sm'
+                            onClick={handleBackFromVerification}
+                            disabled={isVerifyingPhone}
+                            className='flex-1 bg-[#596acd] text-white hover:bg-[#596acd]/90'
+                          >
+                            <ArrowLeft className='mr-1 w-3 h-3' />
+                            Change
+                          </Button>
+                          <Button
+                            type='button'
+                            size='sm'
+                            onClick={handleVerifyCode}
+                            disabled={
+                              isVerifyingPhone ||
+                              verificationCode.length !== 6
+                            }
+                            className='flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                          >
+                            {isVerifyingPhone ? (
+                              <>
+                                <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                                Verifying...
+                              </>
+                            ) : (
+                              <>
+                                <Check className='mr-1 w-3 h-3' />
+                                Verify
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={handleResendCode}
+                          disabled={isSendingCode || isVerifyingPhone}
+                          className='w-full text-gray-300 hover:text-white hover:bg-white/10'
+                        >
+                          {isSendingCode ? (
+                            <>
+                              <Loader2 className='mr-1 h-3 w-3 animate-spin' />
+                              Resending...
+                            </>
+                          ) : (
+                            'Resend Code'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+
+                    {phoneVerified && (
+                      <div className='flex items-center gap-1.5 text-green-400 text-xs'>
+                        <Check className='w-3 h-3' />
+                        Verified
+                      </div>
+                    )}
+                  </div>
+
+                  <CountrySelect
+                    countries={countries}
+                    value={formData.country}
+                    onChange={(countryName) =>
+                      setFormData({ ...formData, country: countryName })
+                    }
+                    placeholder={
+                      isLoadingCountries
+                        ? 'Loading countries...'
+                        : 'Select your country'
+                    }
+                    disabled={isSubmitting || isLoadingCountries}
+                    isLoading={isLoadingCountries}
+                    showFlags={true}
+                    highlightGCC={true}
+                    searchable={true}
+                    className="w-full"
+                  />
+
+                  <div className='flex gap-2'>
+                    <Button
+                      type='button'
+                      variant='secondary'
+                      size='default'
+                      onClick={() => setUserType('')}
+                      className='flex-1 bg-[#596acd] text-white hover:bg-[#596acd]/90'
+                      disabled={isSubmitting}
+                    >
+                      <ArrowLeft className='mr-2 w-4 h-4' />
+                      Back
+                    </Button>
+                    <Button
+                      type='submit'
+                      size='default'
+                      className='flex-1 shadow-lg hover:shadow-xl'
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className='mr-2 w-4 h-4' />
+                          Create Account
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+
+                <div className='mt-4'>
+                  <div className='relative'>
+                    <div className='absolute inset-0 flex items-center'>
+                      <div className='w-full border-t border-white/20'></div>
+                    </div>
+                    <div className='relative flex justify-center text-sm'>
+                      <span className='px-2 bg-transparent text-gray-300'>
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className='mt-4 grid grid-cols-2 gap-3'>
+                    <Button
+                      variant='outline'
+                      className='w-full border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50 bg-white/5'
+                      disabled={isSubmitting}
+                      onClick={() => handleSocialLogin('google')}
+                    >
+                        <svg className='w-5 h-5 mr-2' viewBox='0 0 24 24'>
+                          <path
+                            fill='#4285F4'
+                            d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
+                          />
+                          <path
+                            fill='#34A853'
+                            d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
+                          />
+                          <path
+                            fill='#FBBC05'
+                            d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
+                          />
+                          <path
+                            fill='#EA4335'
+                            d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
+                          />
+                        </svg>
+                        Google
+                      </Button>
+                    <Button
+                      variant='outline'
+                      className='w-full border-white/30 text-white hover:bg-white/10 hover:text-white hover:border-white/50 bg-white/5'
+                      disabled={isSubmitting}
+                      onClick={() => handleSocialLogin('facebook')}
+                    >
+                        <svg className='w-5 h-5 mr-2' fill='#1877F2' viewBox='0 0 24 24'>
+                          <path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' />
+                        </svg>
+                        Facebook
+                      </Button>
+                  </div>
+                </div>
+
+                <div className='mt-4 text-center'>
+                  <p className='text-gray-300'>
+                    Already have an account?{' '}
+                    <Link
+                      to='/login'
+                      className={`text-purple-300 hover:text-white font-semibold transition-colors duration-200 hover:underline ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}
+                    >
+                      Sign in here
+                    </Link>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Register;

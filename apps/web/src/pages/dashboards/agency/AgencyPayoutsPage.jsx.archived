@@ -1,0 +1,632 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Wallet,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  XCircle,
+  DollarSign,
+  CreditCard,
+  Plus,
+  Download,
+  AlertTriangle,
+  Building2,
+  Star
+} from 'lucide-react';
+import AgencyDashboardService from '@/services/agencyDashboardService';
+import { useAuth } from '@/contexts/AuthContext';
+
+const AgencyPayoutsPage = () => {
+  const { user } = useAuth();
+  const agencyId = user?.id;
+
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Data state
+  const [balances, setBalances] = useState(null);
+  const [payouts, setPayouts] = useState([]);
+  const [earnings, setEarnings] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+
+  // Dialog states
+  const [isRequestPayoutDialogOpen, setIsRequestPayoutDialogOpen] = useState(false);
+  const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState(false);
+
+  // Form states
+  const [payoutForm, setPayoutForm] = useState({
+    amount: '',
+    account_id: ''
+  });
+
+  const [accountForm, setAccountForm] = useState({
+    account_type: 'bank_account',
+    account_holder_name: '',
+    bank_name: '',
+    account_number_last4: '',
+    bank_code: '',
+    currency: 'AED'
+  });
+
+  useEffect(() => {
+    loadData();
+  }, [agencyId]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!agencyId) {
+        setError('User not authenticated');
+        return;
+      }
+
+      const data = await AgencyDashboardService.getPayoutsDashboard(agencyId);
+      setBalances(data.balances);
+      setPayouts(data.payouts);
+      setEarnings(data.earnings);
+      setAccounts(data.accounts);
+    } catch (err) {
+      console.error('Failed to load payouts data:', err);
+      setError(err.message || 'Failed to load payouts data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRequestPayout = async () => {
+    try {
+      if (!payoutForm.amount || !payoutForm.account_id) {
+        setError('Please fill in all required fields');
+        return;
+      }
+
+      const amount = parseFloat(payoutForm.amount);
+      if (amount <= 0 || amount > balances.available) {
+        setError(`Invalid amount. Available: ${formatCurrency(balances.available)}`);
+        return;
+      }
+
+      await AgencyDashboardService.requestPayout(agencyId, amount, payoutForm.account_id);
+
+      setIsRequestPayoutDialogOpen(false);
+      setPayoutForm({ amount: '', account_id: '' });
+      loadData();
+    } catch (err) {
+      console.error('Failed to request payout:', err);
+      setError(err.message);
+    }
+  };
+
+  const handleAddAccount = async () => {
+    try {
+      await AgencyDashboardService.addPayoutAccount(agencyId, accountForm);
+
+      setIsAddAccountDialogOpen(false);
+      setAccountForm({
+        account_type: 'bank_account',
+        account_holder_name: '',
+        bank_name: '',
+        account_number_last4: '',
+        bank_code: '',
+        currency: 'AED'
+      });
+      loadData();
+    } catch (err) {
+      console.error('Failed to add account:', err);
+      setError(err.message);
+    }
+  };
+
+  const formatCurrency = (amount, currency = 'AED') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const config = {
+      pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      processing: { color: 'bg-blue-100 text-blue-800', icon: Clock },
+      completed: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      failed: { color: 'bg-red-100 text-red-800', icon: XCircle },
+      cancelled: { color: 'bg-gray-100 text-gray-800', icon: XCircle }
+    };
+
+    const { color, icon: Icon } = config[status] || config.pending;
+
+    return (
+      <Badge className={`${color} px-2 py-1 text-xs font-medium flex items-center space-x-1`}>
+        <Icon className="h-3 w-3" />
+        <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+      </Badge>
+    );
+  };
+
+  const getEarningTypeBadge = (type) => {
+    const colors = {
+      job_placement: 'bg-blue-100 text-blue-800',
+      subscription_fee: 'bg-purple-100 text-purple-800',
+      commission: 'bg-green-100 text-green-800',
+      referral: 'bg-orange-100 text-orange-800',
+      bonus: 'bg-pink-100 text-pink-800'
+    };
+
+    return (
+      <Badge className={`${colors[type] || 'bg-gray-100 text-gray-800'} px-2 py-1 text-xs`}>
+        {type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)}
+      </Badge>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Payouts & Earnings</h1>
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="h-20 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Payouts & Earnings</h1>
+          <p className="text-gray-600 mt-1">Manage your earnings and withdrawal requests</p>
+        </div>
+        <Button onClick={() => setIsRequestPayoutDialogOpen(true)} disabled={!balances || balances.available <= 0}>
+          <Wallet className="h-4 w-4 mr-2" />
+          Request Payout
+        </Button>
+      </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Balance Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Available Balance</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {formatCurrency(balances?.available || 0)}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Ready to withdraw</p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Balance</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {formatCurrency(balances?.pending || 0)}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Being processed</p>
+              </div>
+              <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Last 30 Days</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {formatCurrency(balances?.total_last_30_days || 0)}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Total earnings</p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="payouts">Payout History</TabsTrigger>
+          <TabsTrigger value="earnings">Earnings</TabsTrigger>
+          <TabsTrigger value="accounts">Payout Accounts</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* Recent Payouts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="h-5 w-5 mr-2" />
+                Recent Payouts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {payouts.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No payouts yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {payouts.slice(0, 5).map((payout) => (
+                    <div key={payout.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{payout.payout_number}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatDate(payout.requested_at)} • {payout.payout_method}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">{formatCurrency(payout.amount)}</p>
+                        {getStatusBadge(payout.status)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Earnings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Recent Earnings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {earnings.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No earnings yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {earnings.slice(0, 5).map((earning) => (
+                    <div key={earning.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        {getEarningTypeBadge(earning.source_type)}
+                        <p className="text-sm text-gray-600 mt-1">{earning.source_description}</p>
+                        <p className="text-xs text-gray-500">{formatDate(earning.created_at)}</p>
+                      </div>
+                      <p className="font-semibold text-lg text-green-600">
+                        +{formatCurrency(earning.amount)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payouts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Payout History</CardTitle>
+              <CardDescription>All your withdrawal requests and their status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {payouts.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No payouts yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {payouts.map((payout) => (
+                    <div key={payout.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="font-semibold">{payout.payout_number}</h3>
+                          {getStatusBadge(payout.status)}
+                        </div>
+                        <p className="text-xl font-bold">{formatCurrency(payout.amount)}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">Requested</p>
+                          <p className="font-medium">{formatDate(payout.requested_at)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Method</p>
+                          <p className="font-medium capitalize">{payout.payout_method.replace('_', ' ')}</p>
+                        </div>
+                        {payout.processing_fee > 0 && (
+                          <div>
+                            <p className="text-gray-600">Processing Fee</p>
+                            <p className="font-medium">{formatCurrency(payout.processing_fee)}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-gray-600">Net Amount</p>
+                          <p className="font-medium text-green-600">{formatCurrency(payout.net_amount)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="earnings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Earnings History</CardTitle>
+              <CardDescription>Detailed breakdown of your earnings from all sources</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {earnings.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No earnings yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {earnings.map((earning) => (
+                    <div key={earning.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          {getEarningTypeBadge(earning.source_type)}
+                          <Badge className={
+                            earning.status === 'available' ? 'bg-green-100 text-green-800' :
+                            earning.status === 'paid_out' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }>
+                            {earning.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        </div>
+                        <p className="text-xl font-bold text-green-600">+{formatCurrency(earning.amount)}</p>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-2">{earning.source_description}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatDate(earning.created_at)}
+                        {earning.available_at && ` • Available ${formatDate(earning.available_at)}`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="accounts" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setIsAddAccountDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {accounts.map((account) => (
+              <Card key={account.id} className={account.is_default ? 'ring-2 ring-blue-500' : ''}>
+                <CardContent className="p-6">
+                  {account.is_default && (
+                    <Badge className="mb-3 bg-blue-100 text-blue-800">
+                      <Star className="h-3 w-3 mr-1" />
+                      Default
+                    </Badge>
+                  )}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Building2 className="h-5 w-5 text-gray-400" />
+                        <h3 className="font-semibold">{account.account_holder_name}</h3>
+                      </div>
+                      {account.bank_name && (
+                        <p className="text-sm text-gray-600">{account.bank_name}</p>
+                      )}
+                      {account.account_number_last4 && (
+                        <p className="text-sm text-gray-600">****{account.account_number_last4}</p>
+                      )}
+                      <Badge className={
+                        account.is_verified ? 'bg-green-100 text-green-800 mt-2' : 'bg-yellow-100 text-yellow-800 mt-2'
+                      }>
+                        {account.is_verified ? 'Verified' : 'Pending Verification'}
+                      </Badge>
+                    </div>
+                    <CreditCard className="h-8 w-8 text-gray-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {accounts.length === 0 && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">No payout accounts added yet</p>
+                <Button onClick={() => setIsAddAccountDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Account
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Request Payout Dialog */}
+      <Dialog open={isRequestPayoutDialogOpen} onOpenChange={setIsRequestPayoutDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Payout</DialogTitle>
+            <DialogDescription>
+              Withdraw funds from your available balance
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Available Balance</Label>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(balances?.available || 0)}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount to Withdraw *</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={payoutForm.amount}
+                onChange={(e) => setPayoutForm(prev => ({ ...prev, amount: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="account">Payout Account *</Label>
+              <Select value={payoutForm.account_id} onValueChange={(value) => setPayoutForm(prev => ({ ...prev, account_id: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.account_holder_name} - ****{account.account_number_last4}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Alert>
+              <AlertDescription>
+                Processing fee: 2% • Estimated arrival: 1-3 business days
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRequestPayoutDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRequestPayout} disabled={!payoutForm.amount || !payoutForm.account_id}>
+              Request Payout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Account Dialog */}
+      <Dialog open={isAddAccountDialogOpen} onOpenChange={setIsAddAccountDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Payout Account</DialogTitle>
+            <DialogDescription>
+              Add a bank account or payment method to receive payouts
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Account Type</Label>
+              <Select value={accountForm.account_type} onValueChange={(value) => setAccountForm(prev => ({ ...prev, account_type: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank_account">Bank Account</SelectItem>
+                  <SelectItem value="stripe_connect">Stripe Connect</SelectItem>
+                  <SelectItem value="paypal">PayPal</SelectItem>
+                  <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="account_holder_name">Account Holder Name *</Label>
+              <Input
+                id="account_holder_name"
+                value={accountForm.account_holder_name}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, account_holder_name: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bank_name">Bank Name</Label>
+              <Input
+                id="bank_name"
+                value={accountForm.bank_name}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, bank_name: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="account_number_last4">Account Number (Last 4 Digits)</Label>
+              <Input
+                id="account_number_last4"
+                maxLength={4}
+                value={accountForm.account_number_last4}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, account_number_last4: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bank_code">Bank Code / IBAN / Routing Number</Label>
+              <Input
+                id="bank_code"
+                value={accountForm.bank_code}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, bank_code: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddAccountDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddAccount} disabled={!accountForm.account_holder_name}>
+              Add Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AgencyPayoutsPage;

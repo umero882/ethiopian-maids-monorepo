@@ -1,0 +1,301 @@
+# =====================================================
+# Communications Service - GraphQL Queries
+# Queries for conversations and messages tables
+# =====================================================
+
+# =====================================================
+# CONVERSATIONS QUERIES
+# =====================================================
+
+# Query 1: Get Conversation by ID
+query GetConversation($id: uuid!) {
+  conversations_by_pk(id: $id) {
+    id
+    participant1_id
+    participant1_type
+    participant2_id
+    participant2_type
+    agency_id
+    status
+    last_message_at
+    last_message_preview
+    participant1_unread_count
+    participant2_unread_count
+    created_at
+    updated_at
+  }
+}
+
+# Query 2: List User Conversations
+query ListUserConversations(
+  $userId: String!
+  $limit: Int = 20
+  $offset: Int = 0
+  $status: String = "active"
+) {
+  conversations(
+    where: {
+      _and: [
+        {
+          _or: [
+            {participant1_id: {_eq: $userId}}
+            {participant2_id: {_eq: $userId}}
+          ]
+        }
+        {status: {_eq: $status}}
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{last_message_at: desc_nulls_last}, {created_at: desc}]
+  ) {
+    id
+    participant1_id
+    participant1_type
+    participant2_id
+    participant2_type
+    status
+    last_message_at
+    last_message_preview
+    participant1_unread_count
+    participant2_unread_count
+    created_at
+  }
+  conversations_aggregate(
+    where: {
+      _and: [
+        {
+          _or: [
+            {participant1_id: {_eq: $userId}}
+            {participant2_id: {_eq: $userId}}
+          ]
+        }
+        {status: {_eq: $status}}
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 3: Find Conversation Between Users
+query FindConversationBetweenUsers($user1Id: String!, $user2Id: String!) {
+  conversations(
+    where: {
+      _or: [
+        {
+          _and: [
+            {participant1_id: {_eq: $user1Id}}
+            {participant2_id: {_eq: $user2Id}}
+          ]
+        }
+        {
+          _and: [
+            {participant1_id: {_eq: $user2Id}}
+            {participant2_id: {_eq: $user1Id}}
+          ]
+        }
+      ]
+      status: {_neq: "deleted"}
+    }
+    limit: 1
+  ) {
+    id
+    participant1_id
+    participant1_type
+    participant2_id
+    participant2_type
+    status
+    last_message_at
+    last_message_preview
+    participant1_unread_count
+    participant2_unread_count
+    created_at
+  }
+}
+
+# Query 4: Get Unread Conversations Count
+query GetUnreadConversationsCount($userId: String!) {
+  participant1_unread: conversations_aggregate(
+    where: {
+      participant1_id: {_eq: $userId}
+      participant1_unread_count: {_gt: 0}
+      status: {_eq: "active"}
+    }
+  ) {
+    aggregate {
+      count
+      sum {
+        participant1_unread_count
+      }
+    }
+  }
+  participant2_unread: conversations_aggregate(
+    where: {
+      participant2_id: {_eq: $userId}
+      participant2_unread_count: {_gt: 0}
+      status: {_eq: "active"}
+    }
+  ) {
+    aggregate {
+      count
+      sum {
+        participant2_unread_count
+      }
+    }
+  }
+}
+
+# =====================================================
+# MESSAGES QUERIES
+# =====================================================
+
+# Query 5: Get Message by ID
+query GetMessage($id: uuid!) {
+  messages_by_pk(id: $id) {
+    id
+    conversation_id
+    sender_id
+    recipient_id
+    subject
+    content
+    message_type
+    job_id
+    application_id
+    is_read
+    read_at
+    is_archived
+    attachments
+    created_at
+    updated_at
+  }
+}
+
+# Query 6: List Conversation Messages
+query ListConversationMessages(
+  $conversationId: uuid!
+  $limit: Int = 50
+  $offset: Int = 0
+) {
+  messages(
+    where: {conversation_id: {_eq: $conversationId}}
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: asc}]
+  ) {
+    id
+    conversation_id
+    sender_id
+    recipient_id
+    content
+    message_type
+    is_read
+    read_at
+    attachments
+    created_at
+  }
+  messages_aggregate(where: {conversation_id: {_eq: $conversationId}}) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 7: List User Messages (Direct Messages - no conversation_id)
+query ListUserMessages(
+  $userId: String!
+  $limit: Int = 50
+  $offset: Int = 0
+  $isArchived: Boolean = false
+) {
+  messages(
+    where: {
+      _or: [
+        {sender_id: {_eq: $userId}}
+        {recipient_id: {_eq: $userId}}
+      ]
+      is_archived: {_eq: $isArchived}
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    sender_id
+    recipient_id
+    subject
+    content
+    message_type
+    job_id
+    application_id
+    is_read
+    read_at
+    is_archived
+    created_at
+  }
+  messages_aggregate(
+    where: {
+      _or: [
+        {sender_id: {_eq: $userId}}
+        {recipient_id: {_eq: $userId}}
+      ]
+      is_archived: {_eq: $isArchived}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 8: Get Unread Messages Count
+query GetUnreadMessagesCount($userId: String!) {
+  messages_aggregate(
+    where: {
+      recipient_id: {_eq: $userId}
+      is_read: {_eq: false}
+      is_archived: {_eq: false}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 9: Search Messages
+query SearchMessages(
+  $userId: String!
+  $searchTerm: String!
+  $limit: Int = 20
+) {
+  messages(
+    where: {
+      _or: [
+        {sender_id: {_eq: $userId}}
+        {recipient_id: {_eq: $userId}}
+      ]
+      _and: [
+        {
+          _or: [
+            {subject: {_ilike: $searchTerm}}
+            {content: {_ilike: $searchTerm}}
+          ]
+        }
+      ]
+    }
+    limit: $limit
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    sender_id
+    recipient_id
+    subject
+    content
+    message_type
+    is_read
+    created_at
+  }
+}

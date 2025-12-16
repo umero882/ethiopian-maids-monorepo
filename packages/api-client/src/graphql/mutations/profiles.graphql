@@ -1,0 +1,93 @@
+# ============================================
+# ProfileService Migration Mutations
+# ============================================
+
+# Update maid profile data (profiles + maid_profiles)
+# Note: Assumes maid_profile record already exists
+mutation UpdateMaidProfileData(
+  $userId: String!
+  $maidProfileId: String!
+  $profileData: profiles_set_input!
+  $maidData: maid_profiles_set_input!
+) {
+  # Update basic profile
+  update_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: $profileData
+  ) {
+    id
+    updated_at
+  }
+
+  # Update maid profile
+  update_maid_profiles_by_pk(
+    pk_columns: { id: $maidProfileId }
+    _set: $maidData
+  ) {
+    id
+    user_id
+    updated_at
+  }
+}
+
+# Update sponsor profile data (profiles + sponsor_profiles)
+mutation UpdateSponsorProfileData(
+  $userId: String!
+  $profileData: profiles_set_input!
+  $sponsorData: sponsor_profiles_set_input!
+) {
+  # Update basic profile
+  update_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: $profileData
+  ) {
+    id
+    updated_at
+  }
+
+  # Update sponsor profile
+  update_sponsor_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: $sponsorData
+  ) {
+    id
+    updated_at
+  }
+}
+
+# Update agency profile data (profiles + agency_profiles)
+mutation UpdateAgencyProfileData(
+  $userId: String!
+  $profileData: profiles_set_input!
+  $agencyData: agency_profiles_set_input!
+) {
+  # Update basic profile
+  update_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: $profileData
+  ) {
+    id
+    updated_at
+  }
+
+  # Update agency profile
+  update_agency_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: $agencyData
+  ) {
+    id
+    updated_at
+  }
+}
+
+# Update avatar URL
+mutation UpdateProfileAvatarUrl($userId: String!, $avatarUrl: String!) {
+  update_profiles_by_pk(
+    pk_columns: { id: $userId }
+    _set: { avatar_url: $avatarUrl }
+  ) {
+    id
+    avatar_url
+    updated_at
+  }
+}

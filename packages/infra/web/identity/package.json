@@ -1,0 +1,16 @@
+{
+  "name": "@ethio/infra-web-identity",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@ethio/app-identity": "workspace:*",
+    "@ethio/domain-identity": "workspace:*",
+    "@apollo/client": "^4.0.9",
+    "@sendgrid/mail": "^8.1.0",
+    "firebase": "^11.10.0",
+    "graphql": "^16.12.0"
+  }
+}

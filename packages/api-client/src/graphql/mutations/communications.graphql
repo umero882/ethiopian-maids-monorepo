@@ -1,0 +1,213 @@
+# =====================================================
+# Communications Service - GraphQL Mutations
+# Mutations for conversations and messages tables
+# =====================================================
+
+# =====================================================
+# CONVERSATION MUTATIONS
+# =====================================================
+
+# Mutation 1: Create Conversation
+mutation CreateConversation($data: conversations_insert_input!) {
+  insert_conversations_one(object: $data) {
+    id
+    participant1_id
+    participant1_type
+    participant2_id
+    participant2_type
+    status
+    created_at
+  }
+}
+
+# Mutation 2: Update Conversation
+mutation UpdateConversation($id: uuid!, $data: conversations_set_input!) {
+  update_conversations_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    participant1_id
+    participant2_id
+    status
+    last_message_at
+    last_message_preview
+    participant1_unread_count
+    participant2_unread_count
+    updated_at
+  }
+}
+
+# Mutation 3: Archive Conversation
+mutation ArchiveConversation($id: uuid!) {
+  update_conversations_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: "archived"}
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# Mutation 4: Delete Conversation
+mutation DeleteConversation($id: uuid!) {
+  update_conversations_by_pk(
+    pk_columns: {id: $id}
+    _set: {status: "deleted"}
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# Mutation 5: Mark Conversation as Read
+mutation MarkConversationAsRead($id: uuid!, $userId: String!) {
+  update_conversations_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      participant1_unread_count: 0
+      participant2_unread_count: 0
+    }
+  ) {
+    id
+    participant1_unread_count
+    participant2_unread_count
+    updated_at
+  }
+}
+
+# Mutation 6: Increment Unread Count
+mutation IncrementUnreadCount($id: uuid!, $participantField: String!) {
+  update_conversations_by_pk(
+    pk_columns: {id: $id}
+    _inc: {participant1_unread_count: 1}
+  ) {
+    id
+    participant1_unread_count
+    participant2_unread_count
+  }
+}
+
+# =====================================================
+# MESSAGE MUTATIONS
+# =====================================================
+
+# Mutation 7: Send Message (Create)
+mutation SendMessage($data: messages_insert_input!) {
+  insert_messages_one(object: $data) {
+    id
+    conversation_id
+    sender_id
+    recipient_id
+    subject
+    content
+    message_type
+    job_id
+    application_id
+    is_read
+    attachments
+    created_at
+  }
+}
+
+# Mutation 8: Update Message
+mutation UpdateMessage($id: uuid!, $data: messages_set_input!) {
+  update_messages_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    content
+    is_read
+    read_at
+    is_archived
+    updated_at
+  }
+}
+
+# Mutation 9: Mark Message as Read
+mutation MarkMessageAsRead($id: uuid!) {
+  update_messages_by_pk(
+    pk_columns: {id: $id}
+    _set: {is_read: true, read_at: "now()"}
+  ) {
+    id
+    is_read
+    read_at
+    updated_at
+  }
+}
+
+# Mutation 10: Mark Multiple Messages as Read
+mutation MarkMultipleMessagesAsRead($ids: [uuid!]!) {
+  update_messages(
+    where: {id: {_in: $ids}}
+    _set: {is_read: true, read_at: "now()"}
+  ) {
+    affected_rows
+    returning {
+      id
+      is_read
+      read_at
+    }
+  }
+}
+
+# Mutation 11: Archive Message
+mutation ArchiveMessage($id: uuid!) {
+  update_messages_by_pk(
+    pk_columns: {id: $id}
+    _set: {is_archived: true}
+  ) {
+    id
+    is_archived
+    updated_at
+  }
+}
+
+# Mutation 12: Archive Multiple Messages
+mutation ArchiveMultipleMessages($ids: [uuid!]!) {
+  update_messages(
+    where: {id: {_in: $ids}}
+    _set: {is_archived: true}
+  ) {
+    affected_rows
+    returning {
+      id
+      is_archived
+    }
+  }
+}
+
+# Mutation 13: Delete Message
+mutation DeleteMessage($id: uuid!) {
+  delete_messages_by_pk(id: $id) {
+    id
+  }
+}
+
+# Mutation 14: Delete Multiple Messages
+mutation DeleteMultipleMessages($ids: [uuid!]!) {
+  delete_messages(where: {id: {_in: $ids}}) {
+    affected_rows
+  }
+}
+
+# Mutation 15: Mark All User Messages as Read
+mutation MarkAllUserMessagesAsRead($userId: String!) {
+  update_messages(
+    where: {
+      recipient_id: {_eq: $userId}
+      is_read: {_eq: false}
+    }
+    _set: {is_read: true, read_at: "now()"}
+  ) {
+    affected_rows
+    returning {
+      id
+      is_read
+    }
+  }
+}

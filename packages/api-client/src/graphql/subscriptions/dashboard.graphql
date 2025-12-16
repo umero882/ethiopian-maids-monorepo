@@ -1,0 +1,150 @@
+# =====================================================
+# Dashboard - GraphQL Subscriptions
+# Real-time subscriptions for dashboard updates
+# =====================================================
+
+# Subscription 1: Subscribe to new applications (for sponsors)
+subscription OnNewApplications($sponsorId: String!) {
+  applications(
+    where: {
+      job: { sponsor_id: { _eq: $sponsorId } }
+    }
+    order_by: { created_at: desc }
+    limit: 10
+  ) {
+    id
+    status
+    application_status
+    cover_letter
+    created_at
+    updated_at
+    job {
+      id
+      title
+      status
+    }
+    maid_profile {
+      id
+      full_name
+    }
+  }
+}
+
+# Subscription 2: Subscribe to application status changes (for maids)
+subscription OnApplicationStatusChange($maidId: String!) {
+  applications(
+    where: {
+      maid_id: { _eq: $maidId }
+    }
+    order_by: { updated_at: desc }
+    limit: 10
+  ) {
+    id
+    status
+    application_status
+    notes
+    updated_at
+    job {
+      id
+      title
+    }
+  }
+}
+
+# Subscription 3: Subscribe to booking updates (for sponsors)
+subscription OnBookingUpdates($sponsorId: String!) {
+  bookings(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+    }
+    order_by: { updated_at: desc }
+    limit: 10
+  ) {
+    id
+    status
+    start_date
+    end_date
+    salary_amount
+    salary_currency
+    updated_at
+    maid_profile {
+      id
+      full_name
+    }
+  }
+}
+
+# Subscription 4: Subscribe to booking requests (for maids)
+subscription OnBookingRequests($maidId: String!) {
+  bookings(
+    where: {
+      maid_id: { _eq: $maidId }
+    }
+    order_by: { created_at: desc }
+    limit: 10
+  ) {
+    id
+    status
+    start_date
+    end_date
+    salary_amount
+    salary_currency
+    created_at
+    sponsor_profile {
+      id
+      full_name
+    }
+  }
+}
+
+# Subscription 5: Subscribe to job posting views/interactions (for sponsors)
+subscription OnJobInteractions($sponsorId: String!) {
+  jobs(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      status: { _eq: "active" }
+    }
+    order_by: { updated_at: desc }
+  ) {
+    id
+    title
+    status
+    views_count
+    applications_count
+    updated_at
+    applications_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+
+# Subscription 6: Subscribe to agency maid stats (single top-level field)
+subscription OnAgencyMaidStats($agencyId: String!) {
+  maid_profiles_aggregate(
+    where: { agency_id: { _eq: $agencyId } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 7: Subscribe to review updates (for maids)
+# Note: reviews table still uses uuid for maid_id - may need migration
+subscription OnNewReviews($maidId: uuid!) {
+  reviews(
+    where: {
+      maid_id: { _eq: $maidId }
+    }
+    order_by: { created_at: desc }
+    limit: 5
+  ) {
+    id
+    rating
+    comment
+    created_at
+    sponsor_id
+  }
+}

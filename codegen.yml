@@ -1,0 +1,51 @@
+overwrite: true
+# Self-hosted Hasura on VPS (api.ethiopianmaids.com)
+schema:
+  - https://api.ethiopianmaids.com/v1/graphql:
+      headers:
+        x-hasura-admin-secret: ${HASURA_ADMIN_SECRET}
+documents: 'packages/api-client/src/graphql/**/*.graphql'
+generates:
+  packages/api-client/src/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+    config:
+      skipTypename: false
+      withHooks: false
+      withHOC: false
+      withComponent: false
+      namingConvention:
+        typeNames: pascal-case#pascalCase
+        enumValues: upper-case#upperCase
+      scalars:
+        uuid: string
+        timestamptz: string
+        jsonb: any
+        bigint: number
+        ID: string
+      # Relay connection support
+      relayStylePagination: true
+      addConnectionNodes: true
+  packages/api-client/src/generated/hooks.ts:
+    plugins:
+      - typescript-react-apollo
+    config:
+      withHooks: true
+      withMutationFn: true
+      withRefetchFn: true
+      reactApolloVersion: 3
+      apolloReactCommonImportFrom: "@apollo/client/react"
+      apolloReactHooksImportFrom: "@apollo/client/react"
+      namingConvention:
+        typeNames: pascal-case#pascalCase
+      # Relay connection support
+      relayStylePagination: true
+      addConnectionNodes: true
+      scalars:
+        uuid: string
+        timestamptz: string
+        jsonb: any
+        bigint: number
+        ID: string

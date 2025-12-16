@@ -1,0 +1,83 @@
+# Maid profile mutations
+
+# Update maid profile (complete)
+mutation UpdateMaidProfileComplete(
+  $id: String!
+  $data: maid_profiles_set_input!
+) {
+  update_maid_profiles_by_pk(
+    pk_columns: { id: $id }
+    _set: $data
+  ) {
+    id
+    full_name
+    experience_years
+    skills
+    languages
+    availability_status
+    preferred_salary_min
+    preferred_salary_max
+    about_me
+    updated_at
+  }
+}
+
+# Add to favorites
+mutation AddToFavorites(
+  $sponsorId: String!
+  $maidId: String!
+) {
+  insert_favorites_one(
+    object: {
+      sponsor_id: $sponsorId
+      maid_id: $maidId
+    }
+    on_conflict: {
+      constraint: favorites_sponsor_id_maid_id_key
+      update_columns: []
+    }
+  ) {
+    sponsor_id
+    maid_id
+    created_at
+  }
+}
+
+# Remove from favorites
+mutation RemoveFromFavorites(
+  $sponsorId: String!
+  $maidId: String!
+) {
+  delete_favorites(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      maid_id: { _eq: $maidId }
+    }
+  ) {
+    affected_rows
+  }
+}
+
+# Increment profile views
+mutation IncrementMaidProfileViews($id: String!) {
+  update_maid_profiles_by_pk(
+    pk_columns: { id: $id }
+    _inc: { profile_views: 1 }
+  ) {
+    id
+    profile_views
+  }
+}
+
+# Legacy mutation (keep for backward compatibility)
+mutation UpdateMaidProfile($id: String!, $data: maid_profiles_set_input!) {
+  update_maid_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
+    id
+    full_name
+    experience_years
+    languages
+    availability_status
+    about_me
+    updated_at
+  }
+}

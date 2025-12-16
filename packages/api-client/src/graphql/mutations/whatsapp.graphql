@@ -1,0 +1,192 @@
+# =====================================================
+# WhatsApp Service - GraphQL Mutations
+# Mutations for whatsapp_messages, maid_bookings, and platform_settings
+# =====================================================
+
+# =====================================================
+# Mutation 1: Insert WhatsApp Message
+# Creates a new WhatsApp message record
+# =====================================================
+mutation InsertWhatsAppMessage($data: whatsapp_messages_insert_input!) {
+  insert_whatsapp_messages_one(object: $data) {
+    id
+    phone_number
+    message_content
+    message_type
+    sender
+    received_at
+    ai_response
+    processed
+    created_at
+  }
+}
+
+# =====================================================
+# Mutation 2: Update WhatsApp Message
+# Updates a message (e.g., mark as processed)
+# =====================================================
+mutation UpdateWhatsAppMessage($id: uuid!, $data: whatsapp_messages_set_input!) {
+  update_whatsapp_messages_by_pk(pk_columns: { id: $id }, _set: $data) {
+    id
+    processed
+    ai_response
+  }
+}
+
+# =====================================================
+# Mutation 3: Create Maid Booking
+# Creates a new booking from WhatsApp conversation
+# =====================================================
+mutation CreateMaidBooking($data: maid_bookings_insert_input!) {
+  insert_maid_bookings_one(object: $data) {
+    id
+    phone_number
+    sponsor_name
+    sponsor_id
+    maid_id
+    maid_name
+    booking_type
+    booking_date
+    status
+    notes
+    metadata
+    created_at
+  }
+}
+
+# =====================================================
+# Mutation 4: Update Maid Booking
+# Updates booking details
+# =====================================================
+mutation UpdateMaidBooking($id: uuid!, $data: maid_bookings_set_input!) {
+  update_maid_bookings_by_pk(pk_columns: { id: $id }, _set: $data) {
+    id
+    status
+    maid_name
+    sponsor_name
+    booking_date
+    booking_type
+    notes
+    metadata
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 5: Update Booking Status
+# Updates only the status of a booking
+# =====================================================
+mutation UpdateMaidBookingStatus($id: uuid!, $status: String!, $notes: String) {
+  update_maid_bookings_by_pk(
+    pk_columns: { id: $id }
+    _set: { status: $status, notes: $notes, updated_at: "now()" }
+  ) {
+    id
+    status
+    notes
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 6: Delete Maid Booking
+# Deletes a booking record
+# =====================================================
+mutation DeleteMaidBooking($id: uuid!) {
+  delete_maid_bookings_by_pk(id: $id) {
+    id
+  }
+}
+
+# =====================================================
+# Mutation 7: Bulk Update Booking Status
+# Updates status for multiple bookings
+# =====================================================
+mutation BulkUpdateMaidBookingStatus($ids: [uuid!]!, $status: String!) {
+  update_maid_bookings(
+    where: { id: { _in: $ids } }
+    _set: { status: $status, updated_at: "now()" }
+  ) {
+    affected_rows
+    returning {
+      id
+      status
+      updated_at
+    }
+  }
+}
+
+# =====================================================
+# Mutation 8: Update Platform Settings
+# Updates WhatsApp platform settings
+# =====================================================
+mutation UpdatePlatformSettings($id: uuid!, $data: platform_settings_set_input!) {
+  update_platform_settings_by_pk(pk_columns: { id: $id }, _set: $data) {
+    id
+    platform_name
+    about_platform
+    support_email
+    support_phone
+    working_hours
+    available_services
+    ai_model
+    ai_temperature
+    max_context_messages
+    max_tokens
+    auto_response_enabled
+    business_hours_only
+    greeting_message
+    offline_message
+    error_message
+    whatsapp_webhook_url
+    validate_signature
+    rate_limiting_enabled
+    rate_limit
+    notify_new_messages
+    notify_bookings
+    notify_errors
+    notification_email
+    auto_confirm_bookings
+    send_reminders
+    send_followups
+    debug_mode
+    store_ai_responses
+    allowed_numbers
+    blocked_numbers
+    cache_timeout
+    timeout
+    updated_at
+  }
+}
+
+# =====================================================
+# Mutation 9: Insert Platform Settings (Initial Setup)
+# Creates initial platform settings record
+# =====================================================
+mutation InsertPlatformSettings($data: platform_settings_insert_input!) {
+  insert_platform_settings_one(object: $data) {
+    id
+    platform_name
+    created_at
+  }
+}
+
+# =====================================================
+# Mutation 10: Delete WhatsApp Message
+# Deletes a message record
+# =====================================================
+mutation DeleteWhatsAppMessage($id: uuid!) {
+  delete_whatsapp_messages_by_pk(id: $id) {
+    id
+  }
+}
+
+# =====================================================
+# Mutation 11: Bulk Delete Messages
+# Deletes messages for a phone number
+# =====================================================
+mutation BulkDeleteWhatsAppMessages($phoneNumber: String!) {
+  delete_whatsapp_messages(where: { phone_number: { _eq: $phoneNumber } }) {
+    affected_rows
+  }
+}

@@ -2,13 +2,26 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "ethiomaids",
   "namedInputs": {
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
-    "production": ["default"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s"
+    ],
     "sharedGlobals": []
   },
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
+      "exclude": [
+        "node_modules/**",
+        "**/node_modules/**",
+        "apps/mobile/**"
+      ],
       "options": {
         "typecheck": {
           "targetName": "typecheck"
@@ -20,6 +33,27 @@
           "watchDepsName": "watch-deps"
         }
       }
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "vite:build",
+        "testTargetName": "test",
+        "serveTargetName": "vite:serve",
+        "devTargetName": "dev",
+        "previewTargetName": "vite:preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "vite:typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
     }
-  ]
+  ],
+  "targetDefaults": {
+    "test": {
+      "dependsOn": [
+        "^build"
+      ]
+    }
+  }
 }

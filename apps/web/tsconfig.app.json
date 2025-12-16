@@ -1,0 +1,59 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "types": ["node", "vite/client"]
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    "**/*.spec.js",
+    "**/*.test.js",
+    "**/*.spec.jsx",
+    "**/*.test.jsx"
+  ],
+  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  "references": [
+    {
+      "path": "../../packages/api-client/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/infra/web/communications"
+    },
+    {
+      "path": "../../packages/infra/web/jobs"
+    },
+    {
+      "path": "../../packages/infra/web/profiles"
+    },
+    {
+      "path": "../../packages/infra/web/identity"
+    },
+    {
+      "path": "../../packages/app/communications"
+    },
+    {
+      "path": "../../packages/app/jobs"
+    },
+    {
+      "path": "../../packages/app/profiles"
+    },
+    {
+      "path": "../../packages/app/identity"
+    },
+    {
+      "path": "../../packages/domain/communications"
+    },
+    {
+      "path": "../../packages/domain/jobs"
+    },
+    {
+      "path": "../../packages/domain/profiles"
+    },
+    {
+      "path": "../../packages/domain/identity"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@ethio/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ethio/domain-identity": "workspace:*",
+    "@ethio/domain-profiles": "workspace:*",
+    "@ethio/domain-jobs": "workspace:*",
+    "@ethio/domain-communications": "workspace:*",
+    "@ethio/app-identity": "workspace:*",
+    "@ethio/app-profiles": "workspace:*",
+    "@ethio/app-jobs": "workspace:*",
+    "@ethio/app-communications": "workspace:*",
+    "@ethio/infra-web-identity": "workspace:*",
+    "@ethio/infra-web-profiles": "workspace:*",
+    "@ethio/infra-web-jobs": "workspace:*",
+    "@ethio/infra-web-communications": "workspace:*",
+    "@ethio/api-client": "workspace:*"
+  }
+}

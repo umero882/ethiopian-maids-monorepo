@@ -1,0 +1,264 @@
+# =====================================================
+# WhatsApp Service - GraphQL Queries
+# Queries for whatsapp_messages, maid_bookings, and platform_settings
+# =====================================================
+
+# =====================================================
+# Query 1: Get WhatsApp Messages
+# Returns paginated WhatsApp messages with filtering
+# =====================================================
+query GetWhatsAppMessages(
+  $phoneNumber: String
+  $sender: String
+  $limit: Int = 50
+  $offset: Int = 0
+) {
+  whatsapp_messages(
+    where: {
+      _and: [
+        { phone_number: { _eq: $phoneNumber } }
+        { sender: { _eq: $sender } }
+      ]
+    }
+    order_by: { received_at: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    phone_number
+    message_content
+    message_type
+    received_at
+    sender
+    ai_response
+    processed
+    created_at
+  }
+  whatsapp_messages_aggregate(
+    where: {
+      _and: [
+        { phone_number: { _eq: $phoneNumber } }
+        { sender: { _eq: $sender } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 2: Get Conversation
+# Returns all messages for a specific phone number
+# =====================================================
+query GetWhatsAppConversation($phoneNumber: String!, $limit: Int = 100) {
+  whatsapp_messages(
+    where: { phone_number: { _eq: $phoneNumber } }
+    order_by: { received_at: asc }
+    limit: $limit
+  ) {
+    id
+    phone_number
+    message_content
+    message_type
+    received_at
+    sender
+    ai_response
+    processed
+  }
+}
+
+# =====================================================
+# Query 3: Get All Messages for Contacts
+# Returns messages grouped by phone number for contact list
+# =====================================================
+query GetWhatsAppContacts {
+  whatsapp_messages(order_by: { received_at: desc }) {
+    phone_number
+    message_content
+    received_at
+    sender
+  }
+}
+
+# =====================================================
+# Query 4: Get WhatsApp Maid Bookings
+# Returns paginated maid bookings with filtering
+# =====================================================
+query GetWhatsAppMaidBookings(
+  $phoneNumber: String
+  $status: String
+  $bookingType: String
+  $startDate: timestamptz
+  $endDate: timestamptz
+  $limit: Int = 50
+  $offset: Int = 0
+) {
+  maid_bookings(
+    where: {
+      _and: [
+        { phone_number: { _eq: $phoneNumber } }
+        { status: { _eq: $status } }
+        { booking_type: { _eq: $bookingType } }
+        { booking_date: { _gte: $startDate } }
+        { booking_date: { _lte: $endDate } }
+      ]
+    }
+    order_by: { created_at: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    phone_number
+    sponsor_name
+    sponsor_id
+    maid_id
+    maid_name
+    booking_type
+    booking_date
+    status
+    notes
+    metadata
+    created_at
+    updated_at
+  }
+  maid_bookings_aggregate(
+    where: {
+      _and: [
+        { phone_number: { _eq: $phoneNumber } }
+        { status: { _eq: $status } }
+        { booking_type: { _eq: $bookingType } }
+        { booking_date: { _gte: $startDate } }
+        { booking_date: { _lte: $endDate } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 5: Get WhatsApp Booking Statistics
+# Returns aggregated booking counts by status
+# =====================================================
+query GetWhatsAppBookingStatistics {
+  total: maid_bookings_aggregate {
+    aggregate {
+      count
+    }
+  }
+  pending: maid_bookings_aggregate(where: { status: { _eq: "pending" } }) {
+    aggregate {
+      count
+    }
+  }
+  confirmed: maid_bookings_aggregate(where: { status: { _eq: "confirmed" } }) {
+    aggregate {
+      count
+    }
+  }
+  cancelled: maid_bookings_aggregate(where: { status: { _eq: "cancelled" } }) {
+    aggregate {
+      count
+    }
+  }
+  completed: maid_bookings_aggregate(where: { status: { _eq: "completed" } }) {
+    aggregate {
+      count
+    }
+  }
+  rescheduled: maid_bookings_aggregate(where: { status: { _eq: "rescheduled" } }) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Query 6: Get Platform Settings
+# Returns platform configuration for WhatsApp
+# =====================================================
+query GetPlatformSettings {
+  platform_settings(limit: 1) {
+    id
+    platform_name
+    about_platform
+    support_email
+    support_phone
+    working_hours
+    available_services
+    ai_model
+    ai_temperature
+    max_context_messages
+    max_tokens
+    auto_response_enabled
+    business_hours_only
+    greeting_message
+    offline_message
+    error_message
+    system_prompt
+    whatsapp_webhook_url
+    validate_signature
+    rate_limiting_enabled
+    rate_limit
+    notify_new_messages
+    notify_bookings
+    notify_errors
+    notification_email
+    auto_confirm_bookings
+    send_reminders
+    send_followups
+    debug_mode
+    store_ai_responses
+    allowed_numbers
+    blocked_numbers
+    cache_timeout
+    timeout
+    created_at
+    updated_at
+  }
+}
+
+# =====================================================
+# Query 7: Search WhatsApp Messages
+# Returns messages matching a search term
+# =====================================================
+query SearchWhatsAppMessages($searchTerm: String!, $limit: Int = 50) {
+  whatsapp_messages(
+    where: { message_content: { _ilike: $searchTerm } }
+    order_by: { received_at: desc }
+    limit: $limit
+  ) {
+    id
+    phone_number
+    message_content
+    message_type
+    received_at
+    sender
+  }
+}
+
+# =====================================================
+# Query 8: Get Booking by ID
+# Returns a single booking by its ID
+# =====================================================
+query GetMaidBookingById($id: uuid!) {
+  maid_bookings_by_pk(id: $id) {
+    id
+    phone_number
+    sponsor_name
+    sponsor_id
+    maid_id
+    maid_name
+    booking_type
+    booking_date
+    status
+    notes
+    metadata
+    created_at
+    updated_at
+  }
+}

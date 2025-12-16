@@ -1,0 +1,248 @@
+# ============================================================================
+# AGENCIES MUTATIONS
+# GraphQL mutations for creating and managing agency profiles
+# ============================================================================
+
+# Create a new agency profile
+mutation CreateAgencyProfile($data: agency_profiles_insert_input!) {
+  insert_agency_profiles_one(object: $data) {
+    id
+    full_name
+    license_number
+    registration_country
+    business_phone
+    business_email
+    website_url
+    agency_description
+    specialization
+    service_countries
+    placement_fee_percentage
+    subscription_tier
+    created_at
+  }
+}
+
+# Update an agency profile
+mutation UpdateAgencyProfile(
+  $id: String!
+  $data: agency_profiles_set_input!
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    full_name
+    license_number
+    registration_country
+    established_year
+    business_address
+    business_phone
+    business_email
+    website_url
+    contact_person_name
+    contact_person_title
+    head_office_address
+    agency_description
+    support_hours_start
+    support_hours_end
+    emergency_contact_phone
+    authorized_person_name
+    authorized_person_position
+    authorized_person_phone
+    authorized_person_email
+    authorized_person_id_number
+    contact_phone_verified
+    official_email_verified
+    authorized_person_phone_verified
+    authorized_person_email_verified
+    specialization
+    service_countries
+    placement_fee_percentage
+    guarantee_period_months
+    license_verified
+    accreditation_bodies
+    certifications
+    license_expiry_date
+    total_maids_managed
+    successful_placements
+    active_listings
+    average_rating
+    subscription_tier
+    subscription_expires_at
+    logo_url
+    logo_file_preview
+    trade_license_document
+    authorized_person_id_document
+    agency_contract_template
+    trade_license_verification_status
+    authorized_person_id_verification_status
+    contract_template_verification_status
+    updated_at
+  }
+}
+
+# Delete an agency profile
+mutation DeleteAgencyProfile($id: String!) {
+  delete_agency_profiles_by_pk(id: $id) {
+    id
+  }
+}
+
+# Update agency business metrics
+mutation UpdateAgencyMetrics(
+  $id: String!
+  $totalMaidsManaged: Int
+  $successfulPlacements: Int
+  $activeListings: Int
+  $averageRating: numeric
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      total_maids_managed: $totalMaidsManaged
+      successful_placements: $successfulPlacements
+      active_listings: $activeListings
+      average_rating: $averageRating
+    }
+  ) {
+    id
+    total_maids_managed
+    successful_placements
+    active_listings
+    average_rating
+    updated_at
+  }
+}
+
+# Increment total maids managed
+mutation IncrementTotalMaidsManaged($id: String!) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {total_maids_managed: 1}
+  ) {
+    id
+    total_maids_managed
+    updated_at
+  }
+}
+
+# Decrement total maids managed
+mutation DecrementTotalMaidsManaged($id: String!) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {total_maids_managed: -1}
+  ) {
+    id
+    total_maids_managed
+    updated_at
+  }
+}
+
+# Increment successful placements
+mutation IncrementSuccessfulPlacements($id: String!) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {successful_placements: 1}
+  ) {
+    id
+    successful_placements
+    updated_at
+  }
+}
+
+# Increment active listings
+mutation IncrementActiveListings($id: String!) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {active_listings: 1}
+  ) {
+    id
+    active_listings
+    updated_at
+  }
+}
+
+# Decrement active listings
+mutation DecrementActiveListings($id: String!) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {active_listings: -1}
+  ) {
+    id
+    active_listings
+    updated_at
+  }
+}
+
+# Update agency average rating
+mutation UpdateAgencyAverageRating(
+  $id: String!
+  $rating: numeric!
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {average_rating: $rating}
+  ) {
+    id
+    average_rating
+    updated_at
+  }
+}
+
+# Verify agency license
+mutation VerifyAgencyLicense(
+  $id: String!
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {license_verified: true}
+  ) {
+    id
+    license_verified
+    updated_at
+  }
+}
+
+# Update verification statuses
+mutation UpdateVerificationStatuses(
+  $id: String!
+  $tradeLicenseStatus: String
+  $authorizedPersonIdStatus: String
+  $contractTemplateStatus: String
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      trade_license_verification_status: $tradeLicenseStatus
+      authorized_person_id_verification_status: $authorizedPersonIdStatus
+      contract_template_verification_status: $contractTemplateStatus
+    }
+  ) {
+    id
+    trade_license_verification_status
+    authorized_person_id_verification_status
+    contract_template_verification_status
+    updated_at
+  }
+}
+
+# Update subscription tier
+mutation UpdateSubscriptionTier(
+  $id: String!
+  $tier: String!
+  $expiresAt: timestamptz
+) {
+  update_agency_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {
+      subscription_tier: $tier
+      subscription_expires_at: $expiresAt
+    }
+  ) {
+    id
+    subscription_tier
+    subscription_expires_at
+    updated_at
+  }
+}

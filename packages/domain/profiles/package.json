@@ -1,0 +1,22 @@
+{
+  "name": "@ethio/domain-profiles",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./entities": "./src/entities/index.ts",
+    "./value-objects": "./src/value-objects/index.ts",
+    "./repositories": "./src/repositories/index.ts",
+    "./use-cases": "./src/use-cases/index.ts",
+    "./dtos": "./src/dtos/MaidProfileDTOs.ts",
+    "./dtos/maid": "./src/dtos/MaidProfileDTOs.ts",
+    "./dtos/sponsor": "./src/dtos/SponsorProfileDTOs.ts",
+    "./dtos/agency": "./src/dtos/AgencyProfileDTOs.ts"
+  },
+  "dependencies": {
+    "@ethio/domain-shared": "workspace:*"
+  }
+}

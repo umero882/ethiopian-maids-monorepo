@@ -1,2 +1,8 @@
 packages:
   - "packages/*"
+  - "packages/domain/*"
+  - "packages/app"
+  - "packages/app/*"
+  - "packages/infra/web/*"
+  - "apps/*"
+  - "tools/*"

@@ -1,0 +1,3626 @@
+{
+  "version": 3,
+  "sources": [
+    {
+      "name": "supabase-postgres",
+      "kind": "postgres",
+      "tables": [
+        {
+          "table": {
+            "name": "audit_log_entries",
+            "schema": "auth"
+          }
+        },
+        {
+          "table": {
+            "name": "flow_state",
+            "schema": "auth"
+          },
+          "array_relationships": [
+            {
+              "name": "saml_relay_states",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "flow_state_id",
+                  "table": {
+                    "name": "saml_relay_states",
+                    "schema": "auth"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "identities",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "instances",
+            "schema": "auth"
+          }
+        },
+        {
+          "table": {
+            "name": "mfa_amr_claims",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "session",
+              "using": {
+                "foreign_key_constraint_on": "session_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "mfa_challenges",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "mfa_factor",
+              "using": {
+                "foreign_key_constraint_on": "factor_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "mfa_factors",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "mfa_challenges",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "factor_id",
+                  "table": {
+                    "name": "mfa_challenges",
+                    "schema": "auth"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "oauth_authorizations",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "oauth_client",
+              "using": {
+                "foreign_key_constraint_on": "client_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "oauth_clients",
+            "schema": "auth"
+          },
+          "array_relationships": [
+            {
+              "name": "oauth_authorizations",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "client_id",
+                  "table": {
+                    "name": "oauth_authorizations",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "oauth_consents",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "client_id",
+                  "table": {
+                    "name": "oauth_consents",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sessions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "oauth_client_id",
+                  "table": {
+                    "name": "sessions",
+                    "schema": "auth"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "oauth_consents",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "oauth_client",
+              "using": {
+                "foreign_key_constraint_on": "client_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "one_time_tokens",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "refresh_tokens",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "session",
+              "using": {
+                "foreign_key_constraint_on": "session_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "saml_providers",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "sso_provider",
+              "using": {
+                "foreign_key_constraint_on": "sso_provider_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "saml_relay_states",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "flow_state",
+              "using": {
+                "foreign_key_constraint_on": "flow_state_id"
+              }
+            },
+            {
+              "name": "sso_provider",
+              "using": {
+                "foreign_key_constraint_on": "sso_provider_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "sessions",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "oauth_client",
+              "using": {
+                "foreign_key_constraint_on": "oauth_client_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "mfa_amr_claims",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "session_id",
+                  "table": {
+                    "name": "mfa_amr_claims",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "refresh_tokens",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "session_id",
+                  "table": {
+                    "name": "refresh_tokens",
+                    "schema": "auth"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "sso_domains",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "sso_provider",
+              "using": {
+                "foreign_key_constraint_on": "sso_provider_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "sso_providers",
+            "schema": "auth"
+          },
+          "array_relationships": [
+            {
+              "name": "saml_providers",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sso_provider_id",
+                  "table": {
+                    "name": "saml_providers",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "saml_relay_states",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sso_provider_id",
+                  "table": {
+                    "name": "saml_relay_states",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sso_domains",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sso_provider_id",
+                  "table": {
+                    "name": "sso_domains",
+                    "schema": "auth"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "users",
+            "schema": "auth"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "id",
+                  "table": {
+                    "name": "admin_users",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_credit",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_credits",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "activity_announcements",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "activity_announcements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyDisputesByRelatedUserId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "related_user_id",
+                  "table": {
+                    "name": "agency_disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyDocumentRequirementsByMaidId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "maid_id",
+                  "table": {
+                    "name": "agency_document_requirements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyInterviewsByMaidId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "maid_id",
+                  "table": {
+                    "name": "agency_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyInterviewsBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sponsor_id",
+                  "table": {
+                    "name": "agency_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyKybAuditLogsByPerformedBy",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "performed_by",
+                  "table": {
+                    "name": "agency_kyb_audit_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyKybDocumentsByVerifiedBy",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "verified_by",
+                  "table": {
+                    "name": "agency_kyb_documents",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyKybVerificationsByVerifiedBy",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "verified_by",
+                  "table": {
+                    "name": "agency_kyb_verification",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyPlacementsByMaidId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "maid_id",
+                  "table": {
+                    "name": "agency_placements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyPlacementsBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sponsor_id",
+                  "table": {
+                    "name": "agency_placements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agencyTeamMembersByUserId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "agency_team_members",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_disputes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_document_requirements",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_document_requirements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_documents",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_documents",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_earnings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_earnings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_interviews",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_kyb_audit_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_kyb_audit_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_kyb_documents",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_kyb_documents",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_kyb_verifications",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_kyb_verification",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_payment_failures",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_payment_failures",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_payouts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_payouts",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_placements",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_placements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_team_members",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_team_members",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "analytics_caches",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "analytics_cache",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "announcement_views",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "announcement_views",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "audit_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "audit_logs",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "clientSatisfactionRatingsByMaidId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "maid_id",
+                  "table": {
+                    "name": "client_satisfaction_ratings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "clientSatisfactionRatingsBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sponsor_id",
+                  "table": {
+                    "name": "client_satisfaction_ratings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "client_satisfaction_ratings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "client_satisfaction_ratings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "compliance_categories",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "compliance_categories",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "compliance_items",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "compliance_items",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "contactFeesBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sponsor_id",
+                  "table": {
+                    "name": "contact_fees",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "contact_fees",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "maid_id",
+                  "table": {
+                    "name": "contact_fees",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "credit_transactions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "credit_transactions",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "disputeEvidencesByVerifiedById",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "verified_by_id",
+                  "table": {
+                    "name": "dispute_evidence",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "dispute_evidences",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "submitted_by_id",
+                  "table": {
+                    "name": "dispute_evidence",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "dispute_messages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sender_id",
+                  "table": {
+                    "name": "dispute_messages",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "dispute_parties",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "party_id",
+                  "table": {
+                    "name": "dispute_parties",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "disputes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "disputesByAssignedMediatorId",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "assigned_mediator_id",
+                  "table": {
+                    "name": "disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "disputesByRaisedById",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "raised_by_id",
+                  "table": {
+                    "name": "disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "disputesByResolvedById",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "resolved_by_id",
+                  "table": {
+                    "name": "disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "identities",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "identities",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "mfa_factors",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "mfa_factors",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "oauth_authorizations",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "oauth_authorizations",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "oauth_consents",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "oauth_consents",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "one_time_tokens",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "one_time_tokens",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "password_resets",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "password_resets",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "payment_idempotencies",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "payment_idempotency",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "payout_accounts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "payout_accounts",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "payout_schedules",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "payout_schedules",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "phone_verification_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "phone_verification_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "pii_access_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "pii_access_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "placement_contracts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "placement_contracts",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "placement_fee_transactions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "placement_fee_transactions",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "platform_announcements",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "created_by",
+                  "table": {
+                    "name": "platform_announcements",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sessions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "sessions",
+                    "schema": "auth"
+                  }
+                }
+              }
+            },
+            {
+              "name": "subscription_status_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "created_by",
+                  "table": {
+                    "name": "subscription_status_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "subscription_usages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "subscription_usage",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "team_member_performances",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "team_member_performance",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "two_factor_backup_codes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "two_factor_backup_codes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "user_credits",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "user_credits",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "webhook_event_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "webhook_event_logs",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "active_subscriptions",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "activity_announcements",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "activity_log",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "admin_activity_logs",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "admin_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "admin_users",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "created_by"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "admin_activity_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "admin_id",
+                  "table": {
+                    "name": "admin_activity_logs",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "admin_users",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "created_by",
+                  "table": {
+                    "name": "admin_users",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "content_moderation_flags",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "reviewed_by",
+                  "table": {
+                    "name": "content_moderation_flags",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "security_events",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "handled_by",
+                  "table": {
+                    "name": "security_events",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "system_settings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "updated_by",
+                  "table": {
+                    "name": "system_settings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "video_interviews",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "admin_confirmed_by",
+                  "table": {
+                    "name": "video_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_audit_logs",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "agency_credits",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_disputes",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByRelatedUserId",
+              "using": {
+                "foreign_key_constraint_on": "related_user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_document_requirements",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByMaidId",
+              "using": {
+                "foreign_key_constraint_on": "maid_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_documents",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "compliance_items",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "document_id",
+                  "table": {
+                    "name": "compliance_items",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_earnings",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_payout",
+              "using": {
+                "foreign_key_constraint_on": "payout_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_interviews",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByMaidId",
+              "using": {
+                "foreign_key_constraint_on": "maid_id"
+              }
+            },
+            {
+              "name": "userBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": "sponsor_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_jobs",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "agency_interviews",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "agency_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_placements",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "agency_placements",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_kyb_audit_log",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_kyb_verification",
+              "using": {
+                "foreign_key_constraint_on": "kyb_verification_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByPerformedBy",
+              "using": {
+                "foreign_key_constraint_on": "performed_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_kyb_documents",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_kyb_verification",
+              "using": {
+                "foreign_key_constraint_on": "kyb_verification_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByVerifiedBy",
+              "using": {
+                "foreign_key_constraint_on": "verified_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_kyb_verification",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByVerifiedBy",
+              "using": {
+                "foreign_key_constraint_on": "verified_by"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "agency_kyb_audit_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "kyb_verification_id",
+                  "table": {
+                    "name": "agency_kyb_audit_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "agency_kyb_documents",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "kyb_verification_id",
+                  "table": {
+                    "name": "agency_kyb_documents",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_payment_failures",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_payouts",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "agency_earnings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "payout_id",
+                  "table": {
+                    "name": "agency_earnings",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_placements",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "placement_contract",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "placement_id",
+                  "table": {
+                    "name": "placement_contracts",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByMaidId",
+              "using": {
+                "foreign_key_constraint_on": "maid_id"
+              }
+            },
+            {
+              "name": "userBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": "sponsor_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "disputes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "placement_id",
+                  "table": {
+                    "name": "disputes",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "placement_fee_transactions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "placement_id",
+                  "table": {
+                    "name": "placement_fee_transactions",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_profiles",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "profile",
+              "using": {
+                "foreign_key_constraint_on": "id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "agency_tasks",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "agency_id",
+                  "table": {
+                    "name": "agency_tasks",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_subscriptions",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "agency_tasks",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "agency_team_members",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByUserId",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "team_member_performances",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "team_member_id",
+                  "table": {
+                    "name": "team_member_performance",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "analytics_cache",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "announcement_views",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "applications",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "maid_profile",
+              "using": {
+                "manual_configuration": {
+                  "column_mapping": {
+                    "maid_id": "id"
+                  },
+                  "insertion_order": null,
+                  "remote_table": {
+                    "name": "maid_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "audit_logs",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "booking_requests",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "bookings",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "maid_profile",
+              "using": {
+                "manual_configuration": {
+                  "column_mapping": {
+                    "maid_id": "id"
+                  },
+                  "insertion_order": null,
+                  "remote_table": {
+                    "name": "maid_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sponsor_profile",
+              "using": {
+                "manual_configuration": {
+                  "column_mapping": {
+                    "sponsor_id": "id"
+                  },
+                  "insertion_order": null,
+                  "remote_table": {
+                    "name": "sponsor_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "payments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "booking_id",
+                  "table": {
+                    "name": "payments",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "calendar_events",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "client_satisfaction_ratings",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "placement_contract",
+              "using": {
+                "foreign_key_constraint_on": "placement_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByMaidId",
+              "using": {
+                "foreign_key_constraint_on": "maid_id"
+              }
+            },
+            {
+              "name": "userBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": "sponsor_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "compliance_categories",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "compliance_items",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "category_id",
+                  "table": {
+                    "name": "compliance_items",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "compliance_items",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_document",
+              "using": {
+                "foreign_key_constraint_on": "document_id"
+              }
+            },
+            {
+              "name": "compliance_category",
+              "using": {
+                "foreign_key_constraint_on": "category_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "contact_fees",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "payment_idempotency",
+              "using": {
+                "foreign_key_constraint_on": "idempotency_key"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "maid_id"
+              }
+            },
+            {
+              "name": "userBySponsorId",
+              "using": {
+                "foreign_key_constraint_on": "sponsor_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "content_moderation_flags",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "reviewed_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "conversations",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "messages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "conversation_id",
+                  "table": {
+                    "name": "messages",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "profiles",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "typing_in_conversation_id",
+                  "table": {
+                    "name": "profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "conversion_events",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user_session",
+              "using": {
+                "foreign_key_constraint_on": "session_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "countries",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "country_codes",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "credit_transactions",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "payment_idempotency",
+              "using": {
+                "foreign_key_constraint_on": "idempotency_key"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "dispute_evidence",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "dispute",
+              "using": {
+                "foreign_key_constraint_on": "dispute_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "submitted_by_id"
+              }
+            },
+            {
+              "name": "userByVerifiedById",
+              "using": {
+                "foreign_key_constraint_on": "verified_by_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "dispute_messages",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "dispute",
+              "using": {
+                "foreign_key_constraint_on": "dispute_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "sender_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "dispute_parties",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "dispute",
+              "using": {
+                "foreign_key_constraint_on": "dispute_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "party_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "disputes",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_placement",
+              "using": {
+                "foreign_key_constraint_on": "placement_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            },
+            {
+              "name": "userByAssignedMediatorId",
+              "using": {
+                "foreign_key_constraint_on": "assigned_mediator_id"
+              }
+            },
+            {
+              "name": "userByRaisedById",
+              "using": {
+                "foreign_key_constraint_on": "raised_by_id"
+              }
+            },
+            {
+              "name": "userByResolvedById",
+              "using": {
+                "foreign_key_constraint_on": "resolved_by_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "dispute_evidences",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "dispute_id",
+                  "table": {
+                    "name": "dispute_evidence",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "dispute_messages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "dispute_id",
+                  "table": {
+                    "name": "dispute_messages",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "dispute_parties",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "dispute_id",
+                  "table": {
+                    "name": "dispute_parties",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "favorites",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "interest_requests",
+            "schema": "public"
+          },
+          "insert_permissions": [
+            {
+              "role": "maids",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "created_at",
+                  "expires_at",
+                  "message",
+                  "recipient_id",
+                  "recipient_type",
+                  "responded_at",
+                  "sender_id",
+                  "sender_type",
+                  "status",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "maids",
+              "permission": {
+                "columns": [
+                  "recipient_id",
+                  "sender_id"
+                ],
+                "filter": {}
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "maids",
+              "permission": {
+                "columns": [
+                  "recipient_id",
+                  "responded_at",
+                  "status"
+                ],
+                "filter": {},
+                "check": null
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "interview_notifications",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "video_interview",
+              "using": {
+                "foreign_key_constraint_on": "interview_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "interview_platform_templates",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "job_applications",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "jobs",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "sponsor_profile",
+              "using": {
+                "manual_configuration": {
+                  "column_mapping": {
+                    "sponsor_id": "id"
+                  },
+                  "insertion_order": null,
+                  "remote_table": {
+                    "name": "sponsor_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "applications",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "applications",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "bookings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "bookings",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "placement_fee_transactions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "placement_fee_transactions",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "shortlists",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "shortlists",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sponsor_jobs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "job_id",
+                  "table": {
+                    "name": "sponsor_jobs",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "maid_bookings",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "video_interviews",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "booking_id",
+                  "table": {
+                    "name": "video_interviews",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "maid_documents",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "maid_images",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "maid_profiles",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "maid_subscriptions",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "maid_videos",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "message_templates",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "messages",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "conversation",
+              "using": {
+                "foreign_key_constraint_on": "conversation_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "mv_agency_analytics_summary",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "news_items",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "news_source",
+              "using": {
+                "foreign_key_constraint_on": "source_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "news_sources",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "news_items",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "source_id",
+                  "table": {
+                    "name": "news_items",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "notification_settings",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "notifications",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "page_views",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "password_resets",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "payment_idempotency",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "contact_fees",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "idempotency_key",
+                  "table": {
+                    "name": "contact_fees",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "credit_transactions",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "idempotency_key",
+                  "table": {
+                    "name": "credit_transactions",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "payment_methods",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "payments",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "booking",
+              "using": {
+                "foreign_key_constraint_on": "booking_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "payout_accounts",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "payout_schedules",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "payout_account_id",
+                  "table": {
+                    "name": "payout_schedules",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "payout_schedules",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "payout_account",
+              "using": {
+                "foreign_key_constraint_on": "payout_account_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "payouts",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "phone_verification_log",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "phone_verifications",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "pii_access_log",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "placement_contracts",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_placement",
+              "using": {
+                "foreign_key_constraint_on": "placement_id"
+              }
+            },
+            {
+              "name": "placement_fee_transaction",
+              "using": {
+                "foreign_key_constraint_on": "fee_transaction_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "client_satisfaction_ratings",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "placement_id",
+                  "table": {
+                    "name": "client_satisfaction_ratings",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "placement_fee_transactions",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_placement",
+              "using": {
+                "foreign_key_constraint_on": "placement_id"
+              }
+            },
+            {
+              "name": "job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "placement_contracts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "fee_transaction_id",
+                  "table": {
+                    "name": "placement_contracts",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "placement_workflows",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "platform_announcements",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "created_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "platform_fee_requirements",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "platform_settings",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "profile_edit_requests",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "profiles",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_profile",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "id",
+                  "table": {
+                    "name": "agency_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "conversation",
+              "using": {
+                "foreign_key_constraint_on": "typing_in_conversation_id"
+              }
+            },
+            {
+              "name": "maid_profile",
+              "using": {
+                "manual_configuration": {
+                  "column_mapping": {
+                    "id": "id"
+                  },
+                  "insertion_order": null,
+                  "remote_table": {
+                    "name": "maid_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "sponsor_profile",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "id",
+                  "table": {
+                    "name": "sponsor_profiles",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "maids",
+              "permission": {
+                "check": {},
+                "set": {
+                  "is_active": "x-hasura-"
+                },
+                "columns": [
+                  "active_requests",
+                  "available",
+                  "country",
+                  "email",
+                  "employment_history_length",
+                  "is_active",
+                  "last_seen",
+                  "location",
+                  "full_name",
+                  "phone",
+                  "phone_verification_attempts",
+                  "phone_verified",
+                  "preferred_language",
+                  "profile_completion",
+                  "registration_complete",
+                  "total_reviews",
+                  "total_spent",
+                  "user_type",
+                  "years_experience"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "maids",
+              "permission": {
+                "columns": [],
+                "filter": {}
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "reviews",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "security_events",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "handled_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "shortlist_candidates",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "shortlist",
+              "using": {
+                "foreign_key_constraint_on": "shortlist_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "shortlists",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "shortlist_candidates",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "shortlist_id",
+                  "table": {
+                    "name": "shortlist_candidates",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "skills",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "sponsor_document_verification",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "sponsor_jobs",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "job",
+              "using": {
+                "foreign_key_constraint_on": "job_id"
+              }
+            },
+            {
+              "name": "sponsor",
+              "using": {
+                "foreign_key_constraint_on": "sponsor_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "sponsor_profiles",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "profile",
+              "using": {
+                "foreign_key_constraint_on": "id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "sponsor_subscriptions",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "sponsors",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "sponsor_jobs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "sponsor_id",
+                  "table": {
+                    "name": "sponsor_jobs",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "subscription_limits",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "subscription_status_log",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "subscription",
+              "using": {
+                "foreign_key_constraint_on": "subscription_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "created_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "subscription_usage",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "subscription",
+              "using": {
+                "foreign_key_constraint_on": "subscription_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "subscriptions",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "subscription_status_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "subscription_id",
+                  "table": {
+                    "name": "subscription_status_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "subscription_usages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "subscription_id",
+                  "table": {
+                    "name": "subscription_usage",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "webhook_event_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "subscription_id",
+                  "table": {
+                    "name": "webhook_event_logs",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "support_agents",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "support_interactions",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "support_messages",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "support_ticket",
+              "using": {
+                "foreign_key_constraint_on": "ticket_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "support_tickets",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "support_messages",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "ticket_id",
+                  "table": {
+                    "name": "support_messages",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "system_settings",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "updated_by"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "team_member_performance",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "agency_team_member",
+              "using": {
+                "foreign_key_constraint_on": "team_member_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "agency_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "two_factor_backup_codes",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "user_credits",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "user_events",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "user_sessions",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "conversion_events",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "session_id",
+                  "table": {
+                    "name": "conversion_events",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "video_interviews",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "admin_user",
+              "using": {
+                "foreign_key_constraint_on": "admin_confirmed_by"
+              }
+            },
+            {
+              "name": "maid_booking",
+              "using": {
+                "foreign_key_constraint_on": "booking_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "interview_notifications",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "interview_id",
+                  "table": {
+                    "name": "interview_notifications",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "webhook_event_logs",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "subscription",
+              "using": {
+                "foreign_key_constraint_on": "subscription_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "whatsapp_messages",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "work_experience",
+            "schema": "public"
+          }
+        },
+        {
+          "table": {
+            "name": "messages",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_11_28",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_11_29",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_11_30",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_12_01",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_12_02",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_12_03",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "messages_2025_12_04",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "subscription",
+            "schema": "realtime"
+          }
+        },
+        {
+          "table": {
+            "name": "buckets",
+            "schema": "storage"
+          },
+          "array_relationships": [
+            {
+              "name": "objects",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "bucket_id",
+                  "table": {
+                    "name": "objects",
+                    "schema": "storage"
+                  }
+                }
+              }
+            },
+            {
+              "name": "prefixes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "bucket_id",
+                  "table": {
+                    "name": "prefixes",
+                    "schema": "storage"
+                  }
+                }
+              }
+            },
+            {
+              "name": "s3_multipart_uploads",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "bucket_id",
+                  "table": {
+                    "name": "s3_multipart_uploads",
+                    "schema": "storage"
+                  }
+                }
+              }
+            },
+            {
+              "name": "s3_multipart_uploads_parts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "bucket_id",
+                  "table": {
+                    "name": "s3_multipart_uploads_parts",
+                    "schema": "storage"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "buckets_analytics",
+            "schema": "storage"
+          }
+        },
+        {
+          "table": {
+            "name": "buckets_vectors",
+            "schema": "storage"
+          },
+          "array_relationships": [
+            {
+              "name": "vector_indexes",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "bucket_id",
+                  "table": {
+                    "name": "vector_indexes",
+                    "schema": "storage"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "migrations",
+            "schema": "storage"
+          }
+        },
+        {
+          "table": {
+            "name": "objects",
+            "schema": "storage"
+          },
+          "object_relationships": [
+            {
+              "name": "bucket",
+              "using": {
+                "foreign_key_constraint_on": "bucket_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "prefixes",
+            "schema": "storage"
+          },
+          "object_relationships": [
+            {
+              "name": "bucket",
+              "using": {
+                "foreign_key_constraint_on": "bucket_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "s3_multipart_uploads",
+            "schema": "storage"
+          },
+          "object_relationships": [
+            {
+              "name": "bucket",
+              "using": {
+                "foreign_key_constraint_on": "bucket_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "s3_multipart_uploads_parts",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "upload_id",
+                  "table": {
+                    "name": "s3_multipart_uploads_parts",
+                    "schema": "storage"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "s3_multipart_uploads_parts",
+            "schema": "storage"
+          },
+          "object_relationships": [
+            {
+              "name": "bucket",
+              "using": {
+                "foreign_key_constraint_on": "bucket_id"
+              }
+            },
+            {
+              "name": "s3_multipart_upload",
+              "using": {
+                "foreign_key_constraint_on": "upload_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "vector_indexes",
+            "schema": "storage"
+          },
+          "object_relationships": [
+            {
+              "name": "buckets_vector",
+              "using": {
+                "foreign_key_constraint_on": "bucket_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "schema_migrations",
+            "schema": "supabase_migrations"
+          }
+        },
+        {
+          "table": {
+            "name": "seed_files",
+            "schema": "supabase_migrations"
+          }
+        }
+      ],
+      "functions": [
+        {
+          "function": {
+            "name": "get_current_usage",
+            "schema": "public"
+          },
+          "configuration": {
+            "custom_root_fields": {},
+            "exposed_as": "mutation"
+          }
+        }
+      ],
+      "configuration": {
+        "connection_info": {
+          "database_url": "postgresql://postgres:ZOqYmq7dEJjZ1pBw@db.kstoksqbhmxnrmspfywm.supabase.co:5432/postgres?sslmode=require",
+          "isolation_level": "read-committed",
+          "use_prepared_statements": false
+        }
+      }
+    }
+  ],
+  "backend_configs": {
+    "dataconnector": {
+      "athena": {
+        "uri": "http://localhost:8081/api/v1/athena"
+      },
+      "mariadb": {
+        "uri": "http://localhost:8081/api/v1/mariadb"
+      },
+      "mongodb": {
+        "uri": "http://localhost:8082"
+      },
+      "mysql8": {
+        "uri": "http://localhost:8081/api/v1/mysql"
+      },
+      "oracle": {
+        "uri": "http://localhost:8081/api/v1/oracle"
+      },
+      "redshift": {
+        "uri": "http://localhost:8081/api/v1/redshift"
+      },
+      "snowflake": {
+        "uri": "http://localhost:8081/api/v1/snowflake"
+      }
+    }
+  }
+}

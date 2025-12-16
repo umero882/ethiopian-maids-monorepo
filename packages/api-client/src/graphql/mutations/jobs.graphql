@@ -1,0 +1,217 @@
+# Job mutations for GraphQL API
+# Following the successful pattern from maids and profiles migrations
+
+# Create a new job posting (for sponsors)
+mutation CreateJob($data: jobs_insert_input!) {
+  insert_jobs_one(object: $data) {
+    id
+    title
+    description
+    job_type
+    country
+    city
+    status
+    salary_min
+    salary_max
+    currency
+    created_at
+    updated_at
+  }
+}
+
+# Update an existing job
+mutation UpdateJob(
+  $id: uuid!
+  $data: jobs_set_input!
+) {
+  update_jobs_by_pk(
+    pk_columns: { id: $id }
+    _set: $data
+  ) {
+    id
+    title
+    description
+    job_type
+    country
+    city
+    status
+    salary_min
+    salary_max
+    currency
+    updated_at
+  }
+}
+
+# Delete a job posting
+mutation DeleteJob($id: uuid!) {
+  delete_jobs_by_pk(id: $id) {
+    id
+    title
+  }
+}
+
+# Change job status
+mutation ChangeJobStatus(
+  $id: uuid!
+  $status: String!
+) {
+  update_jobs_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      status: $status
+      updated_at: "now()"
+    }
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# Toggle job featured status
+mutation ToggleJobFeatured(
+  $id: uuid!
+  $featured: Boolean!
+  $featuredUntil: timestamptz
+) {
+  update_jobs_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      featured: $featured
+      featured_until: $featuredUntil
+      updated_at: "now()"
+    }
+  ) {
+    id
+    featured
+    featured_until
+    updated_at
+  }
+}
+
+# Increment job views counter
+mutation IncrementJobViews($id: uuid!) {
+  update_jobs_by_pk(
+    pk_columns: { id: $id }
+    _inc: { views_count: 1 }
+  ) {
+    id
+    views_count
+  }
+}
+
+# Submit a job application (for maids)
+mutation SubmitApplication($data: applications_insert_input!) {
+  insert_applications_one(
+    object: $data
+    on_conflict: {
+      constraint: applications_job_id_maid_id_key
+      update_columns: [cover_letter, updated_at]
+    }
+  ) {
+    id
+    job_id
+    maid_id
+    status
+    application_status
+    cover_letter
+    notes
+    created_at
+
+    # Include job details in response
+    job {
+      id
+      title
+      sponsor_id
+    }
+  }
+}
+
+# Update application status (for sponsors)
+mutation UpdateApplicationStatus(
+  $id: uuid!
+  $status: String!
+  $notes: String
+) {
+  update_applications_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      status: $status
+      application_status: $status
+      notes: $notes
+      updated_at: "now()"
+    }
+  ) {
+    id
+    status
+    application_status
+    notes
+    updated_at
+  }
+}
+
+# Add notes to application (for sponsors)
+mutation AddApplicationNotes(
+  $id: uuid!
+  $notes: String!
+) {
+  update_applications_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      notes: $notes
+      updated_at: "now()"
+    }
+  ) {
+    id
+    notes
+    updated_at
+  }
+}
+
+# Withdraw an application (for maids)
+mutation WithdrawApplication($id: uuid!) {
+  update_applications_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      status: "withdrawn"
+      updated_at: "now()"
+    }
+  ) {
+    id
+    status
+    updated_at
+  }
+}
+
+# Batch increment applications count
+# This is useful when an application is submitted to update the job's counter
+mutation IncrementApplicationsCount($jobId: uuid!) {
+  update_jobs_by_pk(
+    pk_columns: { id: $jobId }
+    _inc: { applications_count: 1 }
+  ) {
+    id
+    applications_count
+  }
+}
+
+# Batch update - mark expired jobs
+mutation MarkExpiredJobs {
+  update_jobs(
+    where: {
+      status: { _eq: "active" }
+      expires_at: { _lt: "now()" }
+    }
+    _set: {
+      status: "expired"
+      updated_at: "now()"
+    }
+  ) {
+    affected_rows
+    returning {
+      id
+      title
+      status
+    }
+  }
+}

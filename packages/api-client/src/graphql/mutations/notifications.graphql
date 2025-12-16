@@ -1,0 +1,165 @@
+# =====================================================
+# Notifications Service - GraphQL Mutations
+# Mutations for notifications table
+# =====================================================
+
+# Mutation 1: Create Notification
+mutation CreateNotification($data: notifications_insert_input!) {
+  insert_notifications_one(object: $data) {
+    id
+    user_id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    priority
+    created_at
+    expires_at
+  }
+}
+
+# Mutation 2: Create Multiple Notifications
+mutation CreateMultipleNotifications($data: [notifications_insert_input!]!) {
+  insert_notifications(objects: $data) {
+    affected_rows
+    returning {
+      id
+      user_id
+      type
+      title
+      message
+      priority
+      created_at
+    }
+  }
+}
+
+# Mutation 3: Update Notification
+mutation UpdateNotification($id: uuid!, $data: notifications_set_input!) {
+  update_notifications_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    read
+    read_at
+    priority
+    expires_at
+  }
+}
+
+# Mutation 4: Mark Notification as Read
+mutation MarkNotificationAsRead($id: uuid!) {
+  update_notifications_by_pk(
+    pk_columns: {id: $id}
+    _set: {read: true, read_at: "now()"}
+  ) {
+    id
+    read
+    read_at
+  }
+}
+
+# Mutation 5: Mark Multiple Notifications as Read
+mutation MarkMultipleNotificationsAsRead($ids: [uuid!]!) {
+  update_notifications(
+    where: {id: {_in: $ids}}
+    _set: {read: true, read_at: "now()"}
+  ) {
+    affected_rows
+    returning {
+      id
+      read
+      read_at
+    }
+  }
+}
+
+# Mutation 6: Mark All User Notifications as Read
+mutation MarkAllUserNotificationsAsRead($userId: String!) {
+  update_notifications(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: false}
+    }
+    _set: {read: true, read_at: "now()"}
+  ) {
+    affected_rows
+    returning {
+      id
+      read
+    }
+  }
+}
+
+# Mutation 7: Mark Notification as Unread
+mutation MarkNotificationAsUnread($id: uuid!) {
+  update_notifications_by_pk(
+    pk_columns: {id: $id}
+    _set: {read: false, read_at: null}
+  ) {
+    id
+    read
+    read_at
+  }
+}
+
+# Mutation 8: Delete Notification
+mutation DeleteNotification($id: uuid!) {
+  delete_notifications_by_pk(id: $id) {
+    id
+    type
+    title
+  }
+}
+
+# Mutation 9: Delete Multiple Notifications
+mutation DeleteMultipleNotifications($ids: [uuid!]!) {
+  delete_notifications(where: {id: {_in: $ids}}) {
+    affected_rows
+  }
+}
+
+# Mutation 10: Delete All Read Notifications
+mutation DeleteAllReadNotifications($userId: String!) {
+  delete_notifications(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: true}
+    }
+  ) {
+    affected_rows
+  }
+}
+
+# Mutation 11: Delete Expired Notifications
+mutation DeleteExpiredNotifications($userId: String!) {
+  delete_notifications(
+    where: {
+      user_id: {_eq: $userId}
+      expires_at: {_lt: "now()"}
+    }
+  ) {
+    affected_rows
+  }
+}
+
+# Mutation 12: Update Notification Priority
+mutation UpdateNotificationPriority($id: uuid!, $priority: String!) {
+  update_notifications_by_pk(
+    pk_columns: {id: $id}
+    _set: {priority: $priority}
+  ) {
+    id
+    priority
+  }
+}

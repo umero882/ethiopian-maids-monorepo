@@ -1,0 +1,116 @@
+# ============================================================================
+# SPONSOR PROFILES MUTATIONS (Simplified - Profile Management Only)
+# GraphQL mutations for sponsor profile CRUD operations
+# ============================================================================
+
+# Create a new sponsor profile
+mutation CreateSponsorProfile($data: sponsor_profiles_insert_input!) {
+  insert_sponsor_profiles_one(object: $data) {
+    id
+    full_name
+    household_size
+    number_of_children
+    city
+    country
+    salary_budget_min
+    salary_budget_max
+    currency
+    identity_verified
+    background_check_completed
+    created_at
+    updated_at
+  }
+}
+
+# Update sponsor profile
+mutation UpdateSponsorProfile(
+  $id: String!
+  $data: sponsor_profiles_set_input!
+) {
+  update_sponsor_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: $data
+  ) {
+    id
+    full_name
+    household_size
+    number_of_children
+    children_ages
+    elderly_care_needed
+    pets
+    pet_types
+    city
+    country
+    address
+    accommodation_type
+    preferred_nationality
+    preferred_experience_years
+    required_skills
+    preferred_languages
+    salary_budget_min
+    salary_budget_max
+    currency
+    live_in_required
+    working_hours_per_day
+    days_off_per_week
+    overtime_available
+    additional_benefits
+    identity_verified
+    background_check_completed
+    active_job_postings
+    total_hires
+    average_rating
+    updated_at
+  }
+}
+
+# Delete sponsor profile
+mutation DeleteSponsorProfile($id: String!) {
+  delete_sponsor_profiles_by_pk(id: $id) {
+    id
+  }
+}
+
+# Increment active job postings
+mutation IncrementActiveJobPostings($id: String!) {
+  update_sponsor_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {active_job_postings: 1}
+  ) {
+    id
+    active_job_postings
+  }
+}
+
+# Decrement active job postings
+mutation DecrementActiveJobPostings($id: String!) {
+  update_sponsor_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {active_job_postings: -1}
+  ) {
+    id
+    active_job_postings
+  }
+}
+
+# Increment total hires
+mutation IncrementTotalHires($id: String!) {
+  update_sponsor_profiles_by_pk(
+    pk_columns: {id: $id}
+    _inc: {total_hires: 1}
+  ) {
+    id
+    total_hires
+  }
+}
+
+# Update average rating
+mutation UpdateSponsorAverageRating($id: String!, $rating: numeric!) {
+  update_sponsor_profiles_by_pk(
+    pk_columns: {id: $id}
+    _set: {average_rating: $rating}
+  ) {
+    id
+    average_rating
+  }
+}

@@ -1,0 +1,113 @@
+# =====================================================
+# WhatsApp Service - GraphQL Subscriptions
+# Real-time subscriptions for WhatsApp dashboard
+# =====================================================
+
+# =====================================================
+# Subscription 1: New WhatsApp Messages
+# Real-time updates for new incoming messages
+# =====================================================
+subscription OnNewWhatsAppMessage {
+  whatsapp_messages(
+    order_by: { received_at: desc }
+    limit: 1
+  ) {
+    id
+    phone_number
+    message_content
+    message_type
+    received_at
+    sender
+    ai_response
+    processed
+    created_at
+  }
+}
+
+# =====================================================
+# Subscription 2: Conversation Messages
+# Real-time updates for a specific conversation
+# =====================================================
+subscription OnConversationUpdate($phoneNumber: String!) {
+  whatsapp_messages(
+    where: { phone_number: { _eq: $phoneNumber } }
+    order_by: { received_at: desc }
+    limit: 50
+  ) {
+    id
+    phone_number
+    message_content
+    message_type
+    received_at
+    sender
+    ai_response
+    processed
+  }
+}
+
+# =====================================================
+# Subscription 3: Booking Updates
+# Real-time updates for maid bookings
+# =====================================================
+subscription OnMaidBookingUpdate {
+  maid_bookings(
+    order_by: { updated_at: desc }
+    limit: 10
+  ) {
+    id
+    phone_number
+    sponsor_name
+    maid_name
+    booking_type
+    booking_date
+    status
+    notes
+    created_at
+    updated_at
+  }
+}
+
+# =====================================================
+# Subscription 4: Pending Bookings Count
+# Real-time count of pending bookings
+# =====================================================
+subscription OnPendingBookingsCount {
+  maid_bookings_aggregate(where: { status: { _eq: "pending" } }) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# =====================================================
+# Subscription 5: Today's Bookings
+# Real-time updates for today's bookings
+# =====================================================
+subscription OnTodaysBookings($today: timestamptz!, $tomorrow: timestamptz!) {
+  maid_bookings(
+    where: {
+      booking_date: { _gte: $today, _lt: $tomorrow }
+    }
+    order_by: { booking_date: asc }
+  ) {
+    id
+    phone_number
+    sponsor_name
+    maid_name
+    booking_type
+    booking_date
+    status
+  }
+}
+
+# =====================================================
+# Subscription 6: All Active Messages Stats
+# Real-time message statistics
+# =====================================================
+subscription OnMessageStats {
+  whatsapp_messages_aggregate {
+    aggregate {
+      count
+    }
+  }
+}

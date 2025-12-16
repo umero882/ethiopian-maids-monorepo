@@ -1,0 +1,45 @@
+overwrite: true
+schema:
+  - https://ethio-maids-01.hasura.app/v1/graphql:
+      headers:
+        x-hasura-admin-secret: ${HASURA_ADMIN_SECRET}
+documents: 'packages/api-client/src/graphql/subscriptions/**/*.graphql'
+generates:
+  packages/api-client/src/generated/subscriptions.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+    config:
+      skipTypename: false
+      namingConvention:
+        typeNames: pascal-case#pascalCase
+        enumValues: upper-case#upperCase
+      scalars:
+        uuid: string
+        timestamptz: string
+        jsonb: any
+        bigint: number
+        date: string
+        numeric: number
+        ID: string
+  packages/api-client/src/generated/subscription-hooks.ts:
+    plugins:
+      - typescript-react-apollo
+    config:
+      withHooks: true
+      withMutationFn: false
+      withRefetchFn: false
+      reactApolloVersion: 3
+      apolloReactCommonImportFrom: "@apollo/client/react"
+      apolloReactHooksImportFrom: "@apollo/client/react"
+      namingConvention:
+        typeNames: pascal-case#pascalCase
+      scalars:
+        uuid: string
+        timestamptz: string
+        jsonb: any
+        bigint: number
+        date: string
+        numeric: number
+        ID: string

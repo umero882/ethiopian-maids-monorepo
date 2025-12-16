@@ -1,0 +1,54 @@
+# Real-time message subscriptions
+# Note: Mutations are defined in mutations/communications.graphql
+
+subscription OnNewMessages($userId: String!) {
+  messages(
+    where: {
+      _or: [
+        { receiver_id: { _eq: $userId } }
+        { sender_id: { _eq: $userId } }
+      ]
+    }
+    order_by: { created_at: desc }
+    limit: 50
+  ) {
+    id
+    content
+    sender_id
+    receiver_id
+    read
+    created_at
+  }
+}
+
+subscription OnConversationMessages($userId: String!, $otherUserId: String!) {
+  messages(
+    where: {
+      _or: [
+        { _and: [{ sender_id: { _eq: $userId } }, { receiver_id: { _eq: $otherUserId } }] }
+        { _and: [{ sender_id: { _eq: $otherUserId } }, { receiver_id: { _eq: $userId } }] }
+      ]
+    }
+    order_by: { created_at: asc }
+  ) {
+    id
+    content
+    sender_id
+    receiver_id
+    read
+    created_at
+  }
+}
+
+subscription OnUnreadMessageCount($userId: String!) {
+  messages_aggregate(
+    where: {
+      receiver_id: { _eq: $userId }
+      read: { _eq: false }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}

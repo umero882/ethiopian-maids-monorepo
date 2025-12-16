@@ -1,0 +1,147 @@
+# =====================================================
+# Admin Dashboard - GraphQL Subscriptions
+# Real-time subscriptions for admin dashboard updates
+# =====================================================
+
+# Subscription 1: Real-time profile statistics with breakdown by type
+subscription OnAdminProfileStats {
+  profiles(where: { is_active: { _eq: true } }) {
+    id
+    user_type
+    is_active
+    created_at
+  }
+}
+
+# Subscription 2: Real-time admin activity logs
+subscription OnAdminActivityLogs($limit: Int!) {
+  admin_activity_logs(order_by: { created_at: desc }, limit: $limit) {
+    id
+    action
+    resource_type
+    resource_id
+    created_at
+    admin_user {
+      full_name
+    }
+  }
+}
+
+# Subscription 3: Real-time pending maid profile verifications
+subscription OnPendingMaidVerifications {
+  maid_profiles_aggregate(
+    where: { verification_status: { _eq: "pending" } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 4: Real-time pending job listings for review
+subscription OnPendingJobListings {
+  jobs_aggregate(
+    where: { status: { _in: ["pending", "pending_review", "draft"] } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 5: Real-time open support tickets count
+subscription OnOpenSupportTickets {
+  support_tickets_aggregate(
+    where: {
+      status: { _in: ["open", "in_progress", "waiting_user"] }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 6: Real-time financial transactions summary
+subscription OnRecentTransactions($limit: Int!) {
+  placement_fee_transactions(
+    order_by: { created_at: desc }
+    limit: $limit
+  ) {
+    id
+    fee_amount
+    amount_charged
+    credits_applied
+    currency
+    fee_status
+    created_at
+    agency_id
+  }
+}
+
+# Subscription 7: Real-time financial aggregates for current month
+subscription OnMonthlyFinancialStats($startOfMonth: timestamptz!) {
+  placement_fee_transactions_aggregate(
+    where: { created_at: { _gte: $startOfMonth } }
+  ) {
+    aggregate {
+      count
+      sum {
+        fee_amount
+        amount_charged
+      }
+    }
+  }
+}
+
+# Subscription 8: Real-time maid user count
+subscription OnMaidCount {
+  maid_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 9: Real-time agency user count
+subscription OnAgencyCount {
+  agency_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 10: Real-time sponsor user count
+subscription OnSponsorCount {
+  sponsor_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 11: Real-time pending agency verifications
+subscription OnPendingAgencyVerifications {
+  agency_profiles_aggregate(
+    where: { verification_status: { _eq: "pending" } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Subscription 12: Real-time high priority support tickets
+subscription OnHighPrioritySupportTickets {
+  support_tickets_aggregate(
+    where: {
+      status: { _in: ["open", "in_progress"] }
+      priority: { _in: ["high", "urgent"] }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}

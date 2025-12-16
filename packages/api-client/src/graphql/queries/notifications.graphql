@@ -1,0 +1,303 @@
+# =====================================================
+# Notifications Service - GraphQL Queries
+# Queries for notifications table
+# =====================================================
+
+# Query 1: Get Notification by ID
+query GetNotification($id: uuid!) {
+  notifications_by_pk(id: $id) {
+    id
+    user_id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    read_at
+    priority
+    created_at
+    expires_at
+  }
+}
+
+# Query 2: List User Notifications
+query ListUserNotifications(
+  $userId: String!
+  $limit: Int = 20
+  $offset: Int = 0
+  $read: Boolean
+) {
+  notifications(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: $read}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    read_at
+    priority
+    created_at
+    expires_at
+  }
+  notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: $read}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 3: List All User Notifications (Read + Unread)
+query ListAllUserNotifications(
+  $userId: String!
+  $limit: Int = 50
+  $offset: Int = 0
+) {
+  notifications(
+    where: {
+      user_id: {_eq: $userId}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    read_at
+    priority
+    created_at
+    expires_at
+  }
+  notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 4: Get Unread Notifications Count
+query GetUnreadNotificationsCount($userId: String!) {
+  notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: false}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 5: Get Notifications by Type
+query GetNotificationsByType(
+  $userId: String!
+  $type: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  notifications(
+    where: {
+      user_id: {_eq: $userId}
+      type: {_eq: $type}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    related_id
+    related_type
+    read
+    read_at
+    priority
+    created_at
+    expires_at
+  }
+  notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      type: {_eq: $type}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 6: Get Notifications by Priority
+query GetNotificationsByPriority(
+  $userId: String!
+  $priority: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  notifications(
+    where: {
+      user_id: {_eq: $userId}
+      priority: {_eq: $priority}
+      read: {_eq: false}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+    limit: $limit
+    offset: $offset
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    type
+    title
+    message
+    link
+    action_url
+    priority
+    read
+    created_at
+  }
+  notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      priority: {_eq: $priority}
+      read: {_eq: false}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Query 7: Get Recent Notifications
+query GetRecentNotifications(
+  $userId: String!
+  $limit: Int = 10
+) {
+  notifications(
+    where: {
+      user_id: {_eq: $userId}
+      _or: [
+        {expires_at: {_is_null: true}}
+        {expires_at: {_gt: "now()"}}
+      ]
+    }
+    limit: $limit
+    order_by: [{created_at: desc}]
+  ) {
+    id
+    type
+    title
+    message
+    link
+    read
+    priority
+    created_at
+  }
+}
+
+# Query 8: Get Notification Statistics
+query GetNotificationStatistics($userId: String!) {
+  total: notifications_aggregate(
+    where: {user_id: {_eq: $userId}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  unread: notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      read: {_eq: false}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  urgent: notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      priority: {_eq: "urgent"}
+      read: {_eq: false}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  high: notifications_aggregate(
+    where: {
+      user_id: {_eq: $userId}
+      priority: {_eq: "high"}
+      read: {_eq: false}
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}

@@ -1,0 +1,101 @@
+# ============================================================================
+# SPONSOR PROFILES QUERIES (Simplified - Profile Management Only)
+# GraphQL queries for sponsor profile CRUD operations
+# ============================================================================
+
+# Get complete sponsor profile with all details
+query GetSponsorProfileComplete($id: String!) {
+  sponsor_profiles_by_pk(id: $id) {
+    id
+    full_name
+    household_size
+    number_of_children
+    children_ages
+    elderly_care_needed
+    pets
+    pet_types
+    city
+    country
+    address
+    accommodation_type
+    preferred_nationality
+    preferred_experience_years
+    required_skills
+    preferred_languages
+    salary_budget_min
+    salary_budget_max
+    currency
+    live_in_required
+    working_hours_per_day
+    days_off_per_week
+    overtime_available
+    additional_benefits
+    identity_verified
+    background_check_completed
+    active_job_postings
+    total_hires
+    average_rating
+    created_at
+    updated_at
+  }
+}
+
+# Get sponsor profile with basic information
+query GetSponsorProfile($id: String!) {
+  sponsor_profiles_by_pk(id: $id) {
+    id
+    full_name
+    household_size
+    number_of_children
+    city
+    country
+    preferred_nationality
+    required_skills
+    preferred_languages
+    salary_budget_min
+    salary_budget_max
+    currency
+    identity_verified
+    background_check_completed
+    active_job_postings
+    total_hires
+    average_rating
+    created_at
+    updated_at
+  }
+}
+
+# List all sponsor profiles with pagination
+query ListSponsorProfiles(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: sponsor_profiles_bool_exp
+  $orderBy: [sponsor_profiles_order_by!] = [{created_at: desc}]
+) {
+  sponsor_profiles(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    full_name
+    household_size
+    number_of_children
+    city
+    country
+    salary_budget_min
+    salary_budget_max
+    currency
+    active_job_postings
+    total_hires
+    average_rating
+    created_at
+  }
+
+  sponsor_profiles_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

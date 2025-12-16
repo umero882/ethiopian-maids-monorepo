@@ -1,0 +1,195 @@
+# Maid profile queries using maid_profiles table
+# NOTE: maid_profiles.id = profiles.id (enforced by FK constraint)
+# After fixing orphaned data, these IDs are safe to use for favorites
+
+# Complete maid profile query with all relationships
+# Note: profile and maid_images relationships removed - not tracked in Hasura
+query GetMaidProfileComplete($id: String!) {
+  maid_profiles_by_pk(id: $id) {
+    # Personal Information
+    id
+    full_name
+    date_of_birth
+    nationality
+    current_location
+    marital_status
+    children_count
+    iso_country_code
+    religion
+
+    # Professional Information
+    experience_years
+    previous_countries
+    skills
+    languages
+    education_level
+    primary_profession
+
+    # Work Preferences
+    preferred_salary_min
+    preferred_salary_max
+    preferred_currency
+    available_from
+    contract_duration_preference
+    live_in_preference
+
+    # Documents & Verification
+    passport_number
+    passport_expiry
+    visa_status
+    medical_certificate_valid
+    police_clearance_valid
+
+    # Profile Status
+    availability_status
+    profile_completion_percentage
+    verification_status
+    is_agency_managed
+    agency_id
+
+    # Metadata
+    profile_views
+    total_applications
+    successful_placements
+    average_rating
+
+    # Media & Content
+    about_me
+    profile_photo_url
+    introduction_video_url
+    additional_notes
+    additional_services
+
+    # Timestamps
+    created_at
+    updated_at
+  }
+}
+
+# List maids with filtering, pagination, and aggregates
+# Note: profile and maid_images relationships removed - not tracked in Hasura
+query GetMaidsWithFilters(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: maid_profiles_bool_exp
+  $orderBy: [maid_profiles_order_by!] = [{ created_at: desc }]
+) {
+  # Main data
+  maid_profiles(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    full_name
+    nationality
+    experience_years
+    availability_status
+    skills
+    languages
+    current_location
+    preferred_salary_min
+    preferred_salary_max
+    preferred_currency
+    verification_status
+    average_rating
+    profile_completion_percentage
+    profile_photo_url
+    created_at
+    introduction_video_url
+    primary_profession
+    live_in_preference
+    contract_duration_preference
+    is_agency_managed
+    iso_country_code
+  }
+
+  # Total count for pagination
+  maid_profiles_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Get sponsor's favorite maid IDs
+query GetUserFavoriteMaids(
+  $sponsorId: String!
+  $limit: Int = 20
+  $offset: Int = 0
+) {
+  favorites(
+    where: { sponsor_id: { _eq: $sponsorId } }
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+  ) {
+    created_at
+    maid_id
+  }
+
+  favorites_aggregate(where: { sponsor_id: { _eq: $sponsorId } }) {
+    aggregate {
+      count
+    }
+  }
+}
+
+# Check if specific maids are favorited (batch operation)
+query CheckFavoriteStatus(
+  $sponsorId: String!
+  $maidIds: [String!]!
+) {
+  favorites(
+    where: {
+      sponsor_id: { _eq: $sponsorId }
+      maid_id: { _in: $maidIds }
+    }
+  ) {
+    maid_id
+  }
+}
+
+# Legacy queries (keep for backward compatibility)
+query GetMaidProfile($id: String!) {
+  maid_profiles_by_pk(id: $id) {
+    id
+    full_name
+    experience_years
+    languages
+    availability_status
+    education_level
+    nationality
+    current_location
+    about_me
+    created_at
+    updated_at
+  }
+}
+
+query GetAvailableMaids(
+  $limit: Int = 20
+  $offset: Int = 0
+  $where: maid_profiles_bool_exp
+) {
+  maid_profiles(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+  ) {
+    id
+    full_name
+    experience_years
+    languages
+    availability_status
+    nationality
+    current_location
+  }
+  maid_profiles_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
