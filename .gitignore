@@ -48,6 +48,13 @@ tools/firebase-admin/*.json
 .env.local
 .env.*.local
 
+# Test files with potential secrets
+test-firebase*.js
+test-firebase*.html
+create-*-admin.js
+check-*.js
+fix-*.js
+
 # MCP configuration (contains API keys)
 .mcp.json
 .expo

@@ -98,7 +98,10 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:firebase.google.com)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd complete Ethiopian Maids Platform codebase\n\n- Web app (React + Vite + Tailwind)\n- Mobile app (Expo + React Native)\n- Shared packages (api-client, domain, app, infra)\n- Firebase functions for payments/Stripe\n- Hasura GraphQL configuration\n- Admin panel with real data integration\n- Multi-role support (maid, sponsor, agency, admin)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nSecurity: Remove exposed Firebase API key\n\n- Remove hardcoded API keys from mobile firebaseConfig.ts\n- Delete test files containing credentials\n- Update .gitignore to prevent future exposure\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

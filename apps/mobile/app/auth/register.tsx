@@ -2,12 +2,14 @@
  * Register Screen
  *
  * Receives userType from select-type screen via route params.
+ * Includes SMS phone verification using Firebase Phone Auth.
  */
 
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Modal, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
+import { usePhoneAuth } from '../../hooks/usePhoneAuth';
 import { Ionicons } from '@expo/vector-icons';
 
 type UserType = 'sponsor' | 'maid' | 'agency';
@@ -40,6 +42,7 @@ export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [country, setCountry] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<typeof COUNTRIES[0] | null>(null);
   const [showCountryModal, setShowCountryModal] = useState(false);
@@ -49,6 +52,35 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
+  // Phone verification hook
+  const {
+    state: phoneAuthState,
+    isSending,
+    isCodeSent,
+    isVerifying,
+    isVerified,
+    error: phoneError,
+    sendVerificationCode,
+    verifyCode,
+    resendCode,
+    reset: resetPhoneAuth,
+    formatPhoneToE164,
+  } = usePhoneAuth({
+    onVerificationComplete: (verifiedPhone) => {
+      Alert.alert('Success', 'Phone number verified successfully!');
+    },
+    onError: (error) => {
+      // Check if it's a configuration error
+      if (error.includes('app configuration') || error.includes('client identifier')) {
+        Alert.alert(
+          'Development Mode',
+          'Phone verification requires Firebase configuration. For testing, use phone numbers configured in Firebase Console.\n\nTest number: +1 650-555-1234\nCode: 123456',
+          [{ text: 'OK' }]
+        );
+      }
+    },
+  });
+
   const handleCountrySelect = (countryItem: typeof COUNTRIES[0]) => {
     setSelectedCountry(countryItem);
     setCountry(countryItem.name);
@@ -56,6 +88,31 @@ export default function RegisterScreen() {
   };
 
   const { signUp, isLoading } = useAuth();
+
+  // Handle send verification code
+  const handleSendCode = async () => {
+    if (!phone) {
+      Alert.alert('Error', 'Please enter your phone number');
+      return;
+    }
+    const countryCode = selectedCountry?.code || 'AE';
+    await sendVerificationCode(phone, countryCode);
+  };
+
+  // Handle verify code
+  const handleVerifyCode = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      Alert.alert('Error', 'Please enter the 6-digit verification code');
+      return;
+    }
+    await verifyCode(verificationCode);
+  };
+
+  // Handle back from verification
+  const handleBackFromVerification = () => {
+    resetPhoneAuth();
+    setVerificationCode('');
+  };
 
   // Redirect to select-type if no userType param provided
   useEffect(() => {
@@ -80,11 +137,24 @@ export default function RegisterScreen() {
       return;
     }
 
+    // Require phone verification
+    if (phone && !isVerified) {
+      setError('Please verify your phone number before registering');
+      return;
+    }
+
     setError('');
+
+    // Format phone for storage
+    const formattedPhone = phone && selectedCountry
+      ? formatPhoneToE164(phone, selectedCountry.code)
+      : phone;
+
     const result = await signUp(email, password, {
       name,
       user_type: userType,
-      phone,
+      phone: formattedPhone,
+      phone_verified: isVerified,
       country,
     });
 
@@ -184,17 +254,102 @@ export default function RegisterScreen() {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="call-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Phone Number (optional)"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
-            />
+          {/* Phone Number Input with Verification */}
+          <View style={styles.phoneSection}>
+            <View style={[styles.inputContainer, { marginBottom: 0 }]}>
+              <Ionicons name="call-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Phone Number (e.g., 501234567)"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                placeholderTextColor="#9CA3AF"
+                editable={!isCodeSent && !isVerified}
+              />
+              {isVerified && (
+                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+              )}
+            </View>
+
+            {/* Verification Code Input */}
+            {isCodeSent && !isVerified && (
+              <View style={styles.verificationSection}>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="keypad-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, styles.codeInput]}
+                    placeholder="Enter 6-digit code"
+                    value={verificationCode}
+                    onChangeText={(text) => setVerificationCode(text.replace(/\D/g, '').slice(0, 6))}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    placeholderTextColor="#9CA3AF"
+                    editable={!isVerifying}
+                  />
+                </View>
+                <View style={styles.verificationButtons}>
+                  <TouchableOpacity
+                    style={[styles.verifyButton, styles.changeButton]}
+                    onPress={handleBackFromVerification}
+                    disabled={isVerifying}
+                  >
+                    <Ionicons name="arrow-back" size={16} color="#1E40AF" />
+                    <Text style={styles.changeButtonText}>Change</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.verifyButton, styles.confirmButton, (isVerifying || verificationCode.length !== 6) && styles.buttonDisabled]}
+                    onPress={handleVerifyCode}
+                    disabled={isVerifying || verificationCode.length !== 6}
+                  >
+                    {isVerifying ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Ionicons name="checkmark" size={16} color="#fff" />
+                        <Text style={styles.confirmButtonText}>Verify</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={styles.resendButton}
+                  onPress={resendCode}
+                  disabled={isSending}
+                >
+                  <Text style={styles.resendButtonText}>
+                    {isSending ? 'Sending...' : 'Resend Code'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Send Code Button */}
+            {!isCodeSent && !isVerified && phone.length > 0 && (
+              <TouchableOpacity
+                style={[styles.sendCodeButton, isSending && styles.buttonDisabled]}
+                onPress={handleSendCode}
+                disabled={isSending}
+              >
+                {isSending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="shield-checkmark-outline" size={16} color="#fff" />
+                    <Text style={styles.sendCodeButtonText}>Verify Phone</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {/* Verified Status */}
+            {isVerified && (
+              <View style={styles.verifiedStatus}>
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                <Text style={styles.verifiedText}>Phone Verified</Text>
+              </View>
+            )}
           </View>
 
           {/* Country Dropdown */}
@@ -505,5 +660,89 @@ const styles = StyleSheet.create({
   countryNameSelected: {
     fontWeight: '600',
     color: '#1E40AF',
+  },
+  // Phone verification styles
+  phoneSection: {
+    marginBottom: 16,
+  },
+  verificationSection: {
+    marginTop: 12,
+  },
+  codeInput: {
+    textAlign: 'center',
+    letterSpacing: 8,
+    fontSize: 18,
+  },
+  verificationButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  verifyButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  changeButton: {
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#1E40AF',
+  },
+  changeButtonText: {
+    color: '#1E40AF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  confirmButton: {
+    backgroundColor: '#10B981',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  resendButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  resendButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+  sendCodeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E40AF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 6,
+  },
+  sendCodeButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  verifiedStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingVertical: 8,
+    backgroundColor: '#D1FAE5',
+    borderRadius: 8,
+  },
+  verifiedText: {
+    color: '#10B981',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
