@@ -255,14 +255,54 @@ vi.mock('firebase/app', () => ({
 }));
 
 vi.mock('firebase/auth', () => ({
-  getAuth: vi.fn(() => ({})),
+  getAuth: vi.fn(() => ({
+    currentUser: null,
+  })),
   onAuthStateChanged: vi.fn((auth, callback) => {
     callback(null);
-    return vi.fn();
+    return vi.fn(); // unsubscribe function
+  }),
+  onIdTokenChanged: vi.fn((auth, callback) => {
+    callback(null);
+    return vi.fn(); // unsubscribe function
   }),
   signInWithEmailAndPassword: vi.fn(() => Promise.resolve({ user: null })),
   createUserWithEmailAndPassword: vi.fn(() => Promise.resolve({ user: null })),
   signOut: vi.fn(() => Promise.resolve()),
+  // Persistence
+  setPersistence: vi.fn(() => Promise.resolve()),
+  browserLocalPersistence: { type: 'LOCAL' },
+  browserSessionPersistence: { type: 'SESSION' },
+  inMemoryPersistence: { type: 'NONE' },
+  // Emulator
+  connectAuthEmulator: vi.fn(),
+  // Phone auth
+  RecaptchaVerifier: vi.fn().mockImplementation(() => ({
+    clear: vi.fn(),
+    render: vi.fn(() => Promise.resolve()),
+    verify: vi.fn(() => Promise.resolve('test-token')),
+  })),
+  signInWithPhoneNumber: vi.fn(() => Promise.resolve({
+    confirm: vi.fn(() => Promise.resolve({ user: null })),
+    verificationId: 'test-verification-id',
+  })),
+  PhoneAuthProvider: {
+    credential: vi.fn(() => ({})),
+  },
+  linkWithCredential: vi.fn(() => Promise.resolve({ user: null })),
+  // Additional auth methods
+  sendPasswordResetEmail: vi.fn(() => Promise.resolve()),
+  updateProfile: vi.fn(() => Promise.resolve()),
+  updatePassword: vi.fn(() => Promise.resolve()),
+  reauthenticateWithCredential: vi.fn(() => Promise.resolve()),
+  EmailAuthProvider: {
+    credential: vi.fn(() => ({})),
+  },
+  // Google auth
+  GoogleAuthProvider: vi.fn().mockImplementation(() => ({})),
+  signInWithPopup: vi.fn(() => Promise.resolve({ user: null })),
+  signInWithRedirect: vi.fn(() => Promise.resolve()),
+  getRedirectResult: vi.fn(() => Promise.resolve(null)),
 }));
 
 vi.mock('firebase/storage', () => ({
@@ -450,6 +490,13 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock pointer capture methods for Radix UI compatibility
+if (typeof Element !== 'undefined') {
+  Element.prototype.hasPointerCapture = vi.fn(() => false);
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
+}
 
 // Mock scrollTo
 Object.defineProperty(window, 'scrollTo', {
