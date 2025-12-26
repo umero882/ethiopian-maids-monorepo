@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { countryService } from '@/services/countryService';
 import CountrySelect from '@/components/ui/CountrySelect';
@@ -53,7 +53,14 @@ const COUNTRY_DIAL_CODES = {
 const Register = () => {
   const { register, user } = useAuth();
   const navigate = useNavigate();
-  const [userType, setUserType] = useState('');
+  const [searchParams] = useSearchParams();
+
+  // Get pre-selected userType from URL params (from onboarding flow)
+  const preselectedUserType = searchParams.get('userType');
+  const validUserTypes = ['maid', 'sponsor', 'agency'];
+  const initialUserType = validUserTypes.includes(preselectedUserType) ? preselectedUserType : '';
+
+  const [userType, setUserType] = useState(initialUserType);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countries, setCountries] = useState([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
@@ -65,7 +72,7 @@ const Register = () => {
     confirmPassword: '',
     phone: '',
     country: '',
-    userType: '',
+    userType: initialUserType,
   });
 
   // Firebase Phone Auth hook
@@ -230,6 +237,15 @@ const Register = () => {
         variant: 'destructive',
       });
       return;
+    }
+
+    // CRITICAL: Store userType in localStorage BEFORE phone verification
+    // This is needed because phone verification authenticates the user via Firebase,
+    // which triggers onAuthStateChanged BEFORE our register function is called.
+    // Without this, fetchUserProfile won't know the intended userType.
+    if (userType) {
+      localStorage.setItem('pending_registration_user_type', userType);
+      console.log('🔍 Register - Stored userType in localStorage before phone verification:', userType);
     }
 
     // Update form data with formatted phone number

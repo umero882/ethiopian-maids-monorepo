@@ -21,6 +21,7 @@ import {
   Check,
   AlertTriangle,
   Upload,
+  UploadCloud,
   X,
   Loader2,
   User,
