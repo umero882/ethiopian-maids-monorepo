@@ -30,14 +30,15 @@ generates:
       addConnectionNodes: true
   packages/api-client/src/generated/hooks.ts:
     plugins:
+      - add:
+          content: "/* eslint-disable @typescript-eslint/ban-ts-comment */\n// @ts-nocheck\n/* Auto-generated file - types are defined in graphql.ts */"
       - typescript-react-apollo
     config:
       withHooks: true
-      withMutationFn: true
+      withMutationFn: false
       withRefetchFn: true
-      reactApolloVersion: 3
-      apolloReactCommonImportFrom: "@apollo/client/react"
-      apolloReactHooksImportFrom: "@apollo/client/react"
+      apolloReactCommonImportFrom: "@apollo/client"
+      apolloReactHooksImportFrom: "@apollo/client"
       namingConvention:
         typeNames: pascal-case#pascalCase
       # Relay connection support

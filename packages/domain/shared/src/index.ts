@@ -15,4 +15,4 @@ export {
   ConflictError,
   InvalidOperationError,
 } from './DomainError.js';
-export { UseCase, VoidUseCase, NoInputUseCase } from './UseCase.js';
+export type { UseCase, VoidUseCase, NoInputUseCase } from './UseCase.js';

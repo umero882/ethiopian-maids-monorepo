@@ -49,7 +49,8 @@ export class GetUserNotificationsUseCase
 
       return Result.ok(notifications);
     } catch (error) {
-      return Result.fail(`Failed to get user notifications: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get user notifications: ${message}`);
     }
   }
 }

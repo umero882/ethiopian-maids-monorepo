@@ -29,7 +29,8 @@ export class MarkAllNotificationsAsReadUseCase
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to mark all notifications as read: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to mark all notifications as read: ${message}`);
     }
   }
 }

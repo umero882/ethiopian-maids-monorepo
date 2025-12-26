@@ -2,7 +2,7 @@
  * GraphQL Implementation of MessageRepository
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   Message,
   MessageRepository,
@@ -11,7 +11,8 @@ import {
 } from '@ethio/domain-communications';
 
 export class GraphQLMessageRepository implements MessageRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<Message | null> {
     const { data } = await this.client.query({

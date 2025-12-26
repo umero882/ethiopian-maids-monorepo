@@ -29,7 +29,8 @@ export class PublishJobPostingUseCase implements UseCase<PublishJobPostingDTO, J
       try {
         jobPosting.publish();
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -37,7 +38,8 @@ export class PublishJobPostingUseCase implements UseCase<PublishJobPostingDTO, J
 
       return Result.ok(jobPosting);
     } catch (error) {
-      return Result.fail(`Failed to publish job posting: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to publish job posting: ${message}`);
     }
   }
 }

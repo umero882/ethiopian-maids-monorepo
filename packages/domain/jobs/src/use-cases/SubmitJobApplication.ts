@@ -15,7 +15,7 @@ import { JobApplication, JobApplicationProps } from '../entities/JobApplication.
 import { JobApplicationRepository } from '../repositories/JobApplicationRepository.js';
 import { JobPostingRepository } from '../repositories/JobPostingRepository.js';
 import { SubmitJobApplicationDTO } from '../dtos/JobApplicationDTOs.js';
-import { Salary } from '../value-objects/Salary.js';
+import type { SalaryProps } from '../value-objects/Salary.js';
 
 export class SubmitJobApplicationUseCase
   implements UseCase<SubmitJobApplicationDTO, JobApplication>
@@ -30,7 +30,7 @@ export class SubmitJobApplicationUseCase
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<JobApplication>(validationResult.error!);
       }
 
       // Load job posting
@@ -39,18 +39,18 @@ export class SubmitJobApplicationUseCase
         return Result.fail(`Job posting '${request.jobId}' not found`);
       }
 
-      // Check if job is published
-      if (!jobPosting.status.isPublished()) {
+      // Check if job is published (open)
+      if (!jobPosting.status.isOpen()) {
         return Result.fail('Cannot apply to unpublished job');
       }
 
       // Check if job is expired
-      if (jobPosting.status.isExpired()) {
+      if (jobPosting.isExpired()) {
         return Result.fail('Cannot apply to expired job');
       }
 
       // Check if job has reached max applications
-      if (jobPosting.hasReachedMaxApplications()) {
+      if (jobPosting.applicationCount >= jobPosting.maxApplications) {
         return Result.fail('Job has reached maximum applications');
       }
 
@@ -63,10 +63,14 @@ export class SubmitJobApplicationUseCase
         return Result.fail('You have already applied to this job');
       }
 
-      // Create expected salary if provided
-      let expectedSalary: Salary | null = null;
+      // Create proposed salary if provided (convert currency string to CurrencyType)
+      let proposedSalary: SalaryProps | null = null;
       if (request.expectedSalary) {
-        expectedSalary = new Salary(request.expectedSalary);
+        proposedSalary = {
+          amount: request.expectedSalary.amount,
+          currency: request.expectedSalary.currency as 'AED' | 'SAR' | 'USD' | 'EUR' | 'GBP' | 'KWD' | 'QAR' | 'BHD' | 'OMR',
+          period: request.expectedSalary.period,
+        };
       }
 
       // Create application entity
@@ -74,20 +78,19 @@ export class SubmitJobApplicationUseCase
         id: crypto.randomUUID(),
         jobId: request.jobId,
         maidId: request.maidId,
+        sponsorId: jobPosting.sponsorId,
         status: 'pending',
-        coverLetter: request.coverLetter || null,
-        expectedSalary,
-        availableFrom: request.availableFrom || null,
+        coverLetter: request.coverLetter,
+        proposedSalary,
+        availableFrom: request.availableFrom,
         appliedAt: new Date(),
-        reviewedAt: null,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const application = new JobApplication(applicationProps);
 
       // Increment application count on job
-      jobPosting.incrementApplicationCount();
+      jobPosting.recordApplication();
 
       // Save both
       await this.jobApplicationRepository.save(application);
@@ -95,7 +98,8 @@ export class SubmitJobApplicationUseCase
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to submit application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to submit application: ${message}`);
     }
   }
 

@@ -152,7 +152,7 @@ export class FirebaseAuthService extends AuthenticationService {
    */
   async sendPasswordResetEmail(email: string): Promise<void> {
     const actionCodeSettings = {
-      url: `${globalThis.window?.location.origin || ''}/reset-password`,
+      url: `${(typeof window !== 'undefined' ? window.location.origin : '')}/reset-password`,
       handleCodeInApp: true,
     };
 

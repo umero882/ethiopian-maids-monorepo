@@ -28,9 +28,14 @@ export class ReviewJobApplicationUseCase
 
       // Review application (entity enforces business rules)
       try {
-        application.review(request.reviewNotes);
+        application.markAsReviewed(application.sponsorId);
+        // Store review notes if provided
+        if (request.reviewNotes) {
+          application.sponsorNotes = request.reviewNotes;
+        }
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -38,7 +43,8 @@ export class ReviewJobApplicationUseCase
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to review application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to review application: ${message}`);
     }
   }
 }

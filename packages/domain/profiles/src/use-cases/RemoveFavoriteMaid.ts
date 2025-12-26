@@ -42,7 +42,8 @@ export class RemoveFavoriteMaidUseCase implements VoidUseCase<RemoveFavoriteMaid
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to remove favorite maid: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to remove favorite maid: ${message}`);
     }
   }
 }

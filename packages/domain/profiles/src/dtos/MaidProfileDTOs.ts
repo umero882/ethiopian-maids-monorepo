@@ -5,8 +5,6 @@
  * They are plain objects without business logic.
  */
 
-import { WorkExperience } from '../value-objects/WorkExperience.js';
-
 export interface CreateMaidProfileDTO {
   userId: string;
   fullName: string;

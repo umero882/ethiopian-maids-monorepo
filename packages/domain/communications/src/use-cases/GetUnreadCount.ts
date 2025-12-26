@@ -27,7 +27,8 @@ export class GetUnreadCountUseCase implements UseCase<GetUnreadCountDTO, number>
 
       return Result.ok(count);
     } catch (error) {
-      return Result.fail(`Failed to get unread count: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get unread count: ${message}`);
     }
   }
 }

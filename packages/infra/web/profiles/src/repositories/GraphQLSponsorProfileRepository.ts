@@ -2,14 +2,16 @@
  * GraphQL Implementation of SponsorProfileRepository
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   SponsorProfile,
   SponsorProfileRepository,
+  SponsorProfileSearchCriteria,
 } from '@ethio/domain-profiles';
 
 export class GraphQLSponsorProfileRepository implements SponsorProfileRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<SponsorProfile | null> {
     const { data } = await this.client.query({
@@ -63,16 +65,51 @@ export class GraphQLSponsorProfileRepository implements SponsorProfileRepository
     return data?.sponsor_profiles?.[0] ? this.mapToEntity(data.sponsor_profiles[0]) : null;
   }
 
+  async search(criteria: SponsorProfileSearchCriteria): Promise<SponsorProfile[]> {
+    const where: any = {};
+
+    if (criteria.country) {
+      where.country = { _eq: criteria.country };
+    }
+    if (criteria.verifiedOnly) {
+      where.is_verified = { _eq: true };
+    }
+
+    const { data } = await this.client.query({
+      query: gql`
+        query SearchSponsorProfiles($where: sponsor_profiles_bool_exp!, $limit: Int!, $offset: Int!) {
+          sponsor_profiles(where: $where, limit: $limit, offset: $offset, order_by: { created_at: desc }) {
+            id
+            user_id
+            full_name
+            phone
+            country
+            city
+            preferred_languages
+            is_verified
+            created_at
+            updated_at
+          }
+        }
+      `,
+      variables: {
+        where,
+        limit: criteria.limit || 50,
+        offset: criteria.offset || 0,
+      },
+    });
+
+    return (data?.sponsor_profiles || []).map((profile: any) => this.mapToEntity(profile));
+  }
+
   async save(profile: SponsorProfile): Promise<void> {
     const input = {
       id: profile.id,
       user_id: profile.userId,
       full_name: profile.fullName,
-      email: profile.email,
       phone: profile.phone,
       country: profile.country,
       city: profile.city,
-      preferred_nationality: profile.preferredNationality,
       preferred_languages: profile.preferredLanguages,
       is_verified: profile.isVerified,
       updated_at: new Date(),
@@ -184,11 +221,9 @@ export class GraphQLSponsorProfileRepository implements SponsorProfileRepository
       id: data.id,
       userId: data.user_id,
       fullName: data.full_name,
-      email: data.email,
       phone: data.phone,
       country: data.country,
       city: data.city,
-      preferredNationality: data.preferred_nationality,
       preferredLanguages: data.preferred_languages || [],
       isVerified: data.is_verified,
       createdAt: data.created_at,

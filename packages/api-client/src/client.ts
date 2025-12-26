@@ -2,10 +2,14 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, FieldPolicy } from '
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
-import { onError } from '@apollo/client/link/error';
+import { ErrorLink } from '@apollo/client/link/error';
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { createClient } from 'graphql-ws';
 import { relayStylePagination } from '@apollo/client/utilities';
-import { performanceLink } from './utils/performance';
+import { performanceLink } from './utils/performance.js';
+
+// Declare window for environments where it might not exist
+declare const window: (Window & typeof globalThis & { localStorage?: { getItem(key: string): string | null; setItem(key: string, value: string): void } }) | undefined;
 
 // React Native global __DEV__ flag
 declare const __DEV__: boolean | undefined;
@@ -29,10 +33,10 @@ const HASURA_WS_ENDPOINT = getEnvVar(
   'EXPO_PUBLIC_HASURA_WS_ENDPOINT',
   'wss://ethio-maids-01.hasura.app/v1/graphql'
 );
-const HASURA_ADMIN_SECRET = getEnvVar(
-  'EXPO_PUBLIC_HASURA_ADMIN_SECRET',
-  'GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F'
-);
+
+// Admin secret should ONLY be set for server-side/admin tools, NEVER for client apps
+// Client apps must use JWT authentication via Firebase tokens
+const HASURA_ADMIN_SECRET = getEnvVar('EXPO_PUBLIC_HASURA_ADMIN_SECRET', '');
 
 /**
  * Token storage for auth - can be set externally by the app
@@ -78,35 +82,50 @@ function getAuthToken(): string {
 
 /**
  * Auth link - adds Authorization header to all requests
+ *
+ * Authentication priority:
+ * 1. Admin secret (only if explicitly set - for server-side tools only)
+ * 2. JWT Bearer token from Firebase Auth (default for client apps)
  */
 const authLink = setContext((_, { headers }) => {
   const token = getAuthToken();
 
-  console.log('[Apollo Client] Admin secret available:', !!HASURA_ADMIN_SECRET);
+  // Build auth headers
+  const authHeaders: Record<string, string> = {};
+
+  if (HASURA_ADMIN_SECRET) {
+    // Admin secret only for server-side/admin tools (never for client apps)
+    authHeaders['x-hasura-admin-secret'] = HASURA_ADMIN_SECRET;
+    console.log('[Apollo Client] Using admin secret authentication');
+  } else if (token) {
+    // JWT token from Firebase Auth (default for all client apps)
+    authHeaders['authorization'] = `Bearer ${token}`;
+    console.log('[Apollo Client] Using JWT token authentication');
+  } else {
+    console.warn('[Apollo Client] No authentication credentials available');
+  }
 
   return {
     headers: {
       ...headers,
-      // For development/testing: use admin secret if available, otherwise use user token
-      ...(HASURA_ADMIN_SECRET ? { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET } : {}),
-      ...(token && !HASURA_ADMIN_SECRET ? { authorization: `Bearer ${token}` } : {}),
+      ...authHeaders,
     },
   };
 });
 
 /**
  * Error link - handles GraphQL and network errors
+ * Updated for Apollo Client 4 API
  */
-const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) => {
+const errorLink = new ErrorLink(({ error, operation }) => {
+  if (CombinedGraphQLErrors.is(error)) {
+    error.errors.forEach(({ message, locations, path }) => {
       console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
       );
     });
-  }
-  if (networkError) {
-    console.error(`[Network error]: ${networkError}`);
+  } else {
+    console.error(`[Network error]: ${error}`);
   }
 });
 
@@ -120,7 +139,7 @@ const httpLink = new HttpLink({
 
 /**
  * WebSocket link for subscriptions (real-time)
- * Uses regular endpoint by default
+ * Uses same authentication logic as HTTP link
  */
 const wsLink = new GraphQLWsLink(
   createClient({
@@ -128,13 +147,16 @@ const wsLink = new GraphQLWsLink(
     connectionParams: () => {
       const token = getAuthToken();
 
-      return {
-        headers: {
-          // For development/testing: use admin secret if available, otherwise use user token
-          ...(HASURA_ADMIN_SECRET ? { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET } : {}),
-          ...(token && !HASURA_ADMIN_SECRET ? { authorization: `Bearer ${token}` } : {}),
-        },
-      };
+      // Build auth headers (same logic as authLink)
+      const authHeaders: Record<string, string> = {};
+
+      if (HASURA_ADMIN_SECRET) {
+        authHeaders['x-hasura-admin-secret'] = HASURA_ADMIN_SECRET;
+      } else if (token) {
+        authHeaders['authorization'] = `Bearer ${token}`;
+      }
+
+      return { headers: authHeaders };
     },
     // Reconnect on connection drop
     shouldRetry: () => true,

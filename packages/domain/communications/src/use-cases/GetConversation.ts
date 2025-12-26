@@ -37,7 +37,8 @@ export class GetConversationUseCase implements UseCase<GetConversationDTO, Messa
 
       return Result.ok(messages);
     } catch (error) {
-      return Result.fail(`Failed to get conversation: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get conversation: ${message}`);
     }
   }
 }

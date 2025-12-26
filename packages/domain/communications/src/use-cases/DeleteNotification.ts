@@ -41,7 +41,8 @@ export class DeleteNotificationUseCase implements VoidUseCase<DeleteNotification
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to delete notification: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to delete notification: ${message}`);
     }
   }
 }

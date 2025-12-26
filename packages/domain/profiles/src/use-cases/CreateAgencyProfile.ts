@@ -25,7 +25,7 @@ export class CreateAgencyProfileUseCase
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<AgencyProfile>(validationResult.error!);
       }
 
       // Check if user already has a profile
@@ -46,7 +46,6 @@ export class CreateAgencyProfileUseCase
         phone: request.phone || null,
         email: request.email || null,
         website: request.website || null,
-        description: request.description || null,
         isVerified: false,
         verifiedAt: null,
         rating: 0,
@@ -62,7 +61,8 @@ export class CreateAgencyProfileUseCase
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to create agency profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to create agency profile: ${message}`);
     }
   }
 

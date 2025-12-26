@@ -4,7 +4,7 @@
  * Retrieves a maid profile by ID.
  */
 
-import { UseCase, Result, NotFoundError } from '@ethio/domain-shared';
+import { UseCase, Result } from '@ethio/domain-shared';
 import { MaidProfile } from '../entities/MaidProfile.js';
 import { MaidProfileRepository } from '../repositories/MaidProfileRepository.js';
 
@@ -29,7 +29,8 @@ export class GetMaidProfileUseCase implements UseCase<GetMaidProfileRequest, Mai
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to get maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get maid profile: ${message}`);
     }
   }
 }

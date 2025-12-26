@@ -42,25 +42,30 @@ export class UpdateAgencyProfileUseCase
         return Result.fail(`Agency profile '${request.profileId}' not found`);
       }
 
-      // Update profile using entity method
-      profile.update({
+      // Update profile using entity methods
+      profile.updateBasicInfo({
         fullName: request.fullName,
-        licenseNumber: request.licenseNumber,
-        country: request.country,
-        city: request.city,
-        address: request.address,
         phone: request.phone,
         email: request.email,
         website: request.website,
-        description: request.description,
+        country: request.country,
+        city: request.city,
+        address: request.address,
       });
+
+      if (request.licenseNumber !== undefined) {
+        profile.updateLicenseInfo({
+          licenseNumber: request.licenseNumber,
+        });
+      }
 
       // Save changes
       await this.agencyProfileRepository.save(profile);
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to update agency profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to update agency profile: ${message}`);
     }
   }
 }

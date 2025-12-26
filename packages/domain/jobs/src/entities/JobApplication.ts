@@ -148,6 +148,30 @@ export class JobApplication {
   }
 
   /**
+   * Add application to shortlist
+   */
+  shortlist(sponsorId: string, notes: string | null = null): void {
+    if (sponsorId !== this.sponsorId) {
+      throw new Error('Unauthorized to shortlist this application');
+    }
+
+    if (!this.status.isPending() && !this.status.isReviewed()) {
+      throw new Error('Can only shortlist pending or reviewed applications');
+    }
+
+    this.status = ApplicationStatus.shortlisted();
+    if (notes) this.sponsorNotes = notes;
+    this._touch();
+
+    this._addEvent('ApplicationShortlisted', {
+      applicationId: this.id,
+      maidId: this.maidId,
+      sponsorId: this.sponsorId,
+      shortlistedAt: new Date(),
+    });
+  }
+
+  /**
    * Schedule interview
    */
   scheduleInterview(interviewDate: Date | string, sponsorId: string): void {

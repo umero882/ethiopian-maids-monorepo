@@ -42,7 +42,7 @@ export class UpdateJobDetailsUseCase implements UseCase<UpdateJobDetailsDTO, Job
       }
 
       // Check if job can be updated
-      if (jobPosting.status.isClosed() || jobPosting.status.isExpired()) {
+      if (jobPosting.status.isClosed() || jobPosting.isExpired()) {
         return Result.fail('Cannot update closed or expired job posting');
       }
 
@@ -76,7 +76,8 @@ export class UpdateJobDetailsUseCase implements UseCase<UpdateJobDetailsDTO, Job
 
       return Result.ok(jobPosting);
     } catch (error) {
-      return Result.fail(`Failed to update job details: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to update job details: ${message}`);
     }
   }
 }

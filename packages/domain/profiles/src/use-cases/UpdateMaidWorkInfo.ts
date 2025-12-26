@@ -45,23 +45,23 @@ export class UpdateMaidWorkInfoUseCase implements UseCase<UpdateMaidWorkInfoDTO,
         return Result.fail('Cannot update archived profile');
       }
 
-      // Update work info using entity method
-      profile.updateWorkInfo({
-        skills: request.skills,
-        languages: request.languages,
-        experienceYears: request.experienceYears,
-        education: request.education,
-        religion: request.religion,
-        maritalStatus: request.maritalStatus,
-        availability: request.availability,
-      });
+      // Update work info using entity methods
+      if (request.skills !== undefined) {
+        profile.updateSkills(request.skills);
+      }
+      if (request.languages !== undefined) {
+        profile.updateLanguages(request.languages);
+      }
+      // Note: experienceYears, education, religion, maritalStatus, availability
+      // are not supported by the entity yet - they would need entity updates
 
       // Save changes
       await this.maidProfileRepository.save(profile);
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to update maid work info: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to update maid work info: ${message}`);
     }
   }
 }

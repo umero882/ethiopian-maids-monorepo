@@ -8,7 +8,8 @@
 // Job Posting Use Cases
 export { CreateJobPostingUseCase } from './CreateJobPosting.js';
 export { UpdateJobDetailsUseCase } from './UpdateJobDetails.js';
-export { GetJobPostingUseCase, GetJobPostingRequest } from './GetJobPosting.js';
+export { GetJobPostingUseCase } from './GetJobPosting.js';
+export type { GetJobPostingRequest } from './GetJobPosting.js';
 export { SearchJobPostingsUseCase } from './SearchJobPostings.js';
 export { PublishJobPostingUseCase } from './PublishJobPosting.js';
 export { CloseJobPostingUseCase } from './CloseJobPosting.js';

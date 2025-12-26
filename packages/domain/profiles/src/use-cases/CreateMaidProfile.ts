@@ -11,7 +11,7 @@
  * - User can only have one maid profile
  */
 
-import { UseCase, Result, ValidationError, ConflictError } from '@ethio/domain-shared';
+import { UseCase, Result } from '@ethio/domain-shared';
 import { MaidProfile, MaidProfileProps } from '../entities/MaidProfile.js';
 import { MaidProfileRepository } from '../repositories/MaidProfileRepository.js';
 import { CreateMaidProfileDTO } from '../dtos/MaidProfileDTOs.js';
@@ -24,7 +24,7 @@ export class CreateMaidProfileUseCase implements UseCase<CreateMaidProfileDTO, M
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<MaidProfile>(validationResult.error!);
       }
 
       // Check if user already has a profile
@@ -59,7 +59,8 @@ export class CreateMaidProfileUseCase implements UseCase<CreateMaidProfileDTO, M
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to create maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to create maid profile: ${message}`);
     }
   }
 

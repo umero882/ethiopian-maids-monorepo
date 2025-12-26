@@ -35,7 +35,8 @@ export class GetSponsorProfileUseCase
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to get sponsor profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get sponsor profile: ${message}`);
     }
   }
 }

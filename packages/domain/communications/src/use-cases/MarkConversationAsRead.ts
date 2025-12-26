@@ -30,7 +30,8 @@ export class MarkConversationAsReadUseCase implements VoidUseCase<MarkConversati
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to mark conversation as read: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to mark conversation as read: ${message}`);
     }
   }
 }

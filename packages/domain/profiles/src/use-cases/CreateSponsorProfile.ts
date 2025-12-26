@@ -25,7 +25,7 @@ export class CreateSponsorProfileUseCase
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<SponsorProfile>(validationResult.error!);
       }
 
       // Check if user already has a profile
@@ -39,11 +39,9 @@ export class CreateSponsorProfileUseCase
         id: crypto.randomUUID(),
         userId: request.userId,
         fullName: request.fullName,
-        email: request.email || null,
         phone: request.phone || null,
         country: request.country,
         city: request.city || null,
-        preferredNationality: request.preferredNationality || null,
         preferredLanguages: request.preferredLanguages || [],
         isVerified: false,
         createdAt: new Date(),
@@ -57,7 +55,8 @@ export class CreateSponsorProfileUseCase
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to create sponsor profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to create sponsor profile: ${message}`);
     }
   }
 

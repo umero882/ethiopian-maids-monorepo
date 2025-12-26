@@ -34,9 +34,10 @@ export class RejectJobApplicationUseCase
 
       // Reject application (entity enforces business rules)
       try {
-        application.reject(request.reason);
+        application.reject(application.sponsorId, request.reason);
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -44,7 +45,8 @@ export class RejectJobApplicationUseCase
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to reject application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to reject application: ${message}`);
     }
   }
 }

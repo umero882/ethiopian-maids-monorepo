@@ -35,13 +35,14 @@ export class GetJobPostingUseCase implements UseCase<GetJobPostingRequest, JobPo
 
       // Increment view count if requested (default: true)
       if (request.incrementViewCount !== false) {
-        jobPosting.incrementViewCount();
+        jobPosting.recordView();
         await this.jobPostingRepository.save(jobPosting);
       }
 
       return Result.ok(jobPosting);
     } catch (error) {
-      return Result.fail(`Failed to get job posting: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get job posting: ${message}`);
     }
   }
 }

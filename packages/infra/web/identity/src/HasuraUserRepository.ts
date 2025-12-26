@@ -6,7 +6,6 @@
 
 import { UserRepository, FindByRoleResult, PaginationOptions } from '@ethio/app-identity';
 import { User, UserRole } from '@ethio/domain-identity';
-import type { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { gql } from '@apollo/client';
 
 // GraphQL Documents
@@ -136,7 +135,8 @@ interface HasuraUserRecord {
 }
 
 export class HasuraUserRepository extends UserRepository {
-  constructor(private readonly apolloClient: ApolloClient<NormalizedCacheObject>) {
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly apolloClient: any) {
     super();
   }
 

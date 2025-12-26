@@ -40,23 +40,28 @@ export class UpdateSponsorProfileUseCase
         return Result.fail(`Sponsor profile '${request.profileId}' not found`);
       }
 
-      // Update profile using entity method
-      profile.update({
+      // Update profile using entity methods
+      profile.updateBasicInfo({
         fullName: request.fullName,
-        email: request.email,
         phone: request.phone,
         country: request.country,
         city: request.city,
-        preferredNationality: request.preferredNationality,
-        preferredLanguages: request.preferredLanguages,
       });
+
+      if (request.preferredLanguages !== undefined) {
+        profile.updatePreferences({
+          preferredLanguages: request.preferredLanguages,
+        });
+      }
+      // Note: email and preferredNationality are not supported by the entity
 
       // Save changes
       await this.sponsorProfileRepository.save(profile);
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to update sponsor profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to update sponsor profile: ${message}`);
     }
   }
 }

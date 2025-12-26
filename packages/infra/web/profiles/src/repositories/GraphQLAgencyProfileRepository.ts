@@ -2,15 +2,17 @@
  * GraphQL Implementation of AgencyProfileRepository
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   AgencyProfile,
   AgencyProfileRepository,
+  AgencyProfileSearchCriteria,
 } from '@ethio/domain-profiles';
 import { AgencyStatistics } from '@ethio/domain-profiles';
 
 export class GraphQLAgencyProfileRepository implements AgencyProfileRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<AgencyProfile | null> {
     // agency_profiles uses String! for id (Firebase UID)
@@ -74,6 +76,49 @@ export class GraphQLAgencyProfileRepository implements AgencyProfileRepository {
     return data?.agency_profiles_by_pk ? this.mapToEntity(data.agency_profiles_by_pk) : null;
   }
 
+  async search(criteria: AgencyProfileSearchCriteria): Promise<AgencyProfile[]> {
+    const where: any = {};
+
+    if (criteria.country) {
+      where.country = { _eq: criteria.country };
+    }
+    if (criteria.verifiedOnly) {
+      where.verified = { _eq: true };
+    }
+
+    const { data } = await this.client.query({
+      query: gql`
+        query SearchAgencyProfiles($where: agency_profiles_bool_exp!, $limit: Int!, $offset: Int!) {
+          agency_profiles(where: $where, limit: $limit, offset: $offset, order_by: { created_at: desc }) {
+            id
+            full_name
+            license_number
+            country
+            city
+            address
+            phone
+            email
+            website_url
+            agency_description
+            verified
+            verified_at
+            average_rating
+            total_reviews
+            created_at
+            updated_at
+          }
+        }
+      `,
+      variables: {
+        where,
+        limit: criteria.limit || 50,
+        offset: criteria.offset || 0,
+      },
+    });
+
+    return (data?.agency_profiles || []).map((profile: any) => this.mapToEntity(profile));
+  }
+
   async save(profile: AgencyProfile): Promise<void> {
     // Use correct field names for agency_profiles table
     const input = {
@@ -86,7 +131,7 @@ export class GraphQLAgencyProfileRepository implements AgencyProfileRepository {
       phone: profile.phone,
       email: profile.email,
       website_url: profile.website,
-      agency_description: profile.description,
+      agency_description: null, // AgencyProfile entity doesn't have description field
       verified: profile.isVerified,
       verified_at: profile.verifiedAt,
       average_rating: profile.rating,
@@ -192,9 +237,10 @@ export class GraphQLAgencyProfileRepository implements AgencyProfileRepository {
     return {
       totalMaids: data?.total_maids?.aggregate?.count || 0,
       activeMaids: data?.active_maids?.aggregate?.count || 0,
-      placedMaids: data?.placed_maids?.aggregate?.count || 0,
-      pendingApplications: data?.pending_applications?.aggregate?.count || 0,
-      completedJobs: 0, // TODO: Calculate from job_applications where status = accepted
+      totalJobs: 0, // TODO: Calculate from job_postings for agency
+      activeJobs: 0, // TODO: Calculate from job_postings where status = 'open'
+      totalApplications: data?.pending_applications?.aggregate?.count || 0,
+      successfulPlacements: data?.placed_maids?.aggregate?.count || 0,
     };
   }
 
@@ -210,7 +256,7 @@ export class GraphQLAgencyProfileRepository implements AgencyProfileRepository {
       phone: data.phone,
       email: data.email,
       website: data.website_url || data.website,
-      description: data.agency_description || data.description,
+      // description field not present in AgencyProfileProps
       isVerified: data.verified ?? data.is_verified,
       verifiedAt: data.verified_at,
       rating: data.average_rating ?? data.rating,

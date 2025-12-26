@@ -28,9 +28,10 @@ export class ShortlistJobApplicationUseCase
 
       // Shortlist application (entity enforces business rules)
       try {
-        application.shortlist(request.notes);
+        application.shortlist(application.sponsorId, request.notes || null);
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -38,7 +39,8 @@ export class ShortlistJobApplicationUseCase
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to shortlist application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to shortlist application: ${message}`);
     }
   }
 }

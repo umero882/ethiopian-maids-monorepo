@@ -41,9 +41,10 @@ export class AcceptJobApplicationUseCase implements UseCase<AcceptJobApplication
 
       // Accept application (entity enforces business rules)
       try {
-        application.accept(request.notes);
+        application.accept(application.sponsorId, request.notes || null);
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -57,13 +58,15 @@ export class AcceptJobApplicationUseCase implements UseCase<AcceptJobApplication
           await this.jobPostingRepository.save(jobPosting);
         } catch (error) {
           // Log error but don't fail the operation
-          console.warn('Failed to close job posting:', error.message);
+          const msg = error instanceof Error ? error.message : String(error);
+          console.warn('Failed to close job posting:', msg);
         }
       }
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to accept application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to accept application: ${message}`);
     }
   }
 }

@@ -33,9 +33,10 @@ export class RejectMaidProfileUseCase implements UseCase<RejectMaidProfileDTO, M
 
       // Reject profile (entity enforces business rules)
       try {
-        profile.reject(request.reason);
+        profile.reject(request.reason, 'admin');
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -43,7 +44,8 @@ export class RejectMaidProfileUseCase implements UseCase<RejectMaidProfileDTO, M
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to reject maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to reject maid profile: ${message}`);
     }
   }
 }

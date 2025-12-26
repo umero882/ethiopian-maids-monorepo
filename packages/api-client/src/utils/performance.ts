@@ -11,7 +11,7 @@
 // React Native global __DEV__ flag - may be undefined in web environments
 declare const __DEV__: boolean | undefined;
 
-import { ApolloLink, FetchResult, NextLink, Operation, Observable } from '@apollo/client';
+import { ApolloLink, FetchResult, Operation, Observable } from '@apollo/client';
 
 // Check if we're in development mode
 const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
@@ -62,7 +62,7 @@ const addMetric = (metric: QueryMetric) => {
  *
  * Uses zen-observable pattern (Apollo's native Observable)
  */
-export const performanceLink = new ApolloLink((operation: Operation, forward: NextLink) => {
+export const performanceLink = new ApolloLink((operation: Operation, forward: ApolloLink.ForwardFunction) => {
   const startTime = performance.now();
   const operationName = operation.operationName || 'unknown';
   const operationType = getOperationType(operation);

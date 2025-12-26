@@ -28,9 +28,10 @@ export class ArchiveMaidProfileUseCase implements UseCase<ArchiveMaidProfileDTO,
 
       // Archive profile (entity enforces business rules)
       try {
-        profile.archive(request.reason);
+        profile.archive(request.reason || 'Archived by user');
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -38,7 +39,8 @@ export class ArchiveMaidProfileUseCase implements UseCase<ArchiveMaidProfileDTO,
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to archive maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to archive maid profile: ${message}`);
     }
   }
 }

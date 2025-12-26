@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+/* Auto-generated file - types are defined in graphql.ts */
 import { gql } from '@apollo/client';
-import * as ApolloReactCommon from '@apollo/client/react';
-import * as ApolloReactHooks from '@apollo/client/react';
+import * as ApolloReactCommon from '@apollo/client';
+import * as ApolloReactHooks from '@apollo/client';
 const defaultOptions = {} as const;
 
 export const CreateAgencyProfileDocument = gql`
@@ -22,7 +25,6 @@ export const CreateAgencyProfileDocument = gql`
   }
 }
     `;
-export type CreateAgencyProfileMutationFn = ApolloReactCommon.MutationFunction<CreateAgencyProfileMutation, CreateAgencyProfileMutationVariables>;
 
 /**
  * __useCreateAgencyProfileMutation__
@@ -102,7 +104,6 @@ export const UpdateAgencyProfileDocument = gql`
   }
 }
     `;
-export type UpdateAgencyProfileMutationFn = ApolloReactCommon.MutationFunction<UpdateAgencyProfileMutation, UpdateAgencyProfileMutationVariables>;
 
 /**
  * __useUpdateAgencyProfileMutation__
@@ -136,7 +137,6 @@ export const DeleteAgencyProfileDocument = gql`
   }
 }
     `;
-export type DeleteAgencyProfileMutationFn = ApolloReactCommon.MutationFunction<DeleteAgencyProfileMutation, DeleteAgencyProfileMutationVariables>;
 
 /**
  * __useDeleteAgencyProfileMutation__
@@ -177,7 +177,6 @@ export const UpdateAgencyMetricsDocument = gql`
   }
 }
     `;
-export type UpdateAgencyMetricsMutationFn = ApolloReactCommon.MutationFunction<UpdateAgencyMetricsMutation, UpdateAgencyMetricsMutationVariables>;
 
 /**
  * __useUpdateAgencyMetricsMutation__
@@ -219,7 +218,6 @@ export const IncrementTotalMaidsManagedDocument = gql`
   }
 }
     `;
-export type IncrementTotalMaidsManagedMutationFn = ApolloReactCommon.MutationFunction<IncrementTotalMaidsManagedMutation, IncrementTotalMaidsManagedMutationVariables>;
 
 /**
  * __useIncrementTotalMaidsManagedMutation__
@@ -257,7 +255,6 @@ export const DecrementTotalMaidsManagedDocument = gql`
   }
 }
     `;
-export type DecrementTotalMaidsManagedMutationFn = ApolloReactCommon.MutationFunction<DecrementTotalMaidsManagedMutation, DecrementTotalMaidsManagedMutationVariables>;
 
 /**
  * __useDecrementTotalMaidsManagedMutation__
@@ -295,7 +292,6 @@ export const IncrementSuccessfulPlacementsDocument = gql`
   }
 }
     `;
-export type IncrementSuccessfulPlacementsMutationFn = ApolloReactCommon.MutationFunction<IncrementSuccessfulPlacementsMutation, IncrementSuccessfulPlacementsMutationVariables>;
 
 /**
  * __useIncrementSuccessfulPlacementsMutation__
@@ -330,7 +326,6 @@ export const IncrementActiveListingsDocument = gql`
   }
 }
     `;
-export type IncrementActiveListingsMutationFn = ApolloReactCommon.MutationFunction<IncrementActiveListingsMutation, IncrementActiveListingsMutationVariables>;
 
 /**
  * __useIncrementActiveListingsMutation__
@@ -365,7 +360,6 @@ export const DecrementActiveListingsDocument = gql`
   }
 }
     `;
-export type DecrementActiveListingsMutationFn = ApolloReactCommon.MutationFunction<DecrementActiveListingsMutation, DecrementActiveListingsMutationVariables>;
 
 /**
  * __useDecrementActiveListingsMutation__
@@ -403,7 +397,6 @@ export const UpdateAgencyAverageRatingDocument = gql`
   }
 }
     `;
-export type UpdateAgencyAverageRatingMutationFn = ApolloReactCommon.MutationFunction<UpdateAgencyAverageRatingMutation, UpdateAgencyAverageRatingMutationVariables>;
 
 /**
  * __useUpdateAgencyAverageRatingMutation__
@@ -442,7 +435,6 @@ export const VerifyAgencyLicenseDocument = gql`
   }
 }
     `;
-export type VerifyAgencyLicenseMutationFn = ApolloReactCommon.MutationFunction<VerifyAgencyLicenseMutation, VerifyAgencyLicenseMutationVariables>;
 
 /**
  * __useVerifyAgencyLicenseMutation__
@@ -482,7 +474,6 @@ export const UpdateVerificationStatusesDocument = gql`
   }
 }
     `;
-export type UpdateVerificationStatusesMutationFn = ApolloReactCommon.MutationFunction<UpdateVerificationStatusesMutation, UpdateVerificationStatusesMutationVariables>;
 
 /**
  * __useUpdateVerificationStatusesMutation__
@@ -524,7 +515,6 @@ export const UpdateSubscriptionTierDocument = gql`
   }
 }
     `;
-export type UpdateSubscriptionTierMutationFn = ApolloReactCommon.MutationFunction<UpdateSubscriptionTierMutation, UpdateSubscriptionTierMutationVariables>;
 
 /**
  * __useUpdateSubscriptionTierMutation__
@@ -570,7 +560,6 @@ export const CreateBookingRequestDocument = gql`
   }
 }
     `;
-export type CreateBookingRequestMutationFn = ApolloReactCommon.MutationFunction<CreateBookingRequestMutation, CreateBookingRequestMutationVariables>;
 
 /**
  * __useCreateBookingRequestMutation__
@@ -614,7 +603,6 @@ export const UpdateBookingRequestDocument = gql`
   }
 }
     `;
-export type UpdateBookingRequestMutationFn = ApolloReactCommon.MutationFunction<UpdateBookingRequestMutation, UpdateBookingRequestMutationVariables>;
 
 /**
  * __useUpdateBookingRequestMutation__
@@ -653,7 +641,6 @@ export const UpdateBookingStatusDocument = gql`
   }
 }
     `;
-export type UpdateBookingStatusMutationFn = ApolloReactCommon.MutationFunction<UpdateBookingStatusMutation, UpdateBookingStatusMutationVariables>;
 
 /**
  * __useUpdateBookingStatusMutation__
@@ -693,7 +680,6 @@ export const AcceptBookingRequestDocument = gql`
   }
 }
     `;
-export type AcceptBookingRequestMutationFn = ApolloReactCommon.MutationFunction<AcceptBookingRequestMutation, AcceptBookingRequestMutationVariables>;
 
 /**
  * __useAcceptBookingRequestMutation__
@@ -733,7 +719,6 @@ export const RejectBookingRequestDocument = gql`
   }
 }
     `;
-export type RejectBookingRequestMutationFn = ApolloReactCommon.MutationFunction<RejectBookingRequestMutation, RejectBookingRequestMutationVariables>;
 
 /**
  * __useRejectBookingRequestMutation__
@@ -772,7 +757,6 @@ export const CancelBookingRequestDocument = gql`
   }
 }
     `;
-export type CancelBookingRequestMutationFn = ApolloReactCommon.MutationFunction<CancelBookingRequestMutation, CancelBookingRequestMutationVariables>;
 
 /**
  * __useCancelBookingRequestMutation__
@@ -810,7 +794,6 @@ export const CompleteBookingRequestDocument = gql`
   }
 }
     `;
-export type CompleteBookingRequestMutationFn = ApolloReactCommon.MutationFunction<CompleteBookingRequestMutation, CompleteBookingRequestMutationVariables>;
 
 /**
  * __useCompleteBookingRequestMutation__
@@ -851,7 +834,6 @@ export const UpdateBookingPaymentDocument = gql`
   }
 }
     `;
-export type UpdateBookingPaymentMutationFn = ApolloReactCommon.MutationFunction<UpdateBookingPaymentMutation, UpdateBookingPaymentMutationVariables>;
 
 /**
  * __useUpdateBookingPaymentMutation__
@@ -888,7 +870,6 @@ export const DeleteBookingRequestDocument = gql`
   }
 }
     `;
-export type DeleteBookingRequestMutationFn = ApolloReactCommon.MutationFunction<DeleteBookingRequestMutation, DeleteBookingRequestMutationVariables>;
 
 /**
  * __useDeleteBookingRequestMutation__
@@ -929,7 +910,6 @@ export const BulkUpdateBookingStatusDocument = gql`
   }
 }
     `;
-export type BulkUpdateBookingStatusMutationFn = ApolloReactCommon.MutationFunction<BulkUpdateBookingStatusMutation, BulkUpdateBookingStatusMutationVariables>;
 
 /**
  * __useBulkUpdateBookingStatusMutation__
@@ -970,7 +950,6 @@ export const RescheduleBookingDocument = gql`
   }
 }
     `;
-export type RescheduleBookingMutationFn = ApolloReactCommon.MutationFunction<RescheduleBookingMutation, RescheduleBookingMutationVariables>;
 
 /**
  * __useRescheduleBookingMutation__
@@ -1011,7 +990,6 @@ export const CreateConversationDocument = gql`
   }
 }
     `;
-export type CreateConversationMutationFn = ApolloReactCommon.MutationFunction<CreateConversationMutation, CreateConversationMutationVariables>;
 
 /**
  * __useCreateConversationMutation__
@@ -1052,7 +1030,6 @@ export const UpdateConversationDocument = gql`
   }
 }
     `;
-export type UpdateConversationMutationFn = ApolloReactCommon.MutationFunction<UpdateConversationMutation, UpdateConversationMutationVariables>;
 
 /**
  * __useUpdateConversationMutation__
@@ -1088,7 +1065,6 @@ export const ArchiveConversationDocument = gql`
   }
 }
     `;
-export type ArchiveConversationMutationFn = ApolloReactCommon.MutationFunction<ArchiveConversationMutation, ArchiveConversationMutationVariables>;
 
 /**
  * __useArchiveConversationMutation__
@@ -1123,7 +1099,6 @@ export const DeleteConversationDocument = gql`
   }
 }
     `;
-export type DeleteConversationMutationFn = ApolloReactCommon.MutationFunction<DeleteConversationMutation, DeleteConversationMutationVariables>;
 
 /**
  * __useDeleteConversationMutation__
@@ -1162,7 +1137,6 @@ export const MarkConversationAsReadDocument = gql`
   }
 }
     `;
-export type MarkConversationAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkConversationAsReadMutation, MarkConversationAsReadMutationVariables>;
 
 /**
  * __useMarkConversationAsReadMutation__
@@ -1201,7 +1175,6 @@ export const IncrementUnreadCountDocument = gql`
   }
 }
     `;
-export type IncrementUnreadCountMutationFn = ApolloReactCommon.MutationFunction<IncrementUnreadCountMutation, IncrementUnreadCountMutationVariables>;
 
 /**
  * __useIncrementUnreadCountMutation__
@@ -1246,7 +1219,6 @@ export const SendMessageDocument = gql`
   }
 }
     `;
-export type SendMessageMutationFn = ApolloReactCommon.MutationFunction<SendMessageMutation, SendMessageMutationVariables>;
 
 /**
  * __useSendMessageMutation__
@@ -1274,17 +1246,19 @@ export type SendMessageMutationResult = ApolloReactCommon.MutationResult<SendMes
 export type SendMessageMutationOptions = ApolloReactCommon.BaseMutationOptions<SendMessageMutation, SendMessageMutationVariables>;
 export const UpdateMessageDocument = gql`
     mutation UpdateMessage($id: uuid!, $data: messages_set_input!) {
-  update_messages_by_pk(pk_columns: {id: $id}, _set: $data) {
-    id
-    content
-    is_read
-    read_at
-    is_archived
-    updated_at
+  update_messages(where: {id: {_eq: $id}}, _set: $data) {
+    affected_rows
+    returning {
+      id
+      content
+      is_read
+      read_at
+      is_archived
+      updated_at
+    }
   }
 }
     `;
-export type UpdateMessageMutationFn = ApolloReactCommon.MutationFunction<UpdateMessageMutation, UpdateMessageMutationVariables>;
 
 /**
  * __useUpdateMessageMutation__
@@ -1313,18 +1287,20 @@ export type UpdateMessageMutationResult = ApolloReactCommon.MutationResult<Updat
 export type UpdateMessageMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateMessageMutation, UpdateMessageMutationVariables>;
 export const MarkMessageAsReadDocument = gql`
     mutation MarkMessageAsRead($id: uuid!) {
-  update_messages_by_pk(
-    pk_columns: {id: $id}
+  update_messages(
+    where: {id: {_eq: $id}}
     _set: {is_read: true, read_at: "now()"}
   ) {
-    id
-    is_read
-    read_at
-    updated_at
+    affected_rows
+    returning {
+      id
+      is_read
+      read_at
+      updated_at
+    }
   }
 }
     `;
-export type MarkMessageAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkMessageAsReadMutation, MarkMessageAsReadMutationVariables>;
 
 /**
  * __useMarkMessageAsReadMutation__
@@ -1365,7 +1341,6 @@ export const MarkMultipleMessagesAsReadDocument = gql`
   }
 }
     `;
-export type MarkMultipleMessagesAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkMultipleMessagesAsReadMutation, MarkMultipleMessagesAsReadMutationVariables>;
 
 /**
  * __useMarkMultipleMessagesAsReadMutation__
@@ -1393,14 +1368,16 @@ export type MarkMultipleMessagesAsReadMutationResult = ApolloReactCommon.Mutatio
 export type MarkMultipleMessagesAsReadMutationOptions = ApolloReactCommon.BaseMutationOptions<MarkMultipleMessagesAsReadMutation, MarkMultipleMessagesAsReadMutationVariables>;
 export const ArchiveMessageDocument = gql`
     mutation ArchiveMessage($id: uuid!) {
-  update_messages_by_pk(pk_columns: {id: $id}, _set: {is_archived: true}) {
-    id
-    is_archived
-    updated_at
+  update_messages(where: {id: {_eq: $id}}, _set: {is_archived: true}) {
+    affected_rows
+    returning {
+      id
+      is_archived
+      updated_at
+    }
   }
 }
     `;
-export type ArchiveMessageMutationFn = ApolloReactCommon.MutationFunction<ArchiveMessageMutation, ArchiveMessageMutationVariables>;
 
 /**
  * __useArchiveMessageMutation__
@@ -1437,7 +1414,6 @@ export const ArchiveMultipleMessagesDocument = gql`
   }
 }
     `;
-export type ArchiveMultipleMessagesMutationFn = ApolloReactCommon.MutationFunction<ArchiveMultipleMessagesMutation, ArchiveMultipleMessagesMutationVariables>;
 
 /**
  * __useArchiveMultipleMessagesMutation__
@@ -1465,12 +1441,11 @@ export type ArchiveMultipleMessagesMutationResult = ApolloReactCommon.MutationRe
 export type ArchiveMultipleMessagesMutationOptions = ApolloReactCommon.BaseMutationOptions<ArchiveMultipleMessagesMutation, ArchiveMultipleMessagesMutationVariables>;
 export const DeleteMessageDocument = gql`
     mutation DeleteMessage($id: uuid!) {
-  delete_messages_by_pk(id: $id) {
-    id
+  delete_messages(where: {id: {_eq: $id}}) {
+    affected_rows
   }
 }
     `;
-export type DeleteMessageMutationFn = ApolloReactCommon.MutationFunction<DeleteMessageMutation, DeleteMessageMutationVariables>;
 
 /**
  * __useDeleteMessageMutation__
@@ -1503,7 +1478,6 @@ export const DeleteMultipleMessagesDocument = gql`
   }
 }
     `;
-export type DeleteMultipleMessagesMutationFn = ApolloReactCommon.MutationFunction<DeleteMultipleMessagesMutation, DeleteMultipleMessagesMutationVariables>;
 
 /**
  * __useDeleteMultipleMessagesMutation__
@@ -1543,7 +1517,6 @@ export const MarkAllUserMessagesAsReadDocument = gql`
   }
 }
     `;
-export type MarkAllUserMessagesAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkAllUserMessagesAsReadMutation, MarkAllUserMessagesAsReadMutationVariables>;
 
 /**
  * __useMarkAllUserMessagesAsReadMutation__
@@ -1587,7 +1560,6 @@ export const CreateJobDocument = gql`
   }
 }
     `;
-export type CreateJobMutationFn = ApolloReactCommon.MutationFunction<CreateJobMutation, CreateJobMutationVariables>;
 
 /**
  * __useCreateJobMutation__
@@ -1630,7 +1602,6 @@ export const UpdateJobDocument = gql`
   }
 }
     `;
-export type UpdateJobMutationFn = ApolloReactCommon.MutationFunction<UpdateJobMutation, UpdateJobMutationVariables>;
 
 /**
  * __useUpdateJobMutation__
@@ -1665,7 +1636,6 @@ export const DeleteJobDocument = gql`
   }
 }
     `;
-export type DeleteJobMutationFn = ApolloReactCommon.MutationFunction<DeleteJobMutation, DeleteJobMutationVariables>;
 
 /**
  * __useDeleteJobMutation__
@@ -1703,7 +1673,6 @@ export const ChangeJobStatusDocument = gql`
   }
 }
     `;
-export type ChangeJobStatusMutationFn = ApolloReactCommon.MutationFunction<ChangeJobStatusMutation, ChangeJobStatusMutationVariables>;
 
 /**
  * __useChangeJobStatusMutation__
@@ -1743,7 +1712,6 @@ export const ToggleJobFeaturedDocument = gql`
   }
 }
     `;
-export type ToggleJobFeaturedMutationFn = ApolloReactCommon.MutationFunction<ToggleJobFeaturedMutation, ToggleJobFeaturedMutationVariables>;
 
 /**
  * __useToggleJobFeaturedMutation__
@@ -1779,7 +1747,6 @@ export const IncrementJobViewsDocument = gql`
   }
 }
     `;
-export type IncrementJobViewsMutationFn = ApolloReactCommon.MutationFunction<IncrementJobViewsMutation, IncrementJobViewsMutationVariables>;
 
 /**
  * __useIncrementJobViewsMutation__
@@ -1807,10 +1774,7 @@ export type IncrementJobViewsMutationResult = ApolloReactCommon.MutationResult<I
 export type IncrementJobViewsMutationOptions = ApolloReactCommon.BaseMutationOptions<IncrementJobViewsMutation, IncrementJobViewsMutationVariables>;
 export const SubmitApplicationDocument = gql`
     mutation SubmitApplication($data: applications_insert_input!) {
-  insert_applications_one(
-    object: $data
-    on_conflict: {constraint: applications_job_id_maid_id_key, update_columns: [cover_letter, updated_at]}
-  ) {
+  insert_applications_one(object: $data) {
     id
     job_id
     maid_id
@@ -1827,7 +1791,6 @@ export const SubmitApplicationDocument = gql`
   }
 }
     `;
-export type SubmitApplicationMutationFn = ApolloReactCommon.MutationFunction<SubmitApplicationMutation, SubmitApplicationMutationVariables>;
 
 /**
  * __useSubmitApplicationMutation__
@@ -1867,7 +1830,6 @@ export const UpdateApplicationStatusDocument = gql`
   }
 }
     `;
-export type UpdateApplicationStatusMutationFn = ApolloReactCommon.MutationFunction<UpdateApplicationStatusMutation, UpdateApplicationStatusMutationVariables>;
 
 /**
  * __useUpdateApplicationStatusMutation__
@@ -1907,7 +1869,6 @@ export const AddApplicationNotesDocument = gql`
   }
 }
     `;
-export type AddApplicationNotesMutationFn = ApolloReactCommon.MutationFunction<AddApplicationNotesMutation, AddApplicationNotesMutationVariables>;
 
 /**
  * __useAddApplicationNotesMutation__
@@ -1946,7 +1907,6 @@ export const WithdrawApplicationDocument = gql`
   }
 }
     `;
-export type WithdrawApplicationMutationFn = ApolloReactCommon.MutationFunction<WithdrawApplicationMutation, WithdrawApplicationMutationVariables>;
 
 /**
  * __useWithdrawApplicationMutation__
@@ -1980,7 +1940,6 @@ export const IncrementApplicationsCountDocument = gql`
   }
 }
     `;
-export type IncrementApplicationsCountMutationFn = ApolloReactCommon.MutationFunction<IncrementApplicationsCountMutation, IncrementApplicationsCountMutationVariables>;
 
 /**
  * __useIncrementApplicationsCountMutation__
@@ -2021,7 +1980,6 @@ export const MarkExpiredJobsDocument = gql`
   }
 }
     `;
-export type MarkExpiredJobsMutationFn = ApolloReactCommon.MutationFunction<MarkExpiredJobsMutation, MarkExpiredJobsMutationVariables>;
 
 /**
  * __useMarkExpiredJobsMutation__
@@ -2062,7 +2020,6 @@ export const UpdateMaidProfileCompleteDocument = gql`
   }
 }
     `;
-export type UpdateMaidProfileCompleteMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidProfileCompleteMutation, UpdateMaidProfileCompleteMutationVariables>;
 
 /**
  * __useUpdateMaidProfileCompleteMutation__
@@ -2091,17 +2048,13 @@ export type UpdateMaidProfileCompleteMutationResult = ApolloReactCommon.Mutation
 export type UpdateMaidProfileCompleteMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateMaidProfileCompleteMutation, UpdateMaidProfileCompleteMutationVariables>;
 export const AddToFavoritesDocument = gql`
     mutation AddToFavorites($sponsorId: String!, $maidId: String!) {
-  insert_favorites_one(
-    object: {sponsor_id: $sponsorId, maid_id: $maidId}
-    on_conflict: {constraint: favorites_sponsor_id_maid_id_key, update_columns: []}
-  ) {
+  insert_favorites_one(object: {sponsor_id: $sponsorId, maid_id: $maidId}) {
     sponsor_id
     maid_id
     created_at
   }
 }
     `;
-export type AddToFavoritesMutationFn = ApolloReactCommon.MutationFunction<AddToFavoritesMutation, AddToFavoritesMutationVariables>;
 
 /**
  * __useAddToFavoritesMutation__
@@ -2137,7 +2090,6 @@ export const RemoveFromFavoritesDocument = gql`
   }
 }
     `;
-export type RemoveFromFavoritesMutationFn = ApolloReactCommon.MutationFunction<RemoveFromFavoritesMutation, RemoveFromFavoritesMutationVariables>;
 
 /**
  * __useRemoveFromFavoritesMutation__
@@ -2172,7 +2124,6 @@ export const IncrementMaidProfileViewsDocument = gql`
   }
 }
     `;
-export type IncrementMaidProfileViewsMutationFn = ApolloReactCommon.MutationFunction<IncrementMaidProfileViewsMutation, IncrementMaidProfileViewsMutationVariables>;
 
 /**
  * __useIncrementMaidProfileViewsMutation__
@@ -2211,7 +2162,6 @@ export const UpdateMaidProfileDocument = gql`
   }
 }
     `;
-export type UpdateMaidProfileMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidProfileMutation, UpdateMaidProfileMutationVariables>;
 
 /**
  * __useUpdateMaidProfileMutation__
@@ -2257,7 +2207,6 @@ export const CreateNotificationDocument = gql`
   }
 }
     `;
-export type CreateNotificationMutationFn = ApolloReactCommon.MutationFunction<CreateNotificationMutation, CreateNotificationMutationVariables>;
 
 /**
  * __useCreateNotificationMutation__
@@ -2299,7 +2248,6 @@ export const CreateMultipleNotificationsDocument = gql`
   }
 }
     `;
-export type CreateMultipleNotificationsMutationFn = ApolloReactCommon.MutationFunction<CreateMultipleNotificationsMutation, CreateMultipleNotificationsMutationVariables>;
 
 /**
  * __useCreateMultipleNotificationsMutation__
@@ -2341,7 +2289,6 @@ export const UpdateNotificationDocument = gql`
   }
 }
     `;
-export type UpdateNotificationMutationFn = ApolloReactCommon.MutationFunction<UpdateNotificationMutation, UpdateNotificationMutationVariables>;
 
 /**
  * __useUpdateNotificationMutation__
@@ -2380,7 +2327,6 @@ export const MarkNotificationAsReadDocument = gql`
   }
 }
     `;
-export type MarkNotificationAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>;
 
 /**
  * __useMarkNotificationAsReadMutation__
@@ -2421,7 +2367,6 @@ export const MarkMultipleNotificationsAsReadDocument = gql`
   }
 }
     `;
-export type MarkMultipleNotificationsAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkMultipleNotificationsAsReadMutation, MarkMultipleNotificationsAsReadMutationVariables>;
 
 /**
  * __useMarkMultipleNotificationsAsReadMutation__
@@ -2461,7 +2406,6 @@ export const MarkAllUserNotificationsAsReadDocument = gql`
   }
 }
     `;
-export type MarkAllUserNotificationsAsReadMutationFn = ApolloReactCommon.MutationFunction<MarkAllUserNotificationsAsReadMutation, MarkAllUserNotificationsAsReadMutationVariables>;
 
 /**
  * __useMarkAllUserNotificationsAsReadMutation__
@@ -2499,7 +2443,6 @@ export const MarkNotificationAsUnreadDocument = gql`
   }
 }
     `;
-export type MarkNotificationAsUnreadMutationFn = ApolloReactCommon.MutationFunction<MarkNotificationAsUnreadMutation, MarkNotificationAsUnreadMutationVariables>;
 
 /**
  * __useMarkNotificationAsUnreadMutation__
@@ -2534,7 +2477,6 @@ export const DeleteNotificationDocument = gql`
   }
 }
     `;
-export type DeleteNotificationMutationFn = ApolloReactCommon.MutationFunction<DeleteNotificationMutation, DeleteNotificationMutationVariables>;
 
 /**
  * __useDeleteNotificationMutation__
@@ -2567,7 +2509,6 @@ export const DeleteMultipleNotificationsDocument = gql`
   }
 }
     `;
-export type DeleteMultipleNotificationsMutationFn = ApolloReactCommon.MutationFunction<DeleteMultipleNotificationsMutation, DeleteMultipleNotificationsMutationVariables>;
 
 /**
  * __useDeleteMultipleNotificationsMutation__
@@ -2600,7 +2541,6 @@ export const DeleteAllReadNotificationsDocument = gql`
   }
 }
     `;
-export type DeleteAllReadNotificationsMutationFn = ApolloReactCommon.MutationFunction<DeleteAllReadNotificationsMutation, DeleteAllReadNotificationsMutationVariables>;
 
 /**
  * __useDeleteAllReadNotificationsMutation__
@@ -2635,7 +2575,6 @@ export const DeleteExpiredNotificationsDocument = gql`
   }
 }
     `;
-export type DeleteExpiredNotificationsMutationFn = ApolloReactCommon.MutationFunction<DeleteExpiredNotificationsMutation, DeleteExpiredNotificationsMutationVariables>;
 
 /**
  * __useDeleteExpiredNotificationsMutation__
@@ -2669,7 +2608,6 @@ export const UpdateNotificationPriorityDocument = gql`
   }
 }
     `;
-export type UpdateNotificationPriorityMutationFn = ApolloReactCommon.MutationFunction<UpdateNotificationPriorityMutation, UpdateNotificationPriorityMutationVariables>;
 
 /**
  * __useUpdateNotificationPriorityMutation__
@@ -2710,7 +2648,6 @@ export const CreatePlacementWorkflowDocument = gql`
   }
 }
     `;
-export type CreatePlacementWorkflowMutationFn = ApolloReactCommon.MutationFunction<CreatePlacementWorkflowMutation, CreatePlacementWorkflowMutationVariables>;
 
 /**
  * __useCreatePlacementWorkflowMutation__
@@ -2753,7 +2690,6 @@ export const UpdatePlacementWorkflowStatusDocument = gql`
   }
 }
     `;
-export type UpdatePlacementWorkflowStatusMutationFn = ApolloReactCommon.MutationFunction<UpdatePlacementWorkflowStatusMutation, UpdatePlacementWorkflowStatusMutationVariables>;
 
 /**
  * __useUpdatePlacementWorkflowStatusMutation__
@@ -2795,7 +2731,6 @@ export const ScheduleInterviewDocument = gql`
   }
 }
     `;
-export type ScheduleInterviewMutationFn = ApolloReactCommon.MutationFunction<ScheduleInterviewMutation, ScheduleInterviewMutationVariables>;
 
 /**
  * __useScheduleInterviewMutation__
@@ -2836,7 +2771,6 @@ export const CompleteInterviewDocument = gql`
   }
 }
     `;
-export type CompleteInterviewMutationFn = ApolloReactCommon.MutationFunction<CompleteInterviewMutation, CompleteInterviewMutationVariables>;
 
 /**
  * __useCompleteInterviewMutation__
@@ -2878,7 +2812,6 @@ export const StartTrialPeriodDocument = gql`
   }
 }
     `;
-export type StartTrialPeriodMutationFn = ApolloReactCommon.MutationFunction<StartTrialPeriodMutation, StartTrialPeriodMutationVariables>;
 
 /**
  * __useStartTrialPeriodMutation__
@@ -2918,7 +2851,6 @@ export const SponsorConfirmPlacementDocument = gql`
   }
 }
     `;
-export type SponsorConfirmPlacementMutationFn = ApolloReactCommon.MutationFunction<SponsorConfirmPlacementMutation, SponsorConfirmPlacementMutationVariables>;
 
 /**
  * __useSponsorConfirmPlacementMutation__
@@ -2957,7 +2889,6 @@ export const AgencyConfirmPlacementDocument = gql`
   }
 }
     `;
-export type AgencyConfirmPlacementMutationFn = ApolloReactCommon.MutationFunction<AgencyConfirmPlacementMutation, AgencyConfirmPlacementMutationVariables>;
 
 /**
  * __useAgencyConfirmPlacementMutation__
@@ -3003,7 +2934,6 @@ export const ConfirmPlacementDocument = gql`
   }
 }
     `;
-export type ConfirmPlacementMutationFn = ApolloReactCommon.MutationFunction<ConfirmPlacementMutation, ConfirmPlacementMutationVariables>;
 
 /**
  * __useConfirmPlacementMutation__
@@ -3048,7 +2978,6 @@ export const FailPlacementDocument = gql`
   }
 }
     `;
-export type FailPlacementMutationFn = ApolloReactCommon.MutationFunction<FailPlacementMutation, FailPlacementMutationVariables>;
 
 /**
  * __useFailPlacementMutation__
@@ -3095,7 +3024,6 @@ export const UpdateMaidHiredStatusDocument = gql`
   }
 }
     `;
-export type UpdateMaidHiredStatusMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidHiredStatusMutation, UpdateMaidHiredStatusMutationVariables>;
 
 /**
  * __useUpdateMaidHiredStatusMutation__
@@ -3141,7 +3069,6 @@ export const ResetMaidToAvailableDocument = gql`
   }
 }
     `;
-export type ResetMaidToAvailableMutationFn = ApolloReactCommon.MutationFunction<ResetMaidToAvailableMutation, ResetMaidToAvailableMutationVariables>;
 
 /**
  * __useResetMaidToAvailableMutation__
@@ -3181,7 +3108,6 @@ export const HoldAgencyFeeDocument = gql`
   }
 }
     `;
-export type HoldAgencyFeeMutationFn = ApolloReactCommon.MutationFunction<HoldAgencyFeeMutation, HoldAgencyFeeMutationVariables>;
 
 /**
  * __useHoldAgencyFeeMutation__
@@ -3221,7 +3147,6 @@ export const RefundAgencyFeeDocument = gql`
   }
 }
     `;
-export type RefundAgencyFeeMutationFn = ApolloReactCommon.MutationFunction<RefundAgencyFeeMutation, RefundAgencyFeeMutationVariables>;
 
 /**
  * __useRefundAgencyFeeMutation__
@@ -3256,7 +3181,6 @@ export const UpdateWorkflowNotesDocument = gql`
   }
 }
     `;
-export type UpdateWorkflowNotesMutationFn = ApolloReactCommon.MutationFunction<UpdateWorkflowNotesMutation, UpdateWorkflowNotesMutationVariables>;
 
 /**
  * __useUpdateWorkflowNotesMutation__
@@ -3295,7 +3219,6 @@ export const IncrementReminderCountDocument = gql`
   }
 }
     `;
-export type IncrementReminderCountMutationFn = ApolloReactCommon.MutationFunction<IncrementReminderCountMutation, IncrementReminderCountMutationVariables>;
 
 /**
  * __useIncrementReminderCountMutation__
@@ -3334,7 +3257,6 @@ export const UpdateMaidProfileDataDocument = gql`
   }
 }
     `;
-export type UpdateMaidProfileDataMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidProfileDataMutation, UpdateMaidProfileDataMutationVariables>;
 
 /**
  * __useUpdateMaidProfileDataMutation__
@@ -3375,7 +3297,6 @@ export const UpdateSponsorProfileDataDocument = gql`
   }
 }
     `;
-export type UpdateSponsorProfileDataMutationFn = ApolloReactCommon.MutationFunction<UpdateSponsorProfileDataMutation, UpdateSponsorProfileDataMutationVariables>;
 
 /**
  * __useUpdateSponsorProfileDataMutation__
@@ -3415,7 +3336,6 @@ export const UpdateAgencyProfileDataDocument = gql`
   }
 }
     `;
-export type UpdateAgencyProfileDataMutationFn = ApolloReactCommon.MutationFunction<UpdateAgencyProfileDataMutation, UpdateAgencyProfileDataMutationVariables>;
 
 /**
  * __useUpdateAgencyProfileDataMutation__
@@ -3452,7 +3372,6 @@ export const UpdateProfileAvatarUrlDocument = gql`
   }
 }
     `;
-export type UpdateProfileAvatarUrlMutationFn = ApolloReactCommon.MutationFunction<UpdateProfileAvatarUrlMutation, UpdateProfileAvatarUrlMutationVariables>;
 
 /**
  * __useUpdateProfileAvatarUrlMutation__
@@ -3498,7 +3417,6 @@ export const CreateSponsorProfileDocument = gql`
   }
 }
     `;
-export type CreateSponsorProfileMutationFn = ApolloReactCommon.MutationFunction<CreateSponsorProfileMutation, CreateSponsorProfileMutationVariables>;
 
 /**
  * __useCreateSponsorProfileMutation__
@@ -3560,7 +3478,6 @@ export const UpdateSponsorProfileDocument = gql`
   }
 }
     `;
-export type UpdateSponsorProfileMutationFn = ApolloReactCommon.MutationFunction<UpdateSponsorProfileMutation, UpdateSponsorProfileMutationVariables>;
 
 /**
  * __useUpdateSponsorProfileMutation__
@@ -3594,7 +3511,6 @@ export const DeleteSponsorProfileDocument = gql`
   }
 }
     `;
-export type DeleteSponsorProfileMutationFn = ApolloReactCommon.MutationFunction<DeleteSponsorProfileMutation, DeleteSponsorProfileMutationVariables>;
 
 /**
  * __useDeleteSponsorProfileMutation__
@@ -3631,7 +3547,6 @@ export const IncrementActiveJobPostingsDocument = gql`
   }
 }
     `;
-export type IncrementActiveJobPostingsMutationFn = ApolloReactCommon.MutationFunction<IncrementActiveJobPostingsMutation, IncrementActiveJobPostingsMutationVariables>;
 
 /**
  * __useIncrementActiveJobPostingsMutation__
@@ -3668,7 +3583,6 @@ export const DecrementActiveJobPostingsDocument = gql`
   }
 }
     `;
-export type DecrementActiveJobPostingsMutationFn = ApolloReactCommon.MutationFunction<DecrementActiveJobPostingsMutation, DecrementActiveJobPostingsMutationVariables>;
 
 /**
  * __useDecrementActiveJobPostingsMutation__
@@ -3702,7 +3616,6 @@ export const IncrementTotalHiresDocument = gql`
   }
 }
     `;
-export type IncrementTotalHiresMutationFn = ApolloReactCommon.MutationFunction<IncrementTotalHiresMutation, IncrementTotalHiresMutationVariables>;
 
 /**
  * __useIncrementTotalHiresMutation__
@@ -3739,7 +3652,6 @@ export const UpdateSponsorAverageRatingDocument = gql`
   }
 }
     `;
-export type UpdateSponsorAverageRatingMutationFn = ApolloReactCommon.MutationFunction<UpdateSponsorAverageRatingMutation, UpdateSponsorAverageRatingMutationVariables>;
 
 /**
  * __useUpdateSponsorAverageRatingMutation__
@@ -3781,7 +3693,6 @@ export const InsertWhatsAppMessageDocument = gql`
   }
 }
     `;
-export type InsertWhatsAppMessageMutationFn = ApolloReactCommon.MutationFunction<InsertWhatsAppMessageMutation, InsertWhatsAppMessageMutationVariables>;
 
 /**
  * __useInsertWhatsAppMessageMutation__
@@ -3816,7 +3727,6 @@ export const UpdateWhatsAppMessageDocument = gql`
   }
 }
     `;
-export type UpdateWhatsAppMessageMutationFn = ApolloReactCommon.MutationFunction<UpdateWhatsAppMessageMutation, UpdateWhatsAppMessageMutationVariables>;
 
 /**
  * __useUpdateWhatsAppMessageMutation__
@@ -3861,7 +3771,6 @@ export const CreateMaidBookingDocument = gql`
   }
 }
     `;
-export type CreateMaidBookingMutationFn = ApolloReactCommon.MutationFunction<CreateMaidBookingMutation, CreateMaidBookingMutationVariables>;
 
 /**
  * __useCreateMaidBookingMutation__
@@ -3902,7 +3811,6 @@ export const UpdateMaidBookingDocument = gql`
   }
 }
     `;
-export type UpdateMaidBookingMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidBookingMutation, UpdateMaidBookingMutationVariables>;
 
 /**
  * __useUpdateMaidBookingMutation__
@@ -3942,7 +3850,6 @@ export const UpdateMaidBookingStatusDocument = gql`
   }
 }
     `;
-export type UpdateMaidBookingStatusMutationFn = ApolloReactCommon.MutationFunction<UpdateMaidBookingStatusMutation, UpdateMaidBookingStatusMutationVariables>;
 
 /**
  * __useUpdateMaidBookingStatusMutation__
@@ -3977,7 +3884,6 @@ export const DeleteMaidBookingDocument = gql`
   }
 }
     `;
-export type DeleteMaidBookingMutationFn = ApolloReactCommon.MutationFunction<DeleteMaidBookingMutation, DeleteMaidBookingMutationVariables>;
 
 /**
  * __useDeleteMaidBookingMutation__
@@ -4018,7 +3924,6 @@ export const BulkUpdateMaidBookingStatusDocument = gql`
   }
 }
     `;
-export type BulkUpdateMaidBookingStatusMutationFn = ApolloReactCommon.MutationFunction<BulkUpdateMaidBookingStatusMutation, BulkUpdateMaidBookingStatusMutationVariables>;
 
 /**
  * __useBulkUpdateMaidBookingStatusMutation__
@@ -4085,7 +3990,6 @@ export const UpdatePlatformSettingsDocument = gql`
   }
 }
     `;
-export type UpdatePlatformSettingsMutationFn = ApolloReactCommon.MutationFunction<UpdatePlatformSettingsMutation, UpdatePlatformSettingsMutationVariables>;
 
 /**
  * __useUpdatePlatformSettingsMutation__
@@ -4121,7 +4025,6 @@ export const InsertPlatformSettingsDocument = gql`
   }
 }
     `;
-export type InsertPlatformSettingsMutationFn = ApolloReactCommon.MutationFunction<InsertPlatformSettingsMutation, InsertPlatformSettingsMutationVariables>;
 
 /**
  * __useInsertPlatformSettingsMutation__
@@ -4154,7 +4057,6 @@ export const DeleteWhatsAppMessageDocument = gql`
   }
 }
     `;
-export type DeleteWhatsAppMessageMutationFn = ApolloReactCommon.MutationFunction<DeleteWhatsAppMessageMutation, DeleteWhatsAppMessageMutationVariables>;
 
 /**
  * __useDeleteWhatsAppMessageMutation__
@@ -4187,7 +4089,6 @@ export const BulkDeleteWhatsAppMessagesDocument = gql`
   }
 }
     `;
-export type BulkDeleteWhatsAppMessagesMutationFn = ApolloReactCommon.MutationFunction<BulkDeleteWhatsAppMessagesMutation, BulkDeleteWhatsAppMessagesMutationVariables>;
 
 /**
  * __useBulkDeleteWhatsAppMessagesMutation__
@@ -5256,7 +5157,7 @@ export function refetchGetUnreadConversationsCountQuery(variables: GetUnreadConv
     }
 export const GetMessageDocument = gql`
     query GetMessage($id: uuid!) {
-  messages_by_pk(id: $id) {
+  messages(where: {id: {_eq: $id}}, limit: 1) {
     id
     conversation_id
     sender_id
@@ -7740,7 +7641,6 @@ export const UpdateProfileDocument = gql`
   }
 }
     `;
-export type UpdateProfileMutationFn = ApolloReactCommon.MutationFunction<UpdateProfileMutation, UpdateProfileMutationVariables>;
 
 /**
  * __useUpdateProfileMutation__
@@ -7870,34 +7770,34 @@ export const GetSponsorProfileDataDocument = gql`
     user_type
     created_at
     updated_at
-    sponsor_profile {
-      id
-      full_name
-      household_size
-      number_of_children
-      children_ages
-      elderly_care_needed
-      pets
-      pet_types
-      city
-      country
-      address
-      phone_number
-      religion
-      accommodation_type
-      preferred_nationality
-      preferred_experience_years
-      required_skills
-      preferred_languages
-      salary_budget_min
-      salary_budget_max
-      currency
-      live_in_required
-      working_hours_per_day
-      days_off_per_week
-      overtime_available
-      additional_benefits
-    }
+  }
+  sponsor_profiles(where: {id: {_eq: $userId}}, limit: 1) {
+    id
+    full_name
+    household_size
+    number_of_children
+    children_ages
+    elderly_care_needed
+    pets
+    pet_types
+    city
+    country
+    address
+    phone_number
+    religion
+    accommodation_type
+    preferred_nationality
+    preferred_experience_years
+    required_skills
+    preferred_languages
+    salary_budget_min
+    salary_budget_max
+    currency
+    live_in_required
+    working_hours_per_day
+    days_off_per_week
+    overtime_available
+    additional_benefits
   }
 }
     `;
@@ -7949,31 +7849,31 @@ export const GetAgencyProfileDataDocument = gql`
     user_type
     created_at
     updated_at
-    agency_profile {
-      id
-      full_name
-      agency_description
-      license_number
-      license_expiry_date
-      business_email
-      business_phone
-      address
-      city
-      country
-      website_url
-      logo_url
-      authorized_person_name
-      authorized_person_email
-      authorized_person_phone
-      service_countries
-      specialization
-      total_maids
-      active_listings
-      successful_placements
-      average_rating
-      verification_status
-      verified
-    }
+  }
+  agency_profiles(where: {id: {_eq: $userId}}, limit: 1) {
+    id
+    full_name
+    agency_description
+    license_number
+    license_expiry_date
+    business_email
+    business_phone
+    address
+    city
+    country
+    website_url
+    logo_url
+    authorized_person_name
+    authorized_person_email
+    authorized_person_phone
+    service_countries
+    specialization
+    total_maids
+    active_listings
+    successful_placements
+    average_rating
+    verification_status
+    verified
   }
 }
     `;

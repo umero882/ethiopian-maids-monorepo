@@ -28,9 +28,10 @@ export class ApproveMaidProfileUseCase implements UseCase<ApproveMaidProfileDTO,
 
       // Approve profile (entity enforces business rules)
       try {
-        profile.approve();
+        profile.approve('admin');
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -38,7 +39,8 @@ export class ApproveMaidProfileUseCase implements UseCase<ApproveMaidProfileDTO,
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to approve maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to approve maid profile: ${message}`);
     }
   }
 }

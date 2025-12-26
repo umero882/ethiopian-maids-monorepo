@@ -4,19 +4,7 @@
  * These objects define the shape of data going in and out of notification use cases.
  */
 
-export type NotificationType =
-  | 'application_received'
-  | 'application_reviewed'
-  | 'application_shortlisted'
-  | 'application_accepted'
-  | 'application_rejected'
-  | 'message_received'
-  | 'profile_approved'
-  | 'profile_rejected'
-  | 'job_posted'
-  | 'job_closed'
-  | 'system_announcement'
-  | 'other';
+import type { NotificationType } from '../entities/Notification.js';
 
 export interface CreateNotificationDTO {
   userId: string;

@@ -44,7 +44,8 @@ export class MarkNotificationAsReadUseCase
       try {
         notification.markAsRead();
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -52,7 +53,8 @@ export class MarkNotificationAsReadUseCase
 
       return Result.ok(notification);
     } catch (error) {
-      return Result.fail(`Failed to mark notification as read: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to mark notification as read: ${message}`);
     }
   }
 }

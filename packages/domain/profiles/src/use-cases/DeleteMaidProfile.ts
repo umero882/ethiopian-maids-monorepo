@@ -48,7 +48,8 @@ export class DeleteMaidProfileUseCase implements VoidUseCase<DeleteMaidProfileRe
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to delete maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to delete maid profile: ${message}`);
     }
   }
 }

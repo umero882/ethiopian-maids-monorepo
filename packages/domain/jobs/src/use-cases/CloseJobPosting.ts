@@ -27,9 +27,10 @@ export class CloseJobPostingUseCase implements UseCase<CloseJobPostingDTO, JobPo
 
       // Close job (entity enforces business rules)
       try {
-        jobPosting.close(request.reason);
+        jobPosting.close(request.reason || 'Closed by sponsor');
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -37,7 +38,8 @@ export class CloseJobPostingUseCase implements UseCase<CloseJobPostingDTO, JobPo
 
       return Result.ok(jobPosting);
     } catch (error) {
-      return Result.fail(`Failed to close job posting: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to close job posting: ${message}`);
     }
   }
 }

@@ -40,7 +40,8 @@ export class DeleteJobPostingUseCase implements VoidUseCase<DeleteJobPostingDTO>
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to delete job posting: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to delete job posting: ${message}`);
     }
   }
 }

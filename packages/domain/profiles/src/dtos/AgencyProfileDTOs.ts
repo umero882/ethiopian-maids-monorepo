@@ -46,7 +46,8 @@ export interface GetAgencyStatisticsRequest {
 export interface AgencyStatistics {
   totalMaids: number;
   activeMaids: number;
-  placedMaids: number;
-  pendingApplications: number;
-  completedJobs: number;
+  totalJobs: number;
+  activeJobs: number;
+  totalApplications: number;
+  successfulPlacements: number;
 }

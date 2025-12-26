@@ -43,7 +43,8 @@ export class DeleteMessageUseCase implements VoidUseCase<DeleteMessageDTO> {
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to delete message: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to delete message: ${message}`);
     }
   }
 }

@@ -31,6 +31,14 @@ import { completeCreditPurchaseCallable } from './payments/completeCreditPurchas
 import { createPaymentIntent } from './payments/createPaymentIntent';
 import { cleanupExpiredIdempotencyCallable } from './payments/cleanupIdempotency';
 
+// Import handlers - Hasura Claims (Auth)
+import {
+  onUserCreated,
+  syncHasuraClaims,
+  refreshHasuraClaims,
+  adminSetUserRole,
+} from './auth/hasuraClaims';
+
 // =====================================================
 // STRIPE FUNCTIONS
 // =====================================================
@@ -71,3 +79,30 @@ export const scheduledCheckExpiringSubscriptions = functions.pubsub
     console.log('Checking for expiring subscriptions...');
     return null;
   });
+
+// =====================================================
+// HASURA CLAIMS / AUTH FUNCTIONS
+// =====================================================
+
+/**
+ * Auth trigger: Automatically set Hasura claims when a new user is created
+ * This ensures every user has the required claims for Hasura GraphQL authorization
+ */
+export const authOnUserCreated = functions.auth.user().onCreate(onUserCreated);
+
+/**
+ * Callable: Sync Hasura claims with user's role from database
+ * Call after profile creation/update to ensure claims match database role
+ */
+export const authSyncHasuraClaims = functions.https.onCall(syncHasuraClaims);
+
+/**
+ * Callable: Force refresh Hasura claims
+ * After calling, client should call getIdToken(true) to get fresh token
+ */
+export const authRefreshHasuraClaims = functions.https.onCall(refreshHasuraClaims);
+
+/**
+ * Callable: Admin function to set user role (admin only)
+ */
+export const authAdminSetUserRole = functions.https.onCall(adminSetUserRole);

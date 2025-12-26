@@ -114,29 +114,35 @@ mutation SendMessage($data: messages_insert_input!) {
 
 # Mutation 8: Update Message
 mutation UpdateMessage($id: uuid!, $data: messages_set_input!) {
-  update_messages_by_pk(
-    pk_columns: {id: $id}
+  update_messages(
+    where: {id: {_eq: $id}}
     _set: $data
   ) {
-    id
-    content
-    is_read
-    read_at
-    is_archived
-    updated_at
+    affected_rows
+    returning {
+      id
+      content
+      is_read
+      read_at
+      is_archived
+      updated_at
+    }
   }
 }
 
 # Mutation 9: Mark Message as Read
 mutation MarkMessageAsRead($id: uuid!) {
-  update_messages_by_pk(
-    pk_columns: {id: $id}
+  update_messages(
+    where: {id: {_eq: $id}}
     _set: {is_read: true, read_at: "now()"}
   ) {
-    id
-    is_read
-    read_at
-    updated_at
+    affected_rows
+    returning {
+      id
+      is_read
+      read_at
+      updated_at
+    }
   }
 }
 
@@ -157,13 +163,16 @@ mutation MarkMultipleMessagesAsRead($ids: [uuid!]!) {
 
 # Mutation 11: Archive Message
 mutation ArchiveMessage($id: uuid!) {
-  update_messages_by_pk(
-    pk_columns: {id: $id}
+  update_messages(
+    where: {id: {_eq: $id}}
     _set: {is_archived: true}
   ) {
-    id
-    is_archived
-    updated_at
+    affected_rows
+    returning {
+      id
+      is_archived
+      updated_at
+    }
   }
 }
 
@@ -183,8 +192,8 @@ mutation ArchiveMultipleMessages($ids: [uuid!]!) {
 
 # Mutation 13: Delete Message
 mutation DeleteMessage($id: uuid!) {
-  delete_messages_by_pk(id: $id) {
-    id
+  delete_messages(where: {id: {_eq: $id}}) {
+    affected_rows
   }
 }
 

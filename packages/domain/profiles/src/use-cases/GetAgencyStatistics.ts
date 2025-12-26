@@ -34,7 +34,8 @@ export class GetAgencyStatisticsUseCase
 
       return Result.ok(statistics);
     } catch (error) {
-      return Result.fail(`Failed to get agency statistics: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get agency statistics: ${message}`);
     }
   }
 }

@@ -42,7 +42,8 @@ export class MarkMessageAsReadUseCase implements UseCase<MarkMessageAsReadDTO, M
       try {
         message.markAsRead();
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -50,7 +51,8 @@ export class MarkMessageAsReadUseCase implements UseCase<MarkMessageAsReadDTO, M
 
       return Result.ok(message);
     } catch (error) {
-      return Result.fail(`Failed to mark message as read: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to mark message as read: ${message}`);
     }
   }
 }

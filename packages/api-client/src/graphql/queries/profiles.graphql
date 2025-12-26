@@ -136,34 +136,34 @@ query GetSponsorProfileData($userId: String!) {
     user_type
     created_at
     updated_at
-    sponsor_profile {
-      id
-      full_name
-      household_size
-      number_of_children
-      children_ages
-      elderly_care_needed
-      pets
-      pet_types
-      city
-      country
-      address
-      phone_number
-      religion
-      accommodation_type
-      preferred_nationality
-      preferred_experience_years
-      required_skills
-      preferred_languages
-      salary_budget_min
-      salary_budget_max
-      currency
-      live_in_required
-      working_hours_per_day
-      days_off_per_week
-      overtime_available
-      additional_benefits
-    }
+  }
+  sponsor_profiles(where: {id: {_eq: $userId}}, limit: 1) {
+    id
+    full_name
+    household_size
+    number_of_children
+    children_ages
+    elderly_care_needed
+    pets
+    pet_types
+    city
+    country
+    address
+    phone_number
+    religion
+    accommodation_type
+    preferred_nationality
+    preferred_experience_years
+    required_skills
+    preferred_languages
+    salary_budget_min
+    salary_budget_max
+    currency
+    live_in_required
+    working_hours_per_day
+    days_off_per_week
+    overtime_available
+    additional_benefits
   }
 }
 
@@ -179,31 +179,31 @@ query GetAgencyProfileData($userId: String!) {
     user_type
     created_at
     updated_at
-    agency_profile {
-      id
-      full_name
-      agency_description
-      license_number
-      license_expiry_date
-      business_email
-      business_phone
-      address
-      city
-      country
-      website_url
-      logo_url
-      authorized_person_name
-      authorized_person_email
-      authorized_person_phone
-      service_countries
-      specialization
-      total_maids
-      active_listings
-      successful_placements
-      average_rating
-      verification_status
-      verified
-    }
+  }
+  agency_profiles(where: {id: {_eq: $userId}}, limit: 1) {
+    id
+    full_name
+    agency_description
+    license_number
+    license_expiry_date
+    business_email
+    business_phone
+    address
+    city
+    country
+    website_url
+    logo_url
+    authorized_person_name
+    authorized_person_email
+    authorized_person_phone
+    service_countries
+    specialization
+    total_maids
+    active_listings
+    successful_placements
+    average_rating
+    verification_status
+    verified
   }
 }
 

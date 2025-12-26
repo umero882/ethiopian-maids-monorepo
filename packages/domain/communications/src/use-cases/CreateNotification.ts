@@ -22,7 +22,7 @@ export class CreateNotificationUseCase implements UseCase<CreateNotificationDTO,
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<Notification>(validationResult.error!);
       }
 
       // Create notification
@@ -45,7 +45,8 @@ export class CreateNotificationUseCase implements UseCase<CreateNotificationDTO,
 
       return Result.ok(notification);
     } catch (error) {
-      return Result.fail(`Failed to create notification: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to create notification: ${message}`);
     }
   }
 

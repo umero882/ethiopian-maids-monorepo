@@ -33,7 +33,8 @@ export class GetAgencyProfileUseCase implements UseCase<GetAgencyProfileRequest,
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to get agency profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get agency profile: ${message}`);
     }
   }
 }

@@ -2,7 +2,7 @@
  * GraphQL Implementation of JobApplicationRepository
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   JobApplication,
   JobApplicationRepository,
@@ -10,7 +10,8 @@ import {
 } from '@ethio/domain-jobs';
 
 export class GraphQLJobApplicationRepository implements JobApplicationRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<JobApplication | null> {
     const { data } = await this.client.query({
@@ -141,17 +142,13 @@ export class GraphQLJobApplicationRepository implements JobApplicationRepository
       job_id: application.jobId,
       maid_id: application.maidId,
       sponsor_id: application.sponsorId,
-      status: application.status.value,
+      status: application.status.toString(),
       cover_letter: application.coverLetter,
-      expected_salary_amount: application.expectedSalary?.amount,
-      expected_salary_currency: application.expectedSalary?.currency,
-      expected_salary_period: application.expectedSalary?.period,
+      expected_salary_amount: application.proposedSalary?.amount,
+      expected_salary_currency: application.proposedSalary?.currency,
+      expected_salary_period: application.proposedSalary?.period,
       available_from: application.availableFrom,
       applied_at: application.appliedAt,
-      reviewed_at: application.reviewedAt,
-      shortlisted_at: application.shortlistedAt,
-      accepted_at: application.acceptedAt,
-      rejected_at: application.rejectedAt,
       rejection_reason: application.rejectionReason,
       updated_at: new Date(),
     };
@@ -225,23 +222,18 @@ export class GraphQLJobApplicationRepository implements JobApplicationRepository
   }
 
   private mapToEntity(data: any): JobApplication {
-    return JobApplication.create({
+    return new JobApplication({
       id: data.id,
       jobId: data.job_id,
       maidId: data.maid_id,
       sponsorId: data.sponsor_id,
       coverLetter: data.cover_letter,
-      expectedSalary: data.expected_salary_amount ? {
+      proposedSalary: data.expected_salary_amount ? {
         amount: data.expected_salary_amount,
         currency: data.expected_salary_currency,
         period: data.expected_salary_period,
       } : undefined,
       availableFrom: data.available_from,
-      appliedAt: data.applied_at,
-      reviewedAt: data.reviewed_at,
-      shortlistedAt: data.shortlisted_at,
-      acceptedAt: data.accepted_at,
-      rejectedAt: data.rejected_at,
       rejectionReason: data.rejection_reason,
       status: data.status,
     });

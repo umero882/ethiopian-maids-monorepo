@@ -34,7 +34,8 @@ export class SearchMaidProfilesUseCase implements UseCase<SearchMaidProfilesDTO,
 
       return Result.ok(profiles);
     } catch (error) {
-      return Result.fail(`Failed to search maid profiles: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to search maid profiles: ${message}`);
     }
   }
 }

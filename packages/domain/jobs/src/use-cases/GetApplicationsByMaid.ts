@@ -36,7 +36,8 @@ export class GetApplicationsByMaidUseCase implements UseCase<GetApplicationsByMa
 
       return Result.ok(paginatedApplications);
     } catch (error) {
-      return Result.fail(`Failed to get applications: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to get applications: ${message}`);
     }
   }
 }

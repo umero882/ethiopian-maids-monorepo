@@ -34,7 +34,8 @@ export class SearchJobPostingsUseCase implements UseCase<SearchJobPostingsDTO, J
 
       return Result.ok(jobPostings);
     } catch (error) {
-      return Result.fail(`Failed to search job postings: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to search job postings: ${message}`);
     }
   }
 }

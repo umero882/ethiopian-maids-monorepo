@@ -4,7 +4,7 @@
  * Implements the repository interface using Apollo Client and Hasura GraphQL.
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   MaidProfile,
   MaidProfileRepository,
@@ -12,7 +12,8 @@ import {
 } from '@ethio/domain-profiles';
 
 export class GraphQLMaidProfileRepository implements MaidProfileRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<MaidProfile | null> {
     const { data } = await this.client.query({
@@ -139,7 +140,7 @@ export class GraphQLMaidProfileRepository implements MaidProfileRepository {
       phone: profile.phone,
       profile_photo: profile.profilePhoto,
       agency_id: profile.agencyId,
-      status: profile.status.value,
+      status: profile.status.toString(),
       completion_percentage: profile.completionPercentage,
       is_verified: profile.isVerified,
       verified_at: profile.verifiedAt,

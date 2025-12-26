@@ -24,11 +24,20 @@ export class CreateJobPostingUseCase implements UseCase<CreateJobPostingDTO, Job
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<JobPosting>(validationResult.error!);
       }
 
-      // Create salary value object
-      const salary = new Salary(request.salary);
+      // Create salary value object (cast currency string to CurrencyType)
+      const salary = new Salary({
+        amount: request.salary.amount,
+        currency: request.salary.currency as 'AED' | 'SAR' | 'USD' | 'EUR' | 'GBP' | 'KWD' | 'QAR' | 'BHD' | 'OMR',
+        period: request.salary.period,
+      });
+
+      // Convert expiresAt to Date if string
+      const expiresAt = request.expiresAt
+        ? (typeof request.expiresAt === 'string' ? new Date(request.expiresAt) : request.expiresAt)
+        : null;
 
       // Create job posting entity
       const jobProps: JobPostingProps = {
@@ -53,7 +62,7 @@ export class CreateJobPostingUseCase implements UseCase<CreateJobPostingDTO, Job
         maxApplications: request.maxApplications || 100,
         viewCount: 0,
         postedAt: null,
-        expiresAt: request.expiresAt || null,
+        expiresAt,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -65,7 +74,8 @@ export class CreateJobPostingUseCase implements UseCase<CreateJobPostingDTO, Job
 
       return Result.ok(jobPosting);
     } catch (error) {
-      return Result.fail(`Failed to create job posting: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to create job posting: ${message}`);
     }
   }
 

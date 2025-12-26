@@ -22,7 +22,7 @@ export class SendMessageUseCase implements UseCase<SendMessageDTO, Message> {
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<Message>(validationResult.error!);
       }
 
       // Ensure sender and recipient are different
@@ -52,7 +52,8 @@ export class SendMessageUseCase implements UseCase<SendMessageDTO, Message> {
 
       return Result.ok(message);
     } catch (error) {
-      return Result.fail(`Failed to send message: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to send message: ${message}`);
     }
   }
 

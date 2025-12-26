@@ -32,10 +32,6 @@ mutation AddToFavorites(
       sponsor_id: $sponsorId
       maid_id: $maidId
     }
-    on_conflict: {
-      constraint: favorites_sponsor_id_maid_id_key
-      update_columns: []
-    }
   ) {
     sponsor_id
     maid_id

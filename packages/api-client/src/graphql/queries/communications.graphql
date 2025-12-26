@@ -154,7 +154,7 @@ query GetUnreadConversationsCount($userId: String!) {
 
 # Query 5: Get Message by ID
 query GetMessage($id: uuid!) {
-  messages_by_pk(id: $id) {
+  messages(where: {id: {_eq: $id}}, limit: 1) {
     id
     conversation_id
     sender_id

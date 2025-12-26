@@ -7,6 +7,7 @@
 const VALID_STATUSES = [
   'pending',
   'reviewed',
+  'shortlisted',
   'interviewing',
   'accepted',
   'rejected',
@@ -34,6 +35,10 @@ export class ApplicationStatus {
 
   static reviewed(): ApplicationStatus {
     return new ApplicationStatus('reviewed');
+  }
+
+  static shortlisted(): ApplicationStatus {
+    return new ApplicationStatus('shortlisted');
   }
 
   static interviewing(): ApplicationStatus {
@@ -68,6 +73,10 @@ export class ApplicationStatus {
 
   isReviewed(): boolean {
     return this._status === 'reviewed';
+  }
+
+  isShortlisted(): boolean {
+    return this._status === 'shortlisted';
   }
 
   isInterviewing(): boolean {
@@ -109,6 +118,7 @@ export class ApplicationStatus {
     const labels: Record<ApplicationStatusType, string> = {
       pending: 'Pending',
       reviewed: 'Reviewed',
+      shortlisted: 'Shortlisted',
       interviewing: 'Interviewing',
       accepted: 'Accepted',
       rejected: 'Rejected',

@@ -2,7 +2,7 @@
  * GraphQL Implementation of JobPostingRepository
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { gql } from '@apollo/client';
 import {
   JobPosting,
   JobPostingRepository,
@@ -10,7 +10,8 @@ import {
 } from '@ethio/domain-jobs';
 
 export class GraphQLJobPostingRepository implements JobPostingRepository {
-  constructor(private readonly client: ApolloClient<any>) {}
+  // Using 'any' type for Apollo Client 4 compatibility - proper typing requires generated types
+  constructor(private readonly client: any) {}
 
   async findById(id: string): Promise<JobPosting | null> {
     const { data } = await this.client.query({
@@ -190,7 +191,7 @@ export class GraphQLJobPostingRepository implements JobPostingRepository {
       working_hours: jobPosting.workingHours,
       days_off: jobPosting.daysOff,
       accommodation_type: jobPosting.accommodationType,
-      status: jobPosting.status.value,
+      status: jobPosting.status.toString(),
       application_count: jobPosting.applicationCount,
       max_applications: jobPosting.maxApplications,
       view_count: jobPosting.viewCount,

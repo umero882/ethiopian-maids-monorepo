@@ -29,9 +29,10 @@ export class WithdrawJobApplicationUseCase
 
       // Withdraw application (entity enforces business rules)
       try {
-        application.withdraw(request.reason);
+        application.withdraw(application.maidId, request.reason || 'Withdrawn by applicant');
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -39,7 +40,8 @@ export class WithdrawJobApplicationUseCase
 
       return Result.ok(application);
     } catch (error) {
-      return Result.fail(`Failed to withdraw application: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to withdraw application: ${message}`);
     }
   }
 }

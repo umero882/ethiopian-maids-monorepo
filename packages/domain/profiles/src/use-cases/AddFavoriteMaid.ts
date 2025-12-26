@@ -53,7 +53,8 @@ export class AddFavoriteMaidUseCase implements VoidUseCase<AddFavoriteMaidDTO> {
 
       return Result.ok();
     } catch (error) {
-      return Result.fail(`Failed to add favorite maid: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to add favorite maid: ${message}`);
     }
   }
 }

@@ -23,7 +23,7 @@ export class UploadMaidDocumentUseCase implements UseCase<UploadMaidDocumentDTO,
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<MaidProfile>(validationResult.error!);
       }
 
       // Load profile
@@ -39,9 +39,10 @@ export class UploadMaidDocumentUseCase implements UseCase<UploadMaidDocumentDTO,
 
       // Upload document using entity method
       try {
-        profile.uploadDocument(request.documentType, request.documentUrl, request.expiryDate);
+        profile.uploadDocument(request.documentType as 'passport' | 'medicalCertificate' | 'policeClearance', request.documentUrl);
       } catch (error) {
-        return Result.fail(error.message);
+        const msg = error instanceof Error ? error.message : String(error);
+        return Result.fail(msg);
       }
 
       // Save changes
@@ -49,7 +50,8 @@ export class UploadMaidDocumentUseCase implements UseCase<UploadMaidDocumentDTO,
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to upload document: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to upload document: ${message}`);
     }
   }
 

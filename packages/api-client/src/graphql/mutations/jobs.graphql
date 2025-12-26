@@ -102,13 +102,7 @@ mutation IncrementJobViews($id: uuid!) {
 
 # Submit a job application (for maids)
 mutation SubmitApplication($data: applications_insert_input!) {
-  insert_applications_one(
-    object: $data
-    on_conflict: {
-      constraint: applications_job_id_maid_id_key
-      update_columns: [cover_letter, updated_at]
-    }
-  ) {
+  insert_applications_one(object: $data) {
     id
     job_id
     maid_id

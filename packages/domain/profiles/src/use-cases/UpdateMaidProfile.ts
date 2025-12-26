@@ -9,7 +9,7 @@
  * - At least one field must be provided for update
  */
 
-import { UseCase, Result, NotFoundError, InvalidOperationError } from '@ethio/domain-shared';
+import { UseCase, Result } from '@ethio/domain-shared';
 import { MaidProfile } from '../entities/MaidProfile.js';
 import { MaidProfileRepository } from '../repositories/MaidProfileRepository.js';
 import { UpdateMaidBasicInfoDTO } from '../dtos/MaidProfileDTOs.js';
@@ -22,7 +22,7 @@ export class UpdateMaidProfileUseCase implements UseCase<UpdateMaidBasicInfoDTO,
       // Validate input
       const validationResult = this.validate(request);
       if (validationResult.isFailure) {
-        return validationResult;
+        return Result.fail<MaidProfile>(validationResult.error!);
       }
 
       // Load profile
@@ -49,7 +49,8 @@ export class UpdateMaidProfileUseCase implements UseCase<UpdateMaidBasicInfoDTO,
 
       return Result.ok(profile);
     } catch (error) {
-      return Result.fail(`Failed to update maid profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Failed to update maid profile: ${message}`);
     }
   }
 
