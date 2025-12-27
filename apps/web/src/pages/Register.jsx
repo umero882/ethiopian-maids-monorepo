@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Card,
@@ -15,7 +15,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { countryService } from '@/services/countryService';
 import CountrySelect from '@/components/ui/CountrySelect';
-import { auth } from '@/lib/firebaseClient';
+import { auth, setUserTypeClaim } from '@/lib/firebaseClient';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useFirebasePhoneAuth, PHONE_VERIFICATION_STATES } from '@/hooks/useFirebasePhoneAuth';
 import {
@@ -61,6 +61,7 @@ const Register = () => {
   const initialUserType = validUserTypes.includes(preselectedUserType) ? preselectedUserType : '';
 
   const [userType, setUserType] = useState(initialUserType);
+  const userTypeRef = useRef(initialUserType); // Ref to track current userType for callbacks
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countries, setCountries] = useState([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
@@ -91,7 +92,38 @@ const Register = () => {
     changePhoneNumber: changePhone,
   } = useFirebasePhoneAuth({
     buttonId: 'phone-verify-button',
-    onVerificationComplete: (verifiedPhone) => {
+    onVerificationComplete: async (verifiedPhone) => {
+      // ============================================================
+      // CRITICAL: Set userType in Firebase Custom Claims (PERSISTENT)
+      // ============================================================
+      // This is called IMMEDIATELY after phone verification succeeds.
+      // The user is now authenticated via Firebase Auth.
+      // We MUST set userType in Custom Claims NOW so it survives:
+      // - Page refresh
+      // - Browser close
+      // - Logout/login
+      // - Device changes
+      // ============================================================
+      // IMPORTANT: Use userTypeRef.current to get the LATEST value
+      // The callback is created once when hook initializes, so using
+      // the userType variable directly would capture a stale value
+      const currentUserType = userTypeRef.current;
+      console.log('🔐 [Register] onVerificationComplete - userTypeRef.current:', currentUserType);
+
+      if (currentUserType) {
+        try {
+          console.log('🔐 [Register] Setting userType in Firebase Custom Claims:', currentUserType);
+          await setUserTypeClaim(currentUserType);
+          console.log('✅ [Register] userType successfully set in Custom Claims');
+        } catch (claimError) {
+          console.error('❌ [Register] Failed to set userType in claims:', claimError);
+          // Don't block registration - claims can be synced later
+          // But log this for debugging
+        }
+      } else {
+        console.warn('⚠️ [Register] userType is empty in onVerificationComplete callback!');
+      }
+
       toast({
         title: 'Phone Verified',
         description: 'Your phone number has been successfully verified!',
@@ -104,6 +136,13 @@ const Register = () => {
 
   // Map hook state to component state for compatibility
   const phoneVerificationStep = phoneVerified ? 'verified' : (isCodeSent ? 'verify' : 'input');
+
+  // Keep userTypeRef in sync with userType state
+  // This ensures the onVerificationComplete callback always has the latest value
+  useEffect(() => {
+    userTypeRef.current = userType;
+    console.log('📝 [Register] userTypeRef updated to:', userType);
+  }, [userType]);
 
   useEffect(() => {
     if (user) {
@@ -157,18 +196,21 @@ const Register = () => {
   ];
 
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleUserTypeSelect = (type) => {
     setUserType(type);
-    setFormData({
-      ...formData, // Keep existing data
+    userTypeRef.current = type; // Also update ref immediately for callbacks
+    setFormData(prev => ({
+      ...prev, // Keep existing data
       userType: type, // Only update userType
-    });
+    }));
+    console.log('📝 [Register] handleUserTypeSelect - set userType to:', type);
   };
 
   // Format phone number to E.164 format
@@ -239,17 +281,11 @@ const Register = () => {
       return;
     }
 
-    // CRITICAL: Store userType in localStorage BEFORE phone verification
-    // This is needed because phone verification authenticates the user via Firebase,
-    // which triggers onAuthStateChanged BEFORE our register function is called.
-    // Without this, fetchUserProfile won't know the intended userType.
-    if (userType) {
-      localStorage.setItem('pending_registration_user_type', userType);
-      console.log('🔍 Register - Stored userType in localStorage before phone verification:', userType);
-    }
+    // NOTE: userType is now set via Firebase Custom Claims in onVerificationComplete callback
+    // No longer using localStorage - claims persist server-side and survive page refresh
 
-    // Update form data with formatted phone number
-    setFormData({ ...formData, phone: formattedPhone });
+    // Update form data with formatted phone number (use functional update to avoid stale closure)
+    setFormData(prev => ({ ...prev, phone: formattedPhone }));
 
     // Send OTP using Firebase Phone Auth
     const success = await sendFirebaseOTP(formattedPhone);
@@ -378,10 +414,15 @@ const Register = () => {
 
     try {
       // Register user with verified phone
+      // IMPORTANT: Ensure userType is ALWAYS set in registration data
+      // Use userType state as fallback in case formData.userType is stale
       const registrationData = {
         ...formData,
+        userType: formData.userType || userType, // Fallback to state if formData is stale
         phoneVerified: true,
       };
+
+      console.log('📝 [Register] Registration data userType:', registrationData.userType);
 
       const result = await register(registrationData);
 
@@ -756,7 +797,7 @@ const Register = () => {
                     countries={countries}
                     value={formData.country}
                     onChange={(countryName) =>
-                      setFormData({ ...formData, country: countryName })
+                      setFormData(prev => ({ ...prev, country: countryName }))
                     }
                     placeholder={
                       isLoadingCountries
