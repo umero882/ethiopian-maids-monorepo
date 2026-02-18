@@ -85,6 +85,7 @@ import {
   BookOpen,
   Globe,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 // Helper function to calculate match score
 const calculateMatchScore = (applicant, jobRequirements = []) => {
@@ -618,30 +619,24 @@ const AgencyApplicantsPage = () => {
 
           <TabsContent value={activeTab}>
             {filteredApplicants.length === 0 ? (
-              <div className='text-center py-12'>
-                <Users className='mx-auto h-12 w-12 text-gray-300 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-900 mb-2'>No applicants found</h3>
-                <p className='text-gray-500 mb-4'>
-                  {applicants.length === 0
-                    ? 'No applications have been received yet.'
-                    : 'No applicants match your current filters.'}
-                </p>
-                {(searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || scoreFilter !== 'all') && (
-                  <Button
-                    variant='outline'
-                    onClick={() => {
-                      setSearchTerm('');
-                      setStatusFilter('all');
-                      setJobFilter('all');
-                      setScoreFilter('all');
-                    }}
-                    className='mt-2'
-                  >
-                    <X className='mr-2 h-4 w-4' />
-                    Clear all filters
-                  </Button>
-                )}
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No applicants found"
+                description={applicants.length === 0
+                  ? 'No applications have been received yet.'
+                  : 'No applicants match your current filters.'}
+                action={(searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || scoreFilter !== 'all') ? {
+                  label: 'Clear all filters',
+                  icon: X,
+                  variant: 'outline',
+                  onClick: () => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setJobFilter('all');
+                    setScoreFilter('all');
+                  },
+                } : undefined}
+              />
             ) : (
               <div className='overflow-x-auto'>
                 <Table>

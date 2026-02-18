@@ -32,6 +32,7 @@ import {
   XCircle,
   FileText,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 const SponsorInvoicesPage = () => {
   const { user } = useAuth();
@@ -269,24 +270,17 @@ const SponsorInvoicesPage = () => {
       {invoices.length === 0 && (
         <motion.div {...sectionAnimation(0.2)}>
           <Card>
-            <CardContent className='pt-12 pb-12'>
-              <div className='text-center space-y-4'>
-                <FileText className='h-16 w-16 text-gray-300 mx-auto' />
-                <div>
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    No invoices yet
-                  </h3>
-                  <p className='text-gray-600 mb-6'>
-                    Your payment history and invoices will appear here once you make bookings
-                  </p>
-                </div>
-                <Link to='/maids'>
-                  <Button size='lg' className='bg-purple-600 hover:bg-purple-700'>
-                    <CreditCard className='h-4 w-4 mr-2' />
-                    Browse Maids
-                  </Button>
-                </Link>
-              </div>
+            <CardContent className='pt-6 pb-6'>
+              <EmptyState
+                icon={FileText}
+                title="No invoices yet"
+                description="Your payment history and invoices will appear here once you make bookings"
+                action={{
+                  label: 'Browse Maids',
+                  icon: CreditCard,
+                  href: '/maids',
+                }}
+              />
             </CardContent>
           </Card>
         </motion.div>

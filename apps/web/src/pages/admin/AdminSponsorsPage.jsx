@@ -73,6 +73,7 @@ import {
   UserCheck,
   UserX
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
 
@@ -787,15 +788,13 @@ const AdminSponsorsPage = () => {
         </CardHeader>
         <CardContent>
           {sponsorsData.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Sponsors Found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || verificationFilter !== 'all' || subscriptionFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'No sponsor profiles in the database yet'}
-              </p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No Sponsors Found"
+              description={searchTerm || verificationFilter !== 'all' || subscriptionFilter !== 'all'
+                ? 'Try adjusting your filters'
+                : 'No sponsor profiles in the database yet'}
+            />
           ) : (
             <>
               <Table>

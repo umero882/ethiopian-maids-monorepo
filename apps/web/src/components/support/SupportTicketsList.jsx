@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
+import EmptyState from '@/components/ui/EmptyState';
 
 const SupportTicketsList = () => {
   const { user } = useAuth();
@@ -274,16 +275,15 @@ const SupportTicketsList = () => {
       <div className='space-y-4'>
         {filteredTickets.length === 0 ? (
           <Card>
-            <CardContent className='text-center py-12'>
-              <MessageCircle className='h-12 w-12 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-medium text-gray-900 mb-2'>
-                No tickets found
-              </h3>
-              <p className='text-gray-600'>
-                {searchQuery
+            <CardContent className='py-6'>
+              <EmptyState
+                icon={MessageCircle}
+                title="No tickets found"
+                description={searchQuery
                   ? 'Try adjusting your search terms'
                   : 'No support tickets match the current filter'}
-              </p>
+                size="small"
+              />
             </CardContent>
           </Card>
         ) : (

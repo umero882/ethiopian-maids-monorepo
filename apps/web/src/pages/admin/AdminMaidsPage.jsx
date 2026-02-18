@@ -109,6 +109,7 @@ import {
   StickyNote,
   Send
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
 
@@ -2803,15 +2804,13 @@ Ethiopian Maids Platform Team`;
         </CardHeader>
         <CardContent>
           {maidsData.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Maids Found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== 'all' || verificationFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'No maid profiles in the database yet'}
-              </p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No Maids Found"
+              description={searchTerm || statusFilter !== 'all' || verificationFilter !== 'all'
+                ? 'Try adjusting your filters'
+                : 'No maid profiles in the database yet'}
+            />
           ) : (
             <>
               <Table>

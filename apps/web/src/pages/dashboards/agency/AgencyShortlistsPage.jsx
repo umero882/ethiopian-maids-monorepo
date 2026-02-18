@@ -106,6 +106,7 @@ import {
   List,
   Grid3X3,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -570,37 +571,31 @@ const AgencyShortlistsPage = () => {
           </div>
 
           {filteredShortlists.length === 0 ? (
-            <div className='text-center py-12'>
-              <FolderOpen className='mx-auto h-12 w-12 text-gray-300 mb-4' />
-              <h3 className='text-lg font-semibold text-gray-900 mb-2'>No shortlists found</h3>
-              <p className='text-gray-500 mb-4'>
-                {shortlists.length === 0
-                  ? 'Create your first shortlist to organize top candidates.'
-                  : 'No shortlists match your current filters.'}
-              </p>
-              {(searchTerm || statusFilter !== 'all' || priorityFilter !== 'all') && (
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                    setPriorityFilter('all');
-                  }}
-                  className='mt-2'
-                >
-                  <X className='mr-2 h-4 w-4' />
-                  Clear all filters
-                </Button>
-              )}
-              {shortlists.length === 0 && (
-                <div className='mt-4'>
-                  <Button onClick={() => setCreateShortlistOpen(true)}>
-                    <Plus className='mr-2 h-4 w-4' />
-                    Create Your First Shortlist
-                  </Button>
-                </div>
-              )}
-            </div>
+            <EmptyState
+              icon={FolderOpen}
+              title="No shortlists found"
+              description={shortlists.length === 0
+                ? 'Create your first shortlist to organize top candidates.'
+                : 'No shortlists match your current filters.'}
+              action={shortlists.length === 0
+                ? {
+                    label: 'Create Your First Shortlist',
+                    icon: Plus,
+                    onClick: () => setCreateShortlistOpen(true),
+                  }
+                : (searchTerm || statusFilter !== 'all' || priorityFilter !== 'all')
+                  ? {
+                      label: 'Clear all filters',
+                      icon: X,
+                      variant: 'outline',
+                      onClick: () => {
+                        setSearchTerm('');
+                        setStatusFilter('all');
+                        setPriorityFilter('all');
+                      },
+                    }
+                  : undefined}
+            />
           ) : viewMode === 'list' ? (
             <div className='overflow-x-auto'>
               <Table>

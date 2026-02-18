@@ -96,6 +96,7 @@ import {
 import VoiceRecorder from '@/components/chat/VoiceRecorder';
 import VoicePlayer from '@/components/chat/VoicePlayer';
 import { graphqlNotificationService } from '@/services/notificationService.graphql';
+import EmptyState from '@/components/ui/EmptyState';
 
 // GraphQL Queries
 const GET_CONVERSATIONS = gql`
@@ -1285,12 +1286,12 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
                   </Button>
                 </div>
               ) : filteredConversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <MessageSquare className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-sm text-gray-500 text-center">
-                    {searchQuery ? 'No conversations found' : 'No conversations yet'}
-                  </p>
-                </div>
+                <EmptyState
+                  icon={MessageSquare}
+                  title={searchQuery ? 'No conversations found' : 'No conversations yet'}
+                  description={searchQuery ? 'Try adjusting your search terms' : 'Start a conversation by messaging someone'}
+                  size="small"
+                />
               ) : (
                 <div className="divide-y">
                   {filteredConversations.map((conversation) => {
@@ -1432,13 +1433,12 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
                         <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
                       </div>
                     ) : messages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12">
-                        <MessageSquare className="h-12 w-12 text-gray-300 mb-4" />
-                        <p className="text-sm text-gray-500">No messages yet</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Send a message to start the conversation
-                        </p>
-                      </div>
+                      <EmptyState
+                        icon={MessageSquare}
+                        title="No messages yet"
+                        description="Send a message to start the conversation"
+                        size="small"
+                      />
                     ) : (
                       <div className="space-y-4">
                         {messages.map((message) => {

@@ -84,6 +84,7 @@ import {
   Image,
   CreditCard
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
 
@@ -1445,15 +1446,13 @@ const AdminAgenciesPage = () => {
         </CardHeader>
         <CardContent>
           {agenciesData.length === 0 ? (
-            <div className="text-center py-12">
-              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Agencies Found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || verificationFilter !== 'all' || subscriptionFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'No agency profiles in the database yet'}
-              </p>
-            </div>
+            <EmptyState
+              icon={Building2}
+              title="No Agencies Found"
+              description={searchTerm || verificationFilter !== 'all' || subscriptionFilter !== 'all'
+                ? 'Try adjusting your filters'
+                : 'No agency profiles in the database yet'}
+            />
           ) : (
             <>
               <Table>

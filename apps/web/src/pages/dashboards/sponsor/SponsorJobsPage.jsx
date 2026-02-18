@@ -40,6 +40,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { getSponsorJobs, deleteJob, changeJobStatus, getSponsorJobStats } from '@/services/jobService';
 import { formatDistanceToNow } from 'date-fns';
+import EmptyState from '@/components/ui/EmptyState';
 
 const SponsorJobsPage = () => {
   const [jobs, setJobs] = useState([]);
@@ -394,19 +395,16 @@ const SponsorJobsPage = () => {
         </CardHeader>
         <CardContent>
           {jobs.length === 0 ? (
-            <div className='text-center py-12'>
-              <Briefcase className='h-16 w-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-semibold text-gray-700 mb-2'>No job postings yet</h3>
-              <p className='text-gray-500 mb-6'>
-                Create your first job posting to start receiving applications from qualified candidates
-              </p>
-              <Button asChild>
-                <Link to='/dashboard/sponsor/jobs/new'>
-                  <Plus className='mr-2 h-4 w-4' />
-                  Post Your First Job
-                </Link>
-              </Button>
-            </div>
+            <EmptyState
+              icon={Briefcase}
+              title="No job postings yet"
+              description="Create your first job posting to start receiving applications from qualified candidates"
+              action={{
+                label: 'Post Your First Job',
+                icon: Plus,
+                href: '/dashboard/sponsor/jobs/new',
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>

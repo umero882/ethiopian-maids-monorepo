@@ -34,6 +34,7 @@ import {
   MapPin,
   User,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 const SponsorBookingsPage = () => {
   const navigate = useNavigate();
@@ -228,24 +229,17 @@ const SponsorBookingsPage = () => {
       {bookings.length === 0 && (
         <motion.div {...sectionAnimation(0.2)}>
           <Card>
-            <CardContent className='pt-12 pb-12'>
-              <div className='text-center space-y-4'>
-                <Calendar className='h-16 w-16 text-gray-300 mx-auto' />
-                <div>
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    No bookings yet
-                  </h3>
-                  <p className='text-gray-600 mb-6'>
-                    Start browsing maids and make your first booking
-                  </p>
-                </div>
-                <Link to='/maids'>
-                  <Button size='lg' className='bg-purple-600 hover:bg-purple-700'>
-                    <Search className='h-4 w-4 mr-2' />
-                    Browse Maids
-                  </Button>
-                </Link>
-              </div>
+            <CardContent className='pt-6 pb-6'>
+              <EmptyState
+                icon={Calendar}
+                title="No bookings yet"
+                description="Start browsing maids and make your first booking"
+                action={{
+                  label: 'Browse Maids',
+                  icon: Search,
+                  href: '/maids',
+                }}
+              />
             </CardContent>
           </Card>
         </motion.div>
@@ -402,24 +396,17 @@ const SponsorBookingsPage = () => {
       {bookings.length > 0 && filteredBookings.length === 0 && (
         <motion.div {...sectionAnimation(0.2)}>
           <Card>
-            <CardContent className='pt-12 pb-12'>
-              <div className='text-center space-y-4'>
-                <Search className='h-16 w-16 text-gray-300 mx-auto' />
-                <div>
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    No {activeTab} bookings
-                  </h3>
-                  <p className='text-gray-600'>
-                    Try selecting a different status filter
-                  </p>
-                </div>
-                <Button
-                  variant='outline'
-                  onClick={() => setActiveTab('all')}
-                >
-                  View All Bookings
-                </Button>
-              </div>
+            <CardContent className='pt-6 pb-6'>
+              <EmptyState
+                icon={Search}
+                title={`No ${activeTab} bookings`}
+                description="Try selecting a different status filter"
+                action={{
+                  label: 'View All Bookings',
+                  variant: 'outline',
+                  onClick: () => setActiveTab('all'),
+                }}
+              />
             </CardContent>
           </Card>
         </motion.div>

@@ -51,6 +51,7 @@ import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import { format, parseISO } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import EmptyState from '@/components/ui/EmptyState';
 
 // GraphQL Queries and Mutations
 const GET_MAID_BOOKINGS = gql`
@@ -533,21 +534,17 @@ const MaidBookingsPage = () => {
                     </Table>
                   </div>
                 ) : (
-                  <div className='text-center py-10'>
-                    <Briefcase className='h-16 w-16 text-gray-300 mx-auto mb-3' />
-                    <h3 className='text-lg font-medium text-gray-700'>
-                      No booking requests
-                    </h3>
-                    <p className='text-gray-500 mt-1'>
-                      {activeTab === 'all'
-                        ? "You don't have any booking requests at the moment."
-                        : activeTab === 'pending'
-                          ? "You don't have any pending booking requests."
-                          : activeTab === 'accepted'
-                            ? "You don't have any accepted bookings."
-                            : "You don't have any rejected booking requests."}
-                    </p>
-                  </div>
+                  <EmptyState
+                    icon={Calendar}
+                    title="No booking requests"
+                    description={activeTab === 'all'
+                      ? "You don't have any booking requests at the moment."
+                      : activeTab === 'pending'
+                        ? "You don't have any pending booking requests."
+                        : activeTab === 'accepted'
+                          ? "You don't have any accepted bookings."
+                          : "You don't have any rejected booking requests."}
+                  />
                 )}
               </TabsContent>
             </Tabs>

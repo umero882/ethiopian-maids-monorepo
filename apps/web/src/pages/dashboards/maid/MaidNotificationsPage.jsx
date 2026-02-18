@@ -49,6 +49,7 @@ import { apolloClient, useOnNotificationsUpdatedSubscription } from '@ethio/api-
 import { gql } from '@apollo/client';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
+import EmptyState from '@/components/ui/EmptyState';
 
 // GraphQL Mutations
 const MARK_NOTIFICATION_READ = gql`
@@ -507,17 +508,14 @@ const MaidNotificationsPage = () => {
                   })}
                 </ul>
               ) : (
-                <div className='flex flex-col items-center justify-center py-12'>
-                  <BellOff className='h-12 w-12 text-gray-300 mb-4' />
-                  <h3 className='text-lg font-medium text-gray-900'>
-                    No notifications
-                  </h3>
-                  <p className='text-gray-500 mt-1'>
-                    {activeTab === 'all'
-                      ? "You don't have any notifications yet."
-                      : `You don't have any ${activeTab === 'unread' ? 'unread' : activeTab} notifications.`}
-                  </p>
-                </div>
+                <EmptyState
+                  icon={BellOff}
+                  title={activeTab === 'unread' ? "You're all caught up!" : 'No notifications'}
+                  description={activeTab === 'all'
+                    ? "You don't have any notifications yet."
+                    : `You don't have any ${activeTab === 'unread' ? 'unread' : activeTab} notifications.`}
+                  size="small"
+                />
               )}
             </CardContent>
           </Card>

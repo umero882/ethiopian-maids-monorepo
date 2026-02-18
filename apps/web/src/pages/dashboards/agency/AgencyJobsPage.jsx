@@ -73,6 +73,7 @@ import {
   Copy,
   Star,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 // Helper function to format currency
 const formatCurrency = (amount, currency = 'USD') => {
@@ -540,42 +541,34 @@ const AgencyJobsPage = () => {
           </div>
 
           {filteredJobs.length === 0 ? (
-            <div className='text-center py-12'>
-              <Briefcase className='mx-auto h-12 w-12 text-gray-300 mb-4' />
-              <h3 className='text-lg font-semibold text-gray-900 mb-2'>No maids showcased yet</h3>
-              <p className='text-gray-500 mb-4'>
-                {jobListings.length === 0
-                  ? 'Start showcasing your available maids to attract sponsors.'
-                  : 'No maids match your current filters.'}
-              </p>
-              {(searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' ||
-                salaryRangeFilter !== 'all' || locationFilter.length > 0) && (
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                    setPriorityFilter('all');
-                    setSalaryRangeFilter('all');
-                    setLocationFilter([]);
-                  }}
-                  className='mt-2'
-                >
-                  <X className='mr-2 h-4 w-4' />
-                  Clear all filters
-                </Button>
-              )}
-              {jobListings.length === 0 && (
-                <div className='mt-4'>
-                  <Button asChild>
-                    <Link to='/dashboard/agency/jobs/create'>
-                      <Plus className='mr-2 h-4 w-4' />
-                      Showcase Your First Maid
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </div>
+            <EmptyState
+              icon={Briefcase}
+              title="No maids showcased yet"
+              description={jobListings.length === 0
+                ? 'Start showcasing your available maids to attract sponsors.'
+                : 'No maids match your current filters.'}
+              action={jobListings.length === 0
+                ? {
+                    label: 'Showcase Your First Maid',
+                    icon: Plus,
+                    href: '/dashboard/agency/jobs/create',
+                  }
+                : (searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' ||
+                    salaryRangeFilter !== 'all' || locationFilter.length > 0)
+                  ? {
+                      label: 'Clear all filters',
+                      icon: X,
+                      variant: 'outline',
+                      onClick: () => {
+                        setSearchTerm('');
+                        setStatusFilter('all');
+                        setPriorityFilter('all');
+                        setSalaryRangeFilter('all');
+                        setLocationFilter([]);
+                      },
+                    }
+                  : undefined}
+            />
           ) : (
             <div className='overflow-x-auto'>
               <Table>

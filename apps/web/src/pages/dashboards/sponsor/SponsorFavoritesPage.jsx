@@ -27,6 +27,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import MaidCard from '@/components/maids/MaidCard';
+import EmptyState from '@/components/ui/EmptyState';
 
 const SponsorFavoritesPage = () => {
   const navigate = useNavigate();
@@ -194,24 +195,17 @@ const SponsorFavoritesPage = () => {
       {favorites.length === 0 && (
         <motion.div {...sectionAnimation(0.2)}>
           <Card>
-            <CardContent className='pt-12 pb-12'>
-              <div className='text-center space-y-4'>
-                <Heart className='h-16 w-16 text-gray-300 mx-auto' />
-                <div>
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    No favorites yet
-                  </h3>
-                  <p className='text-gray-600 mb-6'>
-                    Start browsing maids and save your favorites for easy access
-                  </p>
-                </div>
-                <Link to='/maids'>
-                  <Button size='lg' className='bg-purple-600 hover:bg-purple-700'>
-                    <Search className='h-4 w-4 mr-2' />
-                    Browse Maids
-                  </Button>
-                </Link>
-              </div>
+            <CardContent className='pt-6 pb-6'>
+              <EmptyState
+                icon={Heart}
+                title="No favorites yet"
+                description="Start browsing maids and save your favorites for easy access"
+                action={{
+                  label: 'Browse Maids',
+                  icon: Search,
+                  href: '/maids',
+                }}
+              />
             </CardContent>
           </Card>
         </motion.div>
@@ -340,24 +334,17 @@ const SponsorFavoritesPage = () => {
       {favorites.length > 0 && filteredFavorites.length === 0 && (
         <motion.div {...sectionAnimation(0.2)}>
           <Card>
-            <CardContent className='pt-12 pb-12'>
-              <div className='text-center space-y-4'>
-                <Search className='h-16 w-16 text-gray-300 mx-auto' />
-                <div>
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    No matches found
-                  </h3>
-                  <p className='text-gray-600'>
-                    Try adjusting your search terms
-                  </p>
-                </div>
-                <Button
-                  variant='outline'
-                  onClick={() => setSearchTerm('')}
-                >
-                  Clear Search
-                </Button>
-              </div>
+            <CardContent className='pt-6 pb-6'>
+              <EmptyState
+                icon={Search}
+                title="No matches found"
+                description="Try adjusting your search terms"
+                action={{
+                  label: 'Clear Search',
+                  variant: 'outline',
+                  onClick: () => setSearchTerm(''),
+                }}
+              />
             </CardContent>
           </Card>
         </motion.div>

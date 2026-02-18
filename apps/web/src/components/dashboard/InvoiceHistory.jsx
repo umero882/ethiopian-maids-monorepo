@@ -43,6 +43,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { billingService } from '@/services/billingService';
+import EmptyState from '@/components/ui/EmptyState';
 
 /**
  * InvoiceHistory component for displaying and managing billing history
@@ -328,27 +329,14 @@ const InvoiceHistory = () => {
               </Table>
             </div>
           ) : (
-            <div className='text-center py-12 border-2 border-dashed rounded-lg'>
-              <FileText className='h-8 w-8 mx-auto mb-2 text-gray-400' />
-              {invoices.length > 0 ? (
-                <>
-                  <h3 className='text-lg font-medium mb-1'>
-                    No matching invoices
-                  </h3>
-                  <p className='text-gray-500'>
-                    Try adjusting your filters to find what you're looking for.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3 className='text-lg font-medium mb-1'>No invoices yet</h3>
-                  <p className='text-gray-500'>
-                    Your invoice history will appear here once you make a
-                    payment.
-                  </p>
-                </>
-              )}
-            </div>
+            <EmptyState
+              icon={FileText}
+              title={invoices.length > 0 ? 'No matching invoices' : 'No invoices yet'}
+              description={invoices.length > 0
+                ? 'Try adjusting your filters to find what you\'re looking for.'
+                : 'Your invoice history will appear here once you make a payment.'}
+              size="small"
+            />
           )}
         </CardContent>
 

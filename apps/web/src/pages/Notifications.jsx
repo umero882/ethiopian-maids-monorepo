@@ -21,6 +21,7 @@ import { toast } from '@/components/ui/use-toast';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { createLogger } from '@/utils/logger';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   Bell,
   MessageCircle,
@@ -540,16 +541,14 @@ const Notifications = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <Card className='border-0 shadow-lg'>
-                    <CardContent className='p-12 text-center'>
-                      <Bell className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-                      <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                        No Notifications
-                      </h3>
-                      <p className='text-gray-600'>
-                        {filter === 'unread'
-                          ? "You're all caught up! No unread notifications."
+                    <CardContent className='p-8'>
+                      <EmptyState
+                        icon={Bell}
+                        title={filter === 'unread' ? "You're all caught up!" : 'No Notifications'}
+                        description={filter === 'unread'
+                          ? 'No unread notifications.'
                           : 'No notifications found for the selected filter.'}
-                      </p>
+                      />
                     </CardContent>
                   </Card>
                 </motion.div>

@@ -37,6 +37,7 @@ import {
   Heart,
   DollarSign
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AgencyDashboardService from '@/services/agencyDashboardService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -641,21 +642,19 @@ const AgencySponsorsPage = () => {
         </div>
       ) : filteredSponsors.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Building2 className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No sponsors found</h3>
-            <p className="text-gray-500 text-center mb-6 max-w-md">
-              {searchTerm || statusFilter !== 'all' || locationFilter !== 'all' || typeFilter !== 'all'
+          <CardContent className="py-8">
+            <EmptyState
+              icon={Building2}
+              title="No sponsors found"
+              description={searchTerm || statusFilter !== 'all' || locationFilter !== 'all' || typeFilter !== 'all'
                 ? 'No sponsors match your current filters. Try adjusting your search criteria.'
-                : 'Start building your sponsor relationships by adding your first sponsor.'
-              }
-            </p>
-            {!(searchTerm || statusFilter !== 'all' || locationFilter !== 'all' || typeFilter !== 'all') && (
-              <Button onClick={openAddDialog} disabled={!canCreate} title={!canCreate ? 'You do not have permission to add sponsors' : undefined}>
-                <User className="h-4 w-4 mr-2" />
-                Add First Sponsor
-              </Button>
-            )}
+                : 'Start building your sponsor relationships by adding your first sponsor.'}
+              action={!(searchTerm || statusFilter !== 'all' || locationFilter !== 'all' || typeFilter !== 'all') ? {
+                label: 'Add First Sponsor',
+                icon: User,
+                onClick: openAddDialog,
+              } : undefined}
+            />
           </CardContent>
         </Card>
       ) : (

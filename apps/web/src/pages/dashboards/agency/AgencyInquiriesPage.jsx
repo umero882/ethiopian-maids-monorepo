@@ -46,6 +46,7 @@ import {
   MessageSquare,
   MoreHorizontal,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 // StatusBadge component
 const StatusBadge = ({ status }) => {
@@ -353,23 +354,20 @@ const AgencyInquiriesPage = () => {
           </div>
 
           {filteredInquiries.length === 0 ? (
-            <div className='text-center py-10'>
-              <p className='text-gray-500'>
-                No inquiries found matching your filters.
-              </p>
-              {(searchTerm || statusFilter !== 'all') && (
-                <Button
-                  variant='link'
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                  }}
-                  className='mt-2'
-                >
-                  Clear filters
-                </Button>
-              )}
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No inquiries found"
+              description="No inquiries match your current filters."
+              action={(searchTerm || statusFilter !== 'all') ? {
+                label: 'Clear filters',
+                variant: 'outline',
+                onClick: () => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                },
+              } : undefined}
+              size="small"
+            />
           ) : (
             <div className='overflow-x-auto'>
               <Table>
