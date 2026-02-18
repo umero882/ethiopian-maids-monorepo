@@ -2,8 +2,8 @@
 // @ts-nocheck
 /* Auto-generated file - types are defined in graphql.ts */
 import { gql } from '@apollo/client';
-import * as ApolloReactCommon from '@apollo/client';
-import * as ApolloReactHooks from '@apollo/client';
+import * as ApolloReactCommon from '@apollo/client/react';
+import * as ApolloReactHooks from '@apollo/client/react';
 const defaultOptions = {} as const;
 
 export const CreateAgencyProfileDocument = gql`

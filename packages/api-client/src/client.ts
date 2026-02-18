@@ -2,11 +2,10 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, FieldPolicy } from '
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
-import { ErrorLink } from '@apollo/client/link/error';
-import { CombinedGraphQLErrors } from '@apollo/client/errors';
+import { onError } from '@apollo/client/link/error';
 import { createClient } from 'graphql-ws';
 import { relayStylePagination } from '@apollo/client/utilities';
-import { performanceLink } from './utils/performance.js';
+import { performanceLink } from './utils/performance';
 
 // Declare window for environments where it might not exist
 declare const window: (Window & typeof globalThis & { localStorage?: { getItem(key: string): string | null; setItem(key: string, value: string): void } }) | undefined;
@@ -14,29 +13,69 @@ declare const window: (Window & typeof globalThis & { localStorage?: { getItem(k
 // React Native global __DEV__ flag
 declare const __DEV__: boolean | undefined;
 
-// Environment configuration - works in both web (Vite) and React Native (Expo)
-const getEnvVar = (key: string, fallback: string): string => {
-  // Try process.env first (works in Node.js and Expo with babel-preset-expo)
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key] as string;
+// Vite's import.meta.env type declaration
+declare const import_meta_env: Record<string, string | undefined> | undefined;
+
+/**
+ * Environment configuration - works in both web (Vite) and React Native (Expo)
+ *
+ * For Vite: Uses process.env.VITE_* (configured via vite.config.js define)
+ * For Expo: Uses process.env.EXPO_PUBLIC_* (standard Expo convention)
+ *
+ * Priority order:
+ * 1. Vite environment variables (process.env.VITE_*)
+ * 2. Expo environment variables (process.env.EXPO_PUBLIC_*)
+ * 3. Fallback value
+ */
+const getEnvVar = (viteKey: string, expoKey: string, fallback: string): string => {
+  // Try process.env which works in both Vite (with define config) and Expo
+  if (typeof process !== 'undefined' && process.env) {
+    // Try Vite key first (web)
+    if (process.env[viteKey]) {
+      return process.env[viteKey] as string;
+    }
+    // Try Expo key (mobile)
+    if (process.env[expoKey]) {
+      return process.env[expoKey] as string;
+    }
   }
+
   // Fallback value
   return fallback;
 };
 
+// =====================================================
 // API Configuration
+// =====================================================
+// NOTE: Default endpoints point to VPS Hasura (api.ethiopianmaids.com)
+// The OLD Hasura Cloud endpoint (ethio-maids-01.hasura.app) is deprecated
+// =====================================================
+
 const HASURA_GRAPHQL_ENDPOINT = getEnvVar(
+  'VITE_HASURA_GRAPHQL_ENDPOINT',
   'EXPO_PUBLIC_HASURA_GRAPHQL_ENDPOINT',
-  'https://ethio-maids-01.hasura.app/v1/graphql'
+  'https://api.ethiopianmaids.com/v1/graphql'  // VPS Hasura endpoint
 );
+
 const HASURA_WS_ENDPOINT = getEnvVar(
+  'VITE_HASURA_WS_ENDPOINT',
   'EXPO_PUBLIC_HASURA_WS_ENDPOINT',
-  'wss://ethio-maids-01.hasura.app/v1/graphql'
+  'wss://api.ethiopianmaids.com/v1/graphql'    // VPS Hasura WebSocket endpoint
 );
 
 // Admin secret should ONLY be set for server-side/admin tools, NEVER for client apps
 // Client apps must use JWT authentication via Firebase tokens
-const HASURA_ADMIN_SECRET = getEnvVar('EXPO_PUBLIC_HASURA_ADMIN_SECRET', '');
+const HASURA_ADMIN_SECRET = getEnvVar(
+  'VITE_HASURA_ADMIN_SECRET',
+  'EXPO_PUBLIC_HASURA_ADMIN_SECRET',
+  ''
+);
+
+// Log the endpoint being used for debugging (only in development)
+if (typeof __DEV__ !== 'undefined' && __DEV__) {
+  console.log('[Apollo Client] Hasura GraphQL Endpoint:', HASURA_GRAPHQL_ENDPOINT);
+  console.log('[Apollo Client] Hasura WebSocket Endpoint:', HASURA_WS_ENDPOINT);
+}
 
 /**
  * Token storage for auth - can be set externally by the app
@@ -115,17 +154,25 @@ const authLink = setContext((_, { headers }) => {
 
 /**
  * Error link - handles GraphQL and network errors
- * Updated for Apollo Client 4 API
+ * Compatible with both web and React Native
  */
-const errorLink = new ErrorLink(({ error, operation }) => {
-  if (CombinedGraphQLErrors.is(error)) {
-    error.errors.forEach(({ message, locations, path }) => {
-      console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
-      );
+const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) => {
+      // Downgrade non-nullable null errors to warnings (common during data issues)
+      if (message?.includes('null value found for non-nullable type')) {
+        console.warn(
+          `[GraphQL warning]: Non-null field returned null. Operation: ${operation.operationName}, Message: ${message}`
+        );
+      } else {
+        console.error(
+          `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
+        );
+      }
     });
-  } else {
-    console.error(`[Network error]: ${error}`);
+  }
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`);
   }
 });
 

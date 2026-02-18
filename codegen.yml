@@ -37,8 +37,9 @@ generates:
       withHooks: true
       withMutationFn: false
       withRefetchFn: true
-      apolloReactCommonImportFrom: "@apollo/client"
-      apolloReactHooksImportFrom: "@apollo/client"
+      # Apollo Client v4 requires importing hooks from @apollo/client/react
+      apolloReactCommonImportFrom: "@apollo/client/react"
+      apolloReactHooksImportFrom: "@apollo/client/react"
       namingConvention:
         typeNames: pascal-case#pascalCase
       # Relay connection support

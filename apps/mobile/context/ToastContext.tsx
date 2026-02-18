@@ -102,17 +102,20 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <View style={styles.toastContainer} pointerEvents="box-none">
-        {toasts.map((toast, index) => (
-          <View
-            key={toast.id}
-            style={[styles.toastWrapper, { top: index * 80 }]}
-            pointerEvents="box-none"
-          >
-            <Toast toast={toast} onHide={hideToast} />
-          </View>
-        ))}
-      </View>
+      {/* Only render overlay when toasts exist - prevents iOS touch blocking */}
+      {toasts.length > 0 && (
+        <View style={styles.toastContainer} pointerEvents="box-none">
+          {toasts.map((toast, index) => (
+            <View
+              key={toast.id}
+              style={[styles.toastWrapper, { top: index * 80 }]}
+              pointerEvents="box-none"
+            >
+              <Toast toast={toast} onHide={hideToast} />
+            </View>
+          ))}
+        </View>
+      )}
     </ToastContext.Provider>
   );
 }
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
+    // Note: bottom: 0 removed to prevent fullscreen overlay blocking touches on iOS
     zIndex: 9999,
   },
   toastWrapper: {

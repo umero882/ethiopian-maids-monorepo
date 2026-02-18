@@ -26,7 +26,7 @@ describe('useFormValidation', () => {
 
     it('should throw error for invalid schema name', () => {
       // Suppress console errors for this test
-      const consoleSpy = jest
+      const consoleSpy = vi
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 

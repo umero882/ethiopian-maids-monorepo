@@ -57,6 +57,17 @@ fix-*.js
 
 # MCP configuration (contains API keys)
 .mcp.json
+
+# VPS credentials and deployment (NEVER commit)
+.env.vps
+.env.vps.local
+deploy-to-vps.py
+vps-credentials.json
+*.pem
+*.ppk
+id_rsa*
+ssh_keys/
+
 .expo
 .nx/cache
 .nx/workspace-data
@@ -65,3 +76,34 @@ fix-*.js
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+# Auto Claude data directory
+.auto-claude/
+
+# Firebase CLI cache
+.firebase/
+
+# Firebase mobile config files (contain API keys)
+**/GoogleService-Info.plist
+**/google-services.json
+
+# Playwright MCP
+.playwright-mcp/
+
+# Claude temp files
+tmpclaude-*
+**/tmpclaude-*
+
+# Windows NUL artifacts
+NUL
+**/NUL
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Firebase Functions build output
+tools/firebase-functions/lib/
+
+# Claude local settings
+.claude/settings.local.json
+**/settings.local.json

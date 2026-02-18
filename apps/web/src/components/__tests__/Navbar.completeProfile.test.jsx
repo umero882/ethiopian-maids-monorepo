@@ -14,6 +14,21 @@ vi.mock('@/contexts/AuthContext', () => ({
   }),
 }));
 
+// Mock hooks/services for notification count
+vi.mock('@/hooks/services', () => ({
+  useUnreadNotificationCount: vi.fn(() => ({
+    count: 0,
+    loading: false,
+  })),
+}));
+
+// Mock @ethio/api-client for Apollo Client import
+vi.mock('@ethio/api-client', () => ({
+  apolloClient: {
+    query: vi.fn().mockResolvedValue({ data: {} }),
+  },
+}));
+
 // Mock all UI components that might have complex dependencies
 vi.mock('@/components/ui/button', () => {
   const mockReact = require('react');
@@ -74,13 +89,13 @@ describe('Navbar Complete Profile CTA', () => {
     };
   });
 
-  it('shows Dashboard link when user is logged in', () => {
+  it('shows user name link when user is logged in', () => {
     renderNavbar(mockUser);
-    // Dashboard link should be present for logged-in users
-    expect(screen.getAllByText(/Dashboard/i)[0]).toBeInTheDocument();
+    // User name should be present for logged-in users (shows name or 'Dashboard' fallback)
+    expect(screen.getByText('Test User')).toBeInTheDocument();
   });
 
-  it('shows Dashboard link when profile is complete', () => {
+  it('shows user name and logout when profile is complete', () => {
     const completeUser = {
       id: 'user-1',
       name: 'Test User',
@@ -88,8 +103,8 @@ describe('Navbar Complete Profile CTA', () => {
       registration_complete: true,
     };
     renderNavbar(completeUser);
-    // Dashboard link should be present
-    expect(screen.getAllByText(/Dashboard/i)[0]).toBeInTheDocument();
+    // User name should be present (shows name instead of 'Dashboard')
+    expect(screen.getByText('Test User')).toBeInTheDocument();
     // Logout button should be present (multiple matches due to icon + text)
     expect(screen.getAllByText(/Logout/i).length).toBeGreaterThan(0);
   });

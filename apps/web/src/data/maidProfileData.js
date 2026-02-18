@@ -10,6 +10,47 @@ export const gccCountries = [
   'Oman',
 ];
 
+// Countries (for current location dropdown)
+export const countries = [
+  // Origin countries (where maids come from)
+  'Ethiopia',
+  'Philippines',
+  'Indonesia',
+  'Sri Lanka',
+  'India',
+  'Bangladesh',
+  'Nepal',
+  'Pakistan',
+  'Kenya',
+  'Uganda',
+  'Tanzania',
+  'Ghana',
+  'Nigeria',
+  'Egypt',
+  'Morocco',
+  'Sudan',
+  'Eritrea',
+  'Somalia',
+  // GCC Countries (where maids work)
+  'Saudi Arabia',
+  'United Arab Emirates',
+  'Kuwait',
+  'Qatar',
+  'Bahrain',
+  'Oman',
+  // Other common destinations
+  'Lebanon',
+  'Jordan',
+  'Yemen',
+  'Iraq',
+  'Turkey',
+  'Malaysia',
+  'Singapore',
+  'Hong Kong',
+  'Cyprus',
+  'Other',
+];
+
 // Common positions/professions for maids
 export const positions = [
   'Housemaid',
@@ -239,6 +280,7 @@ export const documentTypes = [
 
 export default {
   gccCountries,
+  countries,
   positions,
   skills,
   languages,

@@ -5,9 +5,16 @@
  * before proceeding to the registration form.
  */
 
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useOnboarding } from '../../context/OnboardingContext';
+
+// Import custom registration icons
+const maidIcon = require('../../assets/images/Registration icon/maid-new.png');
+const sponsorIcon = require('../../assets/images/Registration icon/sponsor-new.png');
+const agencyIcon = require('../../assets/images/Registration icon/agency-new.png');
 
 type UserType = 'sponsor' | 'maid' | 'agency';
 
@@ -15,40 +22,44 @@ interface UserTypeOption {
   type: UserType;
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  image: ImageSourcePropType;
   gradientColors: [string, string];
 }
 
 const userTypes: UserTypeOption[] = [
   {
-    type: 'sponsor',
-    title: 'Family/Sponsor',
-    description: 'Looking to hire domestic workers',
-    icon: 'person-outline',
-    gradientColors: ['#3B82F6', '#06B6D4'],
-  },
-  {
     type: 'maid',
     title: 'Domestic Worker',
     description: 'Seeking employment opportunities',
-    icon: 'briefcase-outline',
+    image: maidIcon,
     gradientColors: ['#8B5CF6', '#EC4899'],
+  },
+  {
+    type: 'sponsor',
+    title: 'Family/Sponsor',
+    description: 'Looking to hire domestic workers',
+    image: sponsorIcon,
+    gradientColors: ['#3B82F6', '#06B6D4'],
   },
   {
     type: 'agency',
     title: 'Recruitment Agency',
     description: 'Connecting workers with families',
-    icon: 'business-outline',
+    image: agencyIcon,
     gradientColors: ['#10B981', '#059669'],
   },
 ];
 
 export default function SelectTypeScreen() {
+  const { setUserType, resetOnboarding } = useOnboarding();
+
   const handleSelectType = (type: UserType) => {
-    router.push({
-      pathname: '/auth/register',
-      params: { userType: type },
-    });
+    // Reset any existing onboarding state and set the new user type
+    resetOnboarding();
+    setUserType(type);
+
+    // Navigate directly to user intro (skip welcome and user-type screens since type is already selected)
+    router.push('/onboarding/user-intro');
   };
 
   return (
@@ -78,10 +89,10 @@ export default function SelectTypeScreen() {
           >
             <View style={styles.optionContent}>
               <View style={[styles.iconContainer, { backgroundColor: option.gradientColors[0] + '20' }]}>
-                <Ionicons
-                  name={option.icon}
-                  size={28}
-                  color={option.gradientColors[0]}
+                <Image
+                  source={option.image}
+                  style={styles.optionImage}
+                  resizeMode="cover"
                 />
               </View>
               <View style={styles.textContainer}>
@@ -172,6 +183,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  optionImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
   },
   textContainer: {
     flex: 1,

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff, RefreshCw, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
+import { getUserFriendlyError, ErrorCodes, ErrorSeverity } from '@/lib/errorMessages';
 
 /**
  * NetworkStatusChecker - Diagnoses and displays network connectivity issues
  * Helps users understand why login might be failing
  * Uses Hasura GraphQL endpoint for connectivity checks
+ *
+ * IMPORTANT: This component NEVER exposes technical error details to users.
+ * All errors are mapped to user-friendly messages via errorMessages.js
  */
 const NetworkStatusChecker = ({ onRetry, allowBypass = true }) => {
   const [networkStatus, setNetworkStatus] = useState({
@@ -14,31 +18,32 @@ const NetworkStatusChecker = ({ onRetry, allowBypass = true }) => {
     databaseConnected: null,
     lastChecked: null,
     error: null,
+    errorCode: null,
     checking: false,
     bypassed: false,
   });
 
   const checkHasuraConnectivity = async () => {
-    setNetworkStatus((prev) => ({ ...prev, checking: true, error: null }));
+    setNetworkStatus((prev) => ({ ...prev, checking: true, error: null, errorCode: null }));
 
     try {
       const hasuraUrl = import.meta.env.VITE_HASURA_GRAPHQL_URL;
 
       // First check if we have valid configuration
       if (!hasuraUrl) {
-        throw new Error(
-          'Hasura configuration missing - check environment variables'
-        );
+        // Log technical error for debugging (only visible in console, never to users)
+        console.error('[NetworkCheck] Configuration error: VITE_HASURA_GRAPHQL_URL is not set');
+        throw new Error('configuration missing'); // Generic trigger for error mapping
       }
 
       // Multiple connectivity tests with fallbacks
       let connected = false;
-      let lastError = null;
+      let technicalError = null;
 
       // Test 1: GraphQL introspection query
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         const response = await fetch(hasuraUrl, {
           method: 'POST',
@@ -56,61 +61,67 @@ const NetworkStatusChecker = ({ onRetry, allowBypass = true }) => {
         connected = response.ok;
 
         if (!connected) {
-          lastError = `HTTP ${response.status}: ${response.statusText}`;
+          technicalError = `HTTP ${response.status}`;
         }
       } catch (graphqlError) {
-        lastError = graphqlError.message;
+        technicalError = graphqlError.message;
 
         // Test 2: Fallback - try a simple GET to check basic connectivity
         try {
           const controller2 = new AbortController();
-          const timeoutId2 = setTimeout(() => controller2.abort(), 5000); // 5 second timeout
+          const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
 
-          // Try health endpoint if available
           const healthUrl = hasuraUrl.replace('/v1/graphql', '/healthz');
-          const fallbackResponse = await fetch(healthUrl, {
+          await fetch(healthUrl, {
             method: 'GET',
             signal: controller2.signal,
-            mode: 'no-cors', // Less strict CORS for basic connectivity
+            mode: 'no-cors',
           });
 
           clearTimeout(timeoutId2);
-          // For no-cors mode, we can't check response.ok, but if we get here, connection exists
           connected = true;
-          lastError = null;
+          technicalError = null;
         } catch (fallbackError) {
           connected = false;
-          lastError = fallbackError.message;
+          technicalError = fallbackError.message;
         }
       }
 
-      setNetworkStatus((prev) => ({
-        ...prev,
-        databaseConnected: connected,
-        lastChecked: new Date(),
-        checking: false,
-        error: connected ? null : lastError,
-      }));
-    } catch (error) {
-      console.error('❌ Hasura connectivity check failed:', error.message);
-
-      let errorMessage = error.message;
-      if (error.name === 'AbortError' || error.message.includes('timeout')) {
-        errorMessage = 'Connection timeout - server may be slow or unreachable';
-      } else if (error.message.includes('Failed to fetch')) {
-        errorMessage = 'Network request failed - check internet connection';
-      } else if (error.message.includes('CORS')) {
-        errorMessage = 'CORS error - server configuration issue';
-      } else if (error.message.includes('configuration missing')) {
-        errorMessage = error.message;
+      if (connected) {
+        setNetworkStatus((prev) => ({
+          ...prev,
+          databaseConnected: true,
+          lastChecked: new Date(),
+          checking: false,
+          error: null,
+          errorCode: null,
+        }));
+      } else {
+        // Map technical error to user-friendly error
+        const friendlyError = getUserFriendlyError(technicalError);
+        setNetworkStatus((prev) => ({
+          ...prev,
+          databaseConnected: false,
+          lastChecked: new Date(),
+          checking: false,
+          error: friendlyError,
+          errorCode: friendlyError.code,
+        }));
       }
+    } catch (error) {
+      // Log for debugging only
+      console.error('[NetworkCheck] Connectivity check failed:', error.message);
+
+      // Map technical error to user-friendly error
+      const friendlyError = getUserFriendlyError(error);
 
       setNetworkStatus((prev) => ({
         ...prev,
         databaseConnected: false,
         lastChecked: new Date(),
         checking: false,
-        error: errorMessage,
+        error: friendlyError,
+        errorCode: friendlyError.code,
       }));
     }
   };
@@ -166,126 +177,170 @@ const NetworkStatusChecker = ({ onRetry, allowBypass = true }) => {
 
   const getStatusIcon = () => {
     if (networkStatus.checking) {
-      return <RefreshCw className='h-4 w-4 animate-spin' />;
+      return <RefreshCw className='h-5 w-5 animate-spin text-blue-500' />;
     } else if (!networkStatus.online) {
-      return <WifiOff className='h-4 w-4' />;
+      return <WifiOff className='h-5 w-5 text-red-500' />;
     } else if (networkStatus.databaseConnected === false) {
-      return <AlertTriangle className='h-4 w-4' />;
+      const severity = networkStatus.error?.severity;
+      if (severity === ErrorSeverity.CRITICAL) {
+        return <XCircle className='h-5 w-5 text-red-500' />;
+      } else if (severity === ErrorSeverity.WARNING) {
+        return <AlertTriangle className='h-5 w-5 text-amber-500' />;
+      }
+      return <AlertTriangle className='h-5 w-5 text-orange-500' />;
     } else {
-      return <Wifi className='h-4 w-4' />;
+      return <Wifi className='h-5 w-5 text-green-500' />;
     }
   };
 
-  const getStatusMessage = () => {
+  const getStatusTitle = () => {
     if (networkStatus.checking) {
-      return 'Checking connection...';
+      return 'Checking Connection';
     } else if (!networkStatus.online) {
-      return 'No internet connection detected';
-    } else if (networkStatus.databaseConnected === false) {
-      return 'Unable to connect to server';
+      return 'No Internet Connection';
+    } else if (networkStatus.databaseConnected === false && networkStatus.error) {
+      // Use the user-friendly title from our error mapping
+      return networkStatus.error.title || 'Connection Issue';
     } else {
-      return 'Checking server connection...';
+      return 'Verifying Connection';
     }
   };
 
   const getDetailedMessage = () => {
-    if (!networkStatus.online) {
-      return 'Please check your internet connection and try again.';
-    } else if (networkStatus.databaseConnected === false) {
-      return `Server connection failed: ${networkStatus.error || 'Unknown error'}. This may be temporary - please try again in a few moments.`;
+    if (networkStatus.checking) {
+      return 'Please wait while we verify your connection...';
+    } else if (!networkStatus.online) {
+      return 'Your device appears to be offline. Please check your internet connection.';
+    } else if (networkStatus.databaseConnected === false && networkStatus.error) {
+      // Use the user-friendly message from our error mapping
+      return networkStatus.error.message || 'We\'re having trouble connecting. Please try again.';
     } else {
       return 'Verifying server connectivity...';
     }
   };
 
   const getSuggestions = () => {
-    const suggestions = [];
-
-    if (!networkStatus.online) {
-      suggestions.push('Check your WiFi or mobile data connection');
-      suggestions.push('Try refreshing the page');
-    } else if (networkStatus.databaseConnected === false) {
-      suggestions.push('Wait a few moments and try again');
-      suggestions.push("Check if you're behind a firewall or VPN");
-      suggestions.push('Try using a different network');
-      if (allowBypass) {
-        suggestions.push(
-          "Skip this check if you're confident your connection works"
-        );
-      }
-      suggestions.push('Contact support if the problem persists');
+    // If we have a user-friendly error with suggestions, use those
+    if (networkStatus.error?.suggestions) {
+      return networkStatus.error.suggestions;
     }
 
-    return suggestions;
+    // Fallback suggestions based on status
+    if (!networkStatus.online) {
+      return [
+        'Check your WiFi or mobile data is turned on',
+        'Move to an area with better signal',
+        'Try refreshing the page',
+      ];
+    } else if (networkStatus.databaseConnected === false) {
+      const suggestions = [
+        'Wait a moment and try again',
+        'Check if you\'re using a VPN or firewall',
+        'Try a different network connection',
+      ];
+      if (allowBypass) {
+        suggestions.push('Skip this check if your connection is working');
+      }
+      suggestions.push('Contact support if the issue persists');
+      return suggestions;
+    }
+
+    return [];
   };
 
-  return (
-    <Alert variant='destructive' className='mb-4'>
-      <div className='flex items-center gap-2'>
-        {getStatusIcon()}
-        <AlertTitle>Connection Issue</AlertTitle>
-      </div>
-      <AlertDescription className='mt-2'>
-        <div className='space-y-2'>
-          <p>
-            <strong>{getStatusMessage()}</strong>
-          </p>
-          <p className='text-sm'>{getDetailedMessage()}</p>
+  const getAlertVariant = () => {
+    if (networkStatus.checking) return 'default';
+    if (!networkStatus.online) return 'destructive';
+    if (networkStatus.error?.severity === ErrorSeverity.CRITICAL) return 'destructive';
+    if (networkStatus.error?.severity === ErrorSeverity.WARNING) return 'warning';
+    return 'destructive';
+  };
 
-          {networkStatus.lastChecked && (
-            <p className='text-xs text-gray-500'>
-              Last checked: {networkStatus.lastChecked.toLocaleTimeString()}
+  const suggestions = getSuggestions();
+  const isRecoverable = networkStatus.error?.recoverable !== false;
+
+  return (
+    <div className='mb-4 rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden'>
+      {/* Header with icon and title */}
+      <div className={`px-4 py-3 flex items-center gap-3 ${
+        networkStatus.checking ? 'bg-blue-50 dark:bg-blue-950/30' :
+        !networkStatus.online ? 'bg-red-50 dark:bg-red-950/30' :
+        networkStatus.error?.severity === ErrorSeverity.CRITICAL ? 'bg-red-50 dark:bg-red-950/30' :
+        'bg-amber-50 dark:bg-amber-950/30'
+      }`}>
+        {getStatusIcon()}
+        <div className='flex-1'>
+          <h3 className='font-semibold text-sm'>{getStatusTitle()}</h3>
+          {networkStatus.lastChecked && !networkStatus.checking && (
+            <p className='text-xs text-muted-foreground'>
+              Checked {networkStatus.lastChecked.toLocaleTimeString()}
             </p>
           )}
+        </div>
+        {networkStatus.errorCode && (
+          <span className='text-xs text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded'>
+            {networkStatus.errorCode}
+          </span>
+        )}
+      </div>
 
-          {getSuggestions().length > 0 && (
-            <div className='mt-3'>
-              <p className='text-sm font-medium mb-1'>Try these solutions:</p>
-              <ul className='text-sm space-y-1'>
-                {getSuggestions().map((suggestion, index) => (
-                  <li key={index} className='flex items-start gap-1'>
-                    <span className='text-xs mt-1'>•</span>
-                    <span>{suggestion}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {/* Message body */}
+      <div className='px-4 py-3 space-y-3'>
+        <p className='text-sm text-foreground'>{getDetailedMessage()}</p>
 
-          <div className='flex gap-2 mt-3'>
+        {/* Suggestions */}
+        {suggestions.length > 0 && !networkStatus.checking && (
+          <div className='bg-muted/50 rounded-md p-3'>
+            <p className='text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1'>
+              <HelpCircle className='h-3 w-3' />
+              Things to try
+            </p>
+            <ul className='space-y-1.5'>
+              {suggestions.map((suggestion, index) => (
+                <li key={index} className='text-sm flex items-start gap-2'>
+                  <CheckCircle2 className='h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0' />
+                  <span>{suggestion}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className='flex flex-wrap gap-2 pt-1'>
+          <Button
+            variant={networkStatus.checking ? 'outline' : 'default'}
+            size='sm'
+            onClick={handleRetry}
+            disabled={networkStatus.checking}
+            className='flex items-center gap-1.5'
+          >
+            {networkStatus.checking ? (
+              <>
+                <RefreshCw className='h-3.5 w-3.5 animate-spin' />
+                Checking...
+              </>
+            ) : (
+              <>
+                <RefreshCw className='h-3.5 w-3.5' />
+                Try Again
+              </>
+            )}
+          </Button>
+
+          {allowBypass && networkStatus.databaseConnected === false && !networkStatus.checking && isRecoverable && (
             <Button
               variant='outline'
               size='sm'
-              onClick={handleRetry}
-              disabled={networkStatus.checking}
+              onClick={handleBypass}
+              className='flex items-center gap-1.5'
             >
-              {networkStatus.checking ? (
-                <>
-                  <RefreshCw className='h-3 w-3 mr-1 animate-spin' />
-                  Checking...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className='h-3 w-3 mr-1' />
-                  Retry Connection
-                </>
-              )}
+              Continue Anyway
             </Button>
-
-            {allowBypass && networkStatus.databaseConnected === false && (
-              <Button
-                variant='secondary'
-                size='sm'
-                onClick={handleBypass}
-                disabled={networkStatus.checking}
-              >
-                Skip Check & Continue
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-      </AlertDescription>
-    </Alert>
+      </div>
+    </div>
   );
 };
 

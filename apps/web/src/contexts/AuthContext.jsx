@@ -12,7 +12,7 @@ import { apolloClient, GetProfileDocument } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 
 // Firebase Auth imports
-import { auth, FIREBASE_TOKEN_KEY, getStoredToken } from '@/lib/firebaseClient';
+import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached } from '@/lib/firebaseClient';
 import { onAuthStateChanged, sendEmailVerification, reload } from 'firebase/auth';
 
 const log = createLogger('AuthContext');
@@ -675,10 +675,34 @@ const AuthProvider = ({ children, mockValue }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = useCallback(async (firebaseUser) => {
+  const fetchUserProfile = useCallback(async (firebaseUser, registrationUserType = null) => {
     if (!firebaseUser) return null;
     try {
+      // ============================================================================
+      // USER TYPE RESOLUTION - PRIORITY ORDER:
+      // 1. Firebase Custom Claims (AUTHORITATIVE - server-side, persistent)
+      // 2. Registration userType parameter (from registration flow)
+      // 3. Database profile (fallback)
+      // 4. Default to 'sponsor' only if nothing else available
+      // ============================================================================
+
       console.log('🔍 fetchUserProfile - Starting for Firebase UID:', firebaseUser.uid);
+      console.log('🔍 fetchUserProfile - Registration userType passed:', registrationUserType);
+
+      // PRIORITY 1: Get userType from Firebase Custom Claims (authoritative source)
+      let claimsUserType = null;
+      try {
+        const idTokenResult = await firebaseUser.getIdTokenResult(true);
+        claimsUserType = idTokenResult.claims.user_type;
+        console.log('🔍 fetchUserProfile - userType from Firebase claims:', claimsUserType);
+      } catch (claimsError) {
+        console.warn('🔍 fetchUserProfile - Could not read claims:', claimsError.message);
+      }
+
+      // PRIORITY 2: Use registration parameter if claims not yet set
+      // (This handles the case right after registration before claims are set)
+      const effectiveUserType = claimsUserType || registrationUserType;
+      console.log('🔍 fetchUserProfile - Effective userType:', effectiveUserType);
       log.debug('Fetching user profile via GraphQL for:', firebaseUser.uid);
 
       // Use Apollo Client with proper Apollo 4 link chain configuration
@@ -734,14 +758,17 @@ const AuthProvider = ({ children, mockValue }) => {
         log.debug('Profile not found, creating new profile via GraphQL...');
 
         try {
-          // Get user type from Firebase custom claims or default to 'sponsor'
-          const idTokenResult = await firebaseUser.getIdTokenResult();
-          const userTypeValue =
-            idTokenResult.claims?.user_type ||
-            (firebaseUser.displayName?.includes('maid') ? 'maid' : 'sponsor');
+          // User type is already resolved from claims/registration at the top
+          // effectiveUserType = claimsUserType || registrationUserType
+          // Only fall back to 'sponsor' if absolutely nothing is available
+          const userTypeValue = effectiveUserType || 'sponsor';
+
+          console.log('🔍 fetchUserProfile - Creating profile with userType:', userTypeValue,
+            '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
 
           log.debug('Creating profile with user type:', {
-            userTypeFromClaims: idTokenResult.claims?.user_type,
+            userTypeFromClaims: claimsUserType,
+            registrationUserType: registrationUserType,
             finalUserType: userTypeValue,
           });
 
@@ -784,10 +811,14 @@ const AuthProvider = ({ children, mockValue }) => {
         } catch (createException) {
           log.warn('Profile creation exception:', createException.message);
           // Return basic profile from Firebase user
+          // effectiveUserType is already prioritized from claims -> registration param
+          const fallbackUserType = effectiveUserType || 'sponsor';
+          console.log('🔍 fetchUserProfile - Using fallback userType:', fallbackUserType,
+            '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
           return {
             id: firebaseUser.uid,
             email: firebaseUser.email,
-            userType: 'sponsor',
+            userType: fallbackUserType,
             full_name: firebaseUser.displayName || '',
             registration_complete: false,
             country: '',
@@ -807,15 +838,35 @@ const AuthProvider = ({ children, mockValue }) => {
         registration_complete: data?.registration_complete,
       });
 
-      // User type detection - prefer profiles.user_type
-      // IMPORTANT: Don't default to 'sponsor' if user_type exists but is empty string
-      let detectedUserType = data?.user_type;
+      // ============================================================================
+      // USER TYPE DETECTION - PRIORITY ORDER:
+      // 1. Firebase Custom Claims (AUTHORITATIVE - already fetched as claimsUserType)
+      // 2. Database profile user_type
+      // 3. Registration parameter
+      // 4. Default to 'sponsor' only as last resort
+      // ============================================================================
+      let detectedUserType = claimsUserType; // Priority 1: Claims (most authoritative)
+
       if (!detectedUserType || detectedUserType === '' || detectedUserType === 'null') {
-        console.warn('⚠️ AuthContext - user_type is empty or invalid, defaulting to sponsor');
+        // Priority 2: Database profile
+        detectedUserType = data?.user_type;
+      }
+
+      if (!detectedUserType || detectedUserType === '' || detectedUserType === 'null') {
+        // Priority 3: Registration parameter
+        detectedUserType = registrationUserType;
+      }
+
+      if (!detectedUserType || detectedUserType === '' || detectedUserType === 'null') {
+        // Priority 4: Default fallback
+        console.warn('⚠️ AuthContext - No userType found in claims, database, or registration - defaulting to sponsor');
         detectedUserType = 'sponsor';
       }
 
-      console.log('🎯 AuthContext - Final detected userType:', detectedUserType);
+      console.log('🎯 AuthContext - Final detected userType:', detectedUserType,
+        '(source:', claimsUserType ? 'Firebase claims' :
+                   data?.user_type ? 'database' :
+                   registrationUserType ? 'registration' : 'default', ')');
       log.debug('AuthContext - Final detected userType:', detectedUserType);
 
       const baseProfile = data
@@ -833,7 +884,7 @@ const AuthProvider = ({ children, mockValue }) => {
         : {
             id: firebaseUser.uid,
             email: firebaseUser.email,
-            userType: 'sponsor',
+            userType: effectiveUserType || 'sponsor',
             full_name: firebaseUser.displayName || '',
             registration_complete: false,
             country: '',
@@ -935,6 +986,83 @@ const AuthProvider = ({ children, mockValue }) => {
           }
         } catch (agencyFetchError) {
           log.error('Exception fetching agency profile:', agencyFetchError);
+        }
+      }
+
+      // FIX: If user is a maid, fetch maid profile data (similar to agency profile fetch)
+      if (detectedUserType === 'maid') {
+        try {
+          log.debug('Fetching maid profile data for:', firebaseUser.uid);
+
+          const FETCH_MAID_PROFILE = gql`
+            query GetMaidProfile($id: String!) {
+              maid_profiles_by_pk(id: $id) {
+                id
+                full_name
+                date_of_birth
+                nationality
+                religion
+                marital_status
+                country
+                state_province
+                street_address
+                primary_profession
+                current_visa_status
+                education_level
+                skills
+                languages
+                experience_years
+                previous_countries
+                preferred_salary_min
+                work_preferences
+                contract_duration_preference
+                live_in_preference
+                about_me
+                profile_photo_url
+                introduction_video_url
+                phone_number
+                availability_status
+                verification_status
+                profile_completion_percentage
+                created_at
+                updated_at
+              }
+            }
+          `;
+
+          const { data: maidQueryResult, errors: maidErrors } = await apolloClient.query({
+            query: FETCH_MAID_PROFILE,
+            variables: { id: firebaseUser.uid },
+            fetchPolicy: 'network-only',
+          });
+
+          const maidData = maidQueryResult?.maid_profiles_by_pk;
+
+          if (!maidErrors && maidData) {
+            log.debug('Maid profile data fetched:', maidData);
+            // Merge maid profile data into the base profile
+            const enrichedProfile = {
+              ...baseProfile,
+              // Core fields from maid profile
+              full_name: maidData.full_name || baseProfile.full_name,
+              maidProfile: maidData, // Include full maid profile for profile page
+              // Map commonly used fields for easy access
+              nationality: maidData.nationality,
+              date_of_birth: maidData.date_of_birth,
+              skills: maidData.skills || [],
+              languages: maidData.languages || [],
+              experience_years: maidData.experience_years,
+              primary_profession: maidData.primary_profession,
+              profile_photo_url: maidData.profile_photo_url,
+              about_me: maidData.about_me,
+            };
+            log.debug('Enriched profile with maid data:', enrichedProfile);
+            return enrichedProfile;
+          } else if (maidErrors) {
+            log.warn('Error fetching maid profile:', maidErrors);
+          }
+        } catch (maidFetchError) {
+          log.error('Exception fetching maid profile:', maidFetchError);
         }
       }
 
@@ -1210,14 +1338,21 @@ const AuthProvider = ({ children, mockValue }) => {
     setLoading(true);
     try {
       log.debug('AuthContext.register: starting');
+      console.log('🔍 register - userType:', credentials.userType);
+
+      // NOTE: userType is now set via Firebase Custom Claims after registration
+      // The setUserTypeClaim() function should be called from Register.jsx
+      // AFTER phone/email verification succeeds
+
       const result = await secureRegister(credentials);
 
       if (result.session) {
         setSession(result.session);
 
-        // Fetch or create user profile
+        // Fetch or create user profile - pass the userType from registration
         try {
-          const profile = await fetchUserProfile(auth?.currentUser);
+          console.log('🔍 register - Passing userType to fetchUserProfile:', credentials.userType);
+          const profile = await fetchUserProfile(auth?.currentUser, credentials.userType);
           setUser(profile);
         } catch (profileError) {
           log.error('Error fetching/creating profile after registration:', profileError);
@@ -1715,6 +1850,8 @@ const AuthProvider = ({ children, mockValue }) => {
     updateRegistrationStatus,
     updateUserProfileData,
     updateUser,
+    updateProfile: updateUserProfileData, // Alias for backward compatibility
+    createOrUpdateMaidProfile, // Export for onboarding flow
     fixUserType,
     refreshUserProfile,
     resendVerificationEmail,

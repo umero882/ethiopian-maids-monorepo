@@ -15,12 +15,12 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Alert,
   Modal,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications, Notification } from '../../hooks/useNotifications';

@@ -37,6 +37,8 @@ import {
   syncHasuraClaims,
   refreshHasuraClaims,
   adminSetUserRole,
+  setUserType,
+  getUserType,
 } from './auth/hasuraClaims';
 
 // =====================================================
@@ -106,3 +108,30 @@ export const authRefreshHasuraClaims = functions.https.onCall(refreshHasuraClaim
  * Callable: Admin function to set user role (admin only)
  */
 export const authAdminSetUserRole = functions.https.onCall(adminSetUserRole);
+
+/**
+ * ============================================================================
+ * PRIMARY USER TYPE FUNCTIONS - SOLVES userType PERSISTENCE
+ * ============================================================================
+ */
+
+/**
+ * Callable: Set user type during registration
+ *
+ * THIS IS THE KEY FUNCTION for registration flow:
+ * - Call IMMEDIATELY after phone/email verification succeeds
+ * - Sets userType in Firebase Custom Claims (server-side, persistent)
+ * - userType survives: page refresh, logout, device changes
+ * - No localStorage dependency
+ *
+ * Usage from client:
+ *   const setUserType = httpsCallable(functions, 'authSetUserType');
+ *   await setUserType({ userType: 'maid' });
+ *   await user.getIdToken(true); // Force refresh to get new claims
+ */
+export const authSetUserType = functions.https.onCall(setUserType);
+
+/**
+ * Callable: Get current user type from claims (for debugging)
+ */
+export const authGetUserType = functions.https.onCall(getUserType);

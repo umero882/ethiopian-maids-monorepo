@@ -3,7 +3,8 @@
  */
 
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Link, router } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';

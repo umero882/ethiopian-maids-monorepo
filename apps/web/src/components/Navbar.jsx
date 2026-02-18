@@ -299,7 +299,7 @@ const Navbar = () => {
                   </Link>
                 </Button>
                 <Button asChild size='sm'>
-                  <Link to='/register'>
+                  <Link to='/get-started'>
                     <UserPlus className='w-4 h-4 mr-2' />
                     Get Started
                   </Link>
@@ -419,7 +419,7 @@ const Navbar = () => {
                     className='w-full justify-center shadow-md hover:shadow-lg transition-all duration-200 py-3 px-6'
                     onClick={closeMobileMenu}
                   >
-                    <Link to='/register' className='flex items-center space-x-2'>
+                    <Link to='/get-started' className='flex items-center space-x-2'>
                       <UserPlus className='w-5 h-5' />
                       <span className='font-medium text-base'>Get Started Free</span>
                     </Link>

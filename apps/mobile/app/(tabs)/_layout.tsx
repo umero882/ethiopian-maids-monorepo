@@ -7,7 +7,8 @@
 
 import { Tabs, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadMessageCount } from '../../hooks/useMessages';
 import { useUnreadNotificationCount } from '../../hooks/useNotifications';

@@ -213,19 +213,31 @@ const DashboardGateway = () => {
     });
 
     if (!loading && user && !hasNavigated) {
-      // Route users to their appropriate dashboard based on user type
-      // Profile completion will be handled within the dashboard with notifications and modals
+      const userType = user.userType || user.user_type;
+
       console.log(
-        '🎯 DashboardGateway - Routing user to dashboard:',
-        'userType:', user.userType,
-        'user_type:', user.user_type,
-        'Registration complete:', user.registration_complete
+        '🎯 DashboardGateway - Checking user status:',
+        'userType:', userType,
+        'Registration complete:', user.registration_complete,
+        'full_name:', user.full_name
       );
 
       setHasNavigated(true); // Prevent multiple navigation attempts
 
-      // Check both userType and user_type for compatibility
-      const userType = user.userType || user.user_type;
+      // ENFORCE: Profile must be complete before accessing dashboard
+      // Users with incomplete profiles MUST complete the unified onboarding
+      // Check both the flag AND if they have essential profile data (for legacy users)
+      const hasEssentialProfileData = !!(userType && user.full_name);
+      const isProfileComplete = user.registration_complete === true || hasEssentialProfileData;
+
+      if (!isProfileComplete) {
+        console.log('⚠️ DashboardGateway - User profile incomplete, redirecting to unified onboarding');
+        navigate('/get-started', { replace: true });
+        return;
+      }
+
+      // Route users to their appropriate dashboard based on user type
+      console.log('✅ DashboardGateway - Profile complete, routing to dashboard');
 
       switch (userType) {
         case 'maid':

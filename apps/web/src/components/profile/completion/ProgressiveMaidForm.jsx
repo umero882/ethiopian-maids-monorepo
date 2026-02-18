@@ -29,11 +29,13 @@ import {
   Globe,
   FileText,
   Heart,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import {
   gccCountries,
+  countries,
   positions,
   skills,
   languages,
@@ -727,13 +729,23 @@ const ProgressiveMaidForm = ({
                   </div>
                   <div>
                     <Label>Current Country *</Label>
-                    <Input
-                      name='country'
+                    <Select
                       value={formData.country}
-                      onChange={handleInputChange}
-                      placeholder='Enter current country'
-                      className={currentStepErrors.country ? 'border-red-500' : ''}
-                    />
+                      onValueChange={(value) =>
+                        setFormData(prev => ({ ...prev, country: value }))
+                      }
+                    >
+                      <SelectTrigger className={currentStepErrors.country ? 'border-red-500' : ''}>
+                        <SelectValue placeholder='Select current country' />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-64'>
+                        {countries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {currentStepErrors.country && (
                       <FormValidationMessage
                         type='error'

@@ -12,13 +12,13 @@ import {
   TextInput,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Modal,
   ScrollView,
   Image,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGetJobsWithFiltersQuery } from '@ethio/api-client';

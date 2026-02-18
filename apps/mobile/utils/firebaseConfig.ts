@@ -18,8 +18,10 @@ import {
   PhoneAuthProvider,
   ApplicationVerifier,
   ConfirmationResult,
+  RecaptchaVerifier,
 } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getFunctions, httpsCallable, Functions } from 'firebase/functions';
 
 // Firebase configuration - same project as web
 // Note: storageBucket should be in format 'project-id.appspot.com' for older projects
@@ -44,6 +46,7 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 let app: FirebaseApp;
 let auth: Auth;
 let storage: FirebaseStorage;
+let functions: Functions;
 
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -51,12 +54,14 @@ if (!getApps().length) {
   console.log('[Firebase] Storage bucket:', firebaseConfig.storageBucket);
   auth = getAuth(app);
   storage = getStorage(app);
-  console.log('[Firebase] Auth and Storage initialized');
+  functions = getFunctions(app);
+  console.log('[Firebase] Auth, Storage, and Functions initialized');
   console.log('[Firebase] Storage bucket URL:', `gs://${firebaseConfig.storageBucket}`);
 } else {
   app = getApps()[0];
   auth = getAuth(app);
   storage = getStorage(app);
+  functions = getFunctions(app);
   console.log('[Firebase] Using existing Firebase app instance');
 }
 
@@ -162,13 +167,71 @@ export function hasActiveVerification(): boolean {
   return confirmationResult !== null;
 }
 
+// =====================================================
+// HASURA CLAIMS FUNCTIONS
+// =====================================================
+
+/**
+ * Sync Hasura claims with user's role from database
+ * Call this after login/signup to ensure JWT has correct claims
+ *
+ * @returns Promise with success status and user role
+ */
+export async function syncHasuraClaims(): Promise<{ success: boolean; role?: string; error?: string }> {
+  try {
+    console.log('[Firebase] Syncing Hasura claims...');
+    const syncClaims = httpsCallable<{ userId?: string }, { success: boolean; role: string }>(
+      functions,
+      'authSyncHasuraClaims'
+    );
+    const result = await syncClaims({});
+    console.log('[Firebase] Hasura claims synced successfully, role:', result.data.role);
+    return { success: true, role: result.data.role };
+  } catch (error: any) {
+    console.error('[Firebase] Failed to sync Hasura claims:', error);
+    // Don't fail auth if claims sync fails - it will work on next login
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Refresh Hasura claims and get a fresh token
+ * Call this when you need to ensure the token has the latest claims
+ *
+ * @returns Promise with success status
+ */
+export async function refreshHasuraClaims(): Promise<{ success: boolean; error?: string }> {
+  try {
+    console.log('[Firebase] Refreshing Hasura claims...');
+    const refreshClaims = httpsCallable<unknown, { success: boolean; message: string }>(
+      functions,
+      'authRefreshHasuraClaims'
+    );
+    await refreshClaims({});
+
+    // Force refresh the ID token to get updated claims
+    if (auth.currentUser) {
+      await auth.currentUser.getIdToken(true);
+      console.log('[Firebase] Token refreshed with new claims');
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Firebase] Failed to refresh Hasura claims:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export {
   app,
   auth,
   storage,
+  functions,
   firebaseConfig,
   PhoneAuthProvider,
   signInWithPhoneNumber,
+  RecaptchaVerifier,
+  httpsCallable,
 };
-export type { ConfirmationResult };
+export type { ConfirmationResult, ApplicationVerifier };
 export default auth;

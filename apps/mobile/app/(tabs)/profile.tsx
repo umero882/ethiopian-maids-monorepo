@@ -8,7 +8,8 @@
  * For guests: Sign in/Sign up options.
  */
 
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
@@ -66,7 +67,7 @@ export default function ProfileScreen() {
 
   // Guest View - Not authenticated
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <View style={styles.guestAvatar}>
           <Ionicons name="person-outline" size={40} color="#9CA3AF" />
@@ -78,12 +79,12 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.authPrompt}>
-        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+        <TouchableOpacity style={styles.signInButton} activeOpacity={0.7} delayPressIn={0} onPress={handleSignIn}>
           <Ionicons name="log-in-outline" size={22} color="#fff" />
           <Text style={styles.signInButtonText}>Sign In</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
+        <TouchableOpacity style={styles.signUpButton} activeOpacity={0.7} delayPressIn={0} onPress={handleSignUp}>
           <Ionicons name="person-add-outline" size={22} color="#1E40AF" />
           <Text style={styles.signUpButtonText}>Create Account</Text>
         </TouchableOpacity>
@@ -155,6 +156,8 @@ export default function ProfileScreen() {
           <TouchableOpacity
             key={index}
             style={styles.guestMenuItem}
+            activeOpacity={0.7}
+            delayPressIn={0}
             onPress={() => router.push(item.route as any)}
           >
             <View style={styles.guestMenuItemLeft}>

@@ -25,7 +25,7 @@ import '@/styles/design-tokens.css';
 // Optimized lazy loading with prefetch for high-priority routes
 const Home = React.lazy(() => import(/* webpackChunkName: "home" */ '@/pages/Home'));
 const Login = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/Login'));
-const Register = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/Register'));
+const UnifiedOnboarding = React.lazy(() => import(/* webpackChunkName: "unified-onboarding" */ '@/pages/UnifiedOnboarding'));
 const TestEnv = React.lazy(() => import(/* webpackChunkName: "test" */ '@/pages/TestEnv'));
 const DiagnoseApollo = React.lazy(() => import(/* webpackChunkName: "test" */ '@/pages/diagnose-apollo'));
 const VerifyEmail = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/VerifyEmail'));
@@ -100,7 +100,7 @@ const MaidBookingsPage = React.lazy(() =>
   import(/* webpackChunkName: "maid-dashboard" */ '@/pages/dashboards/maid/MaidBookingsPage')
 );
 const MaidProfilePage = React.lazy(() =>
-  import(/* webpackChunkName: "maid-dashboard" */ '@/pages/dashboards/maid/MaidProfilePage')
+  import(/* webpackChunkName: "maid-dashboard" */ '@/pages/dashboards/maid/MaidProfilePageV2')
 );
 const MaidAvailabilityPage = React.lazy(() =>
   import(/* webpackChunkName: "maid-dashboard" */ '@/pages/dashboards/maid/MaidAvailabilityPage')
@@ -131,10 +131,7 @@ const SponsorDashboardLayout = React.lazy(() =>
   import(/* webpackChunkName: "sponsor-dashboard" */ '@/components/dashboard/SponsorDashboardLayout')
 );
 
-// Profile and secondary pages
-const CompleteProfilePage = React.lazy(() =>
-  import(/* webpackChunkName: "profile" */ '@/pages/CompleteProfilePage.jsx')
-);
+// Secondary pages
 const Maids = React.lazy(() => import(/* webpackChunkName: "secondary" */ '@/pages/Maids'));
 const PricingPage = React.lazy(() => import(/* webpackChunkName: "secondary" */ '@/pages/PricingPage'));
 const CheckoutSuccessPage = React.lazy(() => import(/* webpackChunkName: "secondary" */ '@/pages/CheckoutSuccessPage'));
@@ -351,22 +348,24 @@ const ConditionalFooter = () => {
   );
 };
 
-// Conditional Navbar - hides on admin routes (admin panel has its own nav)
+// Conditional Navbar - hides on admin routes and onboarding (admin panel has its own nav, onboarding is full-screen)
 const ConditionalNavbar = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isOnboardingRoute = location.pathname === '/get-started';
 
-  if (isAdminRoute) return null;
+  if (isAdminRoute || isOnboardingRoute) return null;
 
   return <Navbar />;
 };
 
-// Conditional Marquee - hides on admin routes
+// Conditional Marquee - hides on admin routes and onboarding
 const ConditionalMarquee = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isOnboardingRoute = location.pathname === '/get-started';
 
-  if (isAdminRoute) return null;
+  if (isAdminRoute || isOnboardingRoute) return null;
 
   return <MarqueeAnnouncement />;
 };
@@ -415,6 +414,10 @@ function App() {
                       }
                     />
                     <Route
+                      path='/onboarding'
+                      element={<Navigate to="/get-started" replace />}
+                    />
+                    <Route
                       path='/login'
                       element={
                         <Suspense fallback={<PageLoader />}>
@@ -424,9 +427,13 @@ function App() {
                     />
                     <Route
                       path='/register'
+                      element={<Navigate to="/get-started" replace />}
+                    />
+                    <Route
+                      path='/get-started'
                       element={
                         <Suspense fallback={<PageLoader />}>
-                          <Register />
+                          <UnifiedOnboarding />
                         </Suspense>
                       }
                     />
@@ -642,11 +649,7 @@ function App() {
                     />
                     <Route
                       path='/complete-profile'
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <CompleteProfilePage />
-                        </Suspense>
-                      }
+                      element={<Navigate to="/get-started" replace />}
                     />
                     <Route
                       path='/dashboard'

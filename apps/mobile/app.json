@@ -18,13 +18,22 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ethiopianmaids.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to your camera to take photos for messages and profile pictures.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to share images in messages.",
         "NSPhotoLibraryAddUsageDescription": "This app needs permission to save photos to your library.",
         "NSMicrophoneUsageDescription": "This app needs access to your microphone for voice messages.",
         "NSLocationWhenInUseUsageDescription": "This app needs your location to share it in messages.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": ["remote-notification", "fetch"],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["com.googleusercontent.apps.227663902586-qtsmmgqaeg0b6at2hg9okhntbjedkr0h"]
+          }
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "development"
       }
     },
     "android": {
@@ -42,7 +51,7 @@
       ]
     },
     "notification": {
-      "icon": "./assets/images/notification-icon.png",
+      "icon": "./assets/images/icon.png",
       "color": "#10B981",
       "androidMode": "default",
       "androidCollapsedTitle": "Ethiopian Maids"
@@ -69,10 +78,9 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
+          "icon": "./assets/images/icon.png",
           "color": "#10B981",
-          "defaultChannel": "default",
-          "sounds": ["./assets/sounds/notification.wav"]
+          "defaultChannel": "default"
         }
       ],
       [

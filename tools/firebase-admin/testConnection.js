@@ -46,7 +46,9 @@ async function testConnection() {
       type: 'RS256',
       jwk_url: 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com',
       audience: projectId,
-      issuer: `https://securetoken.google.com/${projectId}`
+      issuer: `https://securetoken.google.com/${projectId}`,
+      claims_namespace: 'https://hasura.io/jwt/claims',
+      claims_format: 'json'
     })}'`);
     console.log('----------------------------------------\n');
 

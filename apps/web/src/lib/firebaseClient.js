@@ -16,6 +16,7 @@ import {
   linkWithCredential
 } from 'firebase/auth';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 import { createLogger } from '@/utils/logger';
 
 const log = createLogger('FirebaseClient');
@@ -141,6 +142,23 @@ if (storage) {
   log.warn('Firebase Storage not available - file uploads will not work');
 }
 
+// Get Functions instance
+const functions = app ? getFunctions(app) : null;
+
+// Connect to Functions emulator in development (if configured)
+if (functions && import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+  const emulatorHost = import.meta.env.VITE_FIREBASE_EMULATOR_HOST || 'localhost';
+  const functionsPort = import.meta.env.VITE_FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001';
+  connectFunctionsEmulator(functions, emulatorHost, parseInt(functionsPort));
+  log.info(`Connected to Firebase Functions emulator at ${emulatorHost}:${functionsPort}`);
+}
+
+if (functions) {
+  log.info('Firebase Functions initialized successfully');
+} else {
+  log.warn('Firebase Functions not available - cloud functions will not work');
+}
+
 /**
  * Upload a file to Firebase Storage
  * @param {File|Blob} file - The file to upload
@@ -207,6 +225,20 @@ export async function deleteFile(path) {
 }
 
 /**
+ * Upload a profile photo to Firebase Storage
+ * @param {File} file - The image file to upload
+ * @param {string} userId - The user's ID
+ * @param {function} onProgress - Optional progress callback
+ * @returns {Promise<string>} The download URL
+ */
+export async function uploadProfilePhoto(file, userId, onProgress) {
+  const extension = file.name?.split('.').pop() || 'jpg';
+  const path = `maid-profiles/${userId}/profile-photo/photo-${Date.now()}.${extension}`;
+  const result = await uploadFile(file, path, onProgress);
+  return result.url;
+}
+
+/**
  * Upload a video CV to Firebase Storage
  * @param {string} userId - The user's ID
  * @param {Blob|File} videoBlob - The video file
@@ -247,22 +279,57 @@ export function initRecaptchaVerifier(buttonId = 'phone-sign-in-button') {
     throw new Error('Firebase Auth not initialized');
   }
 
-  // Clear any existing recaptcha
+  // Clear any existing recaptcha verifier
   if (window.recaptchaVerifier) {
     try {
       window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
     } catch (e) {
-      log.warn('Failed to clear existing recaptcha:', e);
+      log.warn('Failed to clear existing recaptcha verifier:', e);
     }
   }
 
-  window.recaptchaVerifier = new RecaptchaVerifier(auth, buttonId, {
+  // Remove any existing reCAPTCHA widgets from the DOM
+  // This is needed because clear() doesn't remove the widget from DOM
+  const existingRecaptchas = document.querySelectorAll('.grecaptcha-badge, [id^="recaptcha-container"]');
+  existingRecaptchas.forEach(el => {
+    try {
+      el.remove();
+    } catch (e) {
+      log.warn('Failed to remove existing recaptcha element:', e);
+    }
+  });
+
+  // Also clear the button element's recaptcha content if it exists
+  const buttonEl = document.getElementById(buttonId);
+  if (buttonEl) {
+    const recaptchaInButton = buttonEl.querySelector('[class*="grecaptcha"]');
+    if (recaptchaInButton) {
+      recaptchaInButton.remove();
+    }
+  }
+
+  // Create a dedicated container for reCAPTCHA if it doesn't exist
+  let recaptchaContainer = document.getElementById('recaptcha-container-phone');
+  if (!recaptchaContainer) {
+    recaptchaContainer = document.createElement('div');
+    recaptchaContainer.id = 'recaptcha-container-phone';
+    recaptchaContainer.style.display = 'none';
+    document.body.appendChild(recaptchaContainer);
+  } else {
+    // Clear the container
+    recaptchaContainer.innerHTML = '';
+  }
+
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-phone', {
     size: 'invisible',
     callback: () => {
       log.debug('reCAPTCHA solved successfully');
     },
     'expired-callback': () => {
       log.warn('reCAPTCHA expired');
+      // Reset on expiry
+      cleanupRecaptcha();
     }
   });
 
@@ -370,19 +437,241 @@ export async function linkPhoneToAccount(verificationId, code) {
 }
 
 /**
- * Clean up reCAPTCHA verifier
+ * Clean up reCAPTCHA verifier and DOM elements
  */
 export function cleanupRecaptcha() {
+  // Clear the verifier instance
   if (window.recaptchaVerifier) {
     try {
       window.recaptchaVerifier.clear();
       window.recaptchaVerifier = null;
-      log.debug('reCAPTCHA cleaned up');
+      log.debug('reCAPTCHA verifier cleared');
     } catch (e) {
-      log.warn('Failed to cleanup recaptcha:', e);
+      log.warn('Failed to cleanup recaptcha verifier:', e);
     }
+  }
+
+  // Remove reCAPTCHA DOM elements
+  try {
+    const recaptchaContainer = document.getElementById('recaptcha-container-phone');
+    if (recaptchaContainer) {
+      recaptchaContainer.innerHTML = '';
+    }
+
+    // Also remove any grecaptcha badges that might be floating
+    const badges = document.querySelectorAll('.grecaptcha-badge');
+    badges.forEach(badge => badge.remove());
+
+    log.debug('reCAPTCHA DOM elements cleaned up');
+  } catch (e) {
+    log.warn('Failed to cleanup recaptcha DOM:', e);
   }
 }
 
-export { app, auth, storage, RecaptchaVerifier, PhoneAuthProvider };
+// ============================================================================
+// USER TYPE CLAIMS - PERSISTENT SERVER-SIDE STORAGE
+// ============================================================================
+// These functions manage userType via Firebase Custom Claims (server-side).
+// userType set here survives: page refresh, logout, device changes, browser close.
+// NO localStorage dependency - claims are stored in Firebase and embedded in JWT.
+// ============================================================================
+
+/**
+ * Set user type in Firebase Custom Claims (server-side, persistent)
+ *
+ * THIS IS THE KEY FUNCTION for registration flow:
+ * - Call IMMEDIATELY after phone/email verification succeeds
+ * - Sets userType in Firebase Custom Claims (server-side, persistent)
+ * - userType survives: page refresh, logout, device changes
+ * - No localStorage dependency
+ *
+ * After calling this function, ALWAYS call refreshIdToken() or getIdToken(true)
+ * to get a fresh token with the new claims.
+ *
+ * @param {string} userType - 'maid' | 'sponsor' | 'agency'
+ * @returns {Promise<{success: boolean, userType: string, message: string}>}
+ */
+export async function setUserTypeClaim(userType) {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated to set user type');
+  }
+
+  const validUserTypes = ['maid', 'sponsor', 'agency'];
+  const normalizedType = userType?.toLowerCase().trim();
+
+  if (!normalizedType || !validUserTypes.includes(normalizedType)) {
+    throw new Error(`Invalid user type: "${userType}". Must be one of: maid, sponsor, agency`);
+  }
+
+  try {
+    log.debug(`Setting user type claim to: ${normalizedType}`);
+
+    // Call the Cloud Function to set custom claims
+    const setUserTypeCallable = httpsCallable(functions, 'authSetUserType');
+    const result = await setUserTypeCallable({ userType: normalizedType });
+
+    log.info(`User type claim set successfully: ${result.data.userType}`);
+
+    // Force refresh the token to get new claims
+    const newToken = await auth.currentUser.getIdToken(true);
+    localStorage.setItem(FIREBASE_TOKEN_KEY, newToken);
+    log.debug('Token refreshed with new claims');
+
+    return result.data;
+  } catch (error) {
+    log.error('Failed to set user type claim:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get user type from current user's JWT claims
+ * This reads directly from the token - no network call needed.
+ *
+ * @returns {Promise<string|null>} The user type or null if not set
+ */
+export async function getUserTypeFromClaims() {
+  if (!auth?.currentUser) {
+    return null;
+  }
+
+  try {
+    // Force refresh to ensure we have latest claims
+    const idTokenResult = await auth.currentUser.getIdTokenResult(true);
+
+    // Check direct user_type claim first (our new approach)
+    const userType = idTokenResult.claims.user_type;
+    if (userType) {
+      log.debug(`User type from claims: ${userType}`);
+      return userType;
+    }
+
+    // Fallback: check Hasura claims
+    const hasuraClaims = idTokenResult.claims['https://hasura.io/jwt/claims'];
+    if (hasuraClaims?.['x-hasura-default-role']) {
+      const hasuraRole = hasuraClaims['x-hasura-default-role'];
+      // Only return if it's a valid user type (not 'user')
+      if (['maid', 'sponsor', 'agency'].includes(hasuraRole)) {
+        log.debug(`User type from Hasura claims: ${hasuraRole}`);
+        return hasuraRole;
+      }
+    }
+
+    log.debug('No user type found in claims');
+    return null;
+  } catch (error) {
+    log.error('Failed to get user type from claims:', error);
+    return null;
+  }
+}
+
+/**
+ * Get user type synchronously from cached token (if available)
+ * Use this when you need immediate access without waiting.
+ * Note: May return stale data - use getUserTypeFromClaims() for authoritative value.
+ *
+ * @returns {string|null} The user type or null
+ */
+export function getUserTypeCached() {
+  try {
+    const token = localStorage.getItem(FIREBASE_TOKEN_KEY);
+    if (!token) return null;
+
+    // Parse JWT payload (second part, base64 encoded)
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const payload = JSON.parse(atob(parts[1]));
+
+    // Check direct user_type claim first
+    if (payload.user_type) {
+      return payload.user_type;
+    }
+
+    // Fallback: check Hasura claims
+    const hasuraClaims = payload['https://hasura.io/jwt/claims'];
+    if (hasuraClaims?.['x-hasura-default-role']) {
+      const hasuraRole = hasuraClaims['x-hasura-default-role'];
+      if (['maid', 'sponsor', 'agency'].includes(hasuraRole)) {
+        return hasuraRole;
+      }
+    }
+
+    return null;
+  } catch (e) {
+    log.warn('Failed to parse cached token for user type:', e);
+    return null;
+  }
+}
+
+/**
+ * Sync Hasura claims with the user's role from database
+ * Call this after profile creation/update to ensure claims match database role.
+ *
+ * @returns {Promise<{success: boolean, role: string}>}
+ */
+export async function syncHasuraClaims() {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated');
+  }
+
+  try {
+    log.debug('Syncing Hasura claims with database');
+
+    const syncClaimsCallable = httpsCallable(functions, 'authSyncHasuraClaims');
+    const result = await syncClaimsCallable({});
+
+    log.info(`Hasura claims synced successfully: role=${result.data.role}`);
+
+    // Force refresh the token
+    await auth.currentUser.getIdToken(true);
+
+    return result.data;
+  } catch (error) {
+    log.error('Failed to sync Hasura claims:', error);
+    throw error;
+  }
+}
+
+/**
+ * Force refresh all claims (useful for debugging)
+ *
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export async function refreshClaims() {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated');
+  }
+
+  try {
+    log.debug('Refreshing all claims');
+
+    const refreshClaimsCallable = httpsCallable(functions, 'authRefreshHasuraClaims');
+    const result = await refreshClaimsCallable({});
+
+    // Force refresh the token
+    const newToken = await auth.currentUser.getIdToken(true);
+    localStorage.setItem(FIREBASE_TOKEN_KEY, newToken);
+
+    log.info('Claims refreshed successfully');
+    return result.data;
+  } catch (error) {
+    log.error('Failed to refresh claims:', error);
+    throw error;
+  }
+}
+
+export { app, auth, storage, functions, RecaptchaVerifier, PhoneAuthProvider };
 export default auth;

@@ -11,13 +11,13 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
   Linking,
   Platform,
   Alert,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';

@@ -10,12 +10,14 @@
 
 **What is this project?**
 The Ethiopian Maids Platform is a multi-sided marketplace connecting:
+
 - **Maids** (domestic workers seeking employment)
 - **Sponsors** (families/individuals hiring domestic workers)
 - **Agencies** (recruitment agencies managing multiple maids)
 
 **Why does quality matter?**
 This platform handles sensitive personal information, financial transactions, and employment relationships. Poor code quality can:
+
 - Expose user data (GDPR/privacy violations)
 - Cause payment failures (financial loss)
 - Create security vulnerabilities (identity theft)
@@ -110,6 +112,7 @@ STEP 5: Check the component library
 ```
 
 **Context splitting for large tasks:**
+
 - **Phase 1**: Understand (read files, no changes)
 - **Phase 2**: Plan (outline approach, identify files)
 - **Phase 3**: Implement (one logical unit at a time)
@@ -135,6 +138,7 @@ STEP 5: Check the component library
 ```
 
 **Exploration checklist before ANY new feature:**
+
 - [ ] Search for existing similar functionality
 - [ ] Check packages/domain/ for related entities
 - [ ] Check packages/app/ for related use cases
@@ -147,15 +151,16 @@ STEP 5: Check the component library
 
 **If you encounter ambiguity, STOP and ask:**
 
-| Situation | Action |
-|-----------|--------|
-| Unclear requirements | Ask user for clarification |
+| Situation                 | Action                         |
+| ------------------------- | ------------------------------ |
+| Unclear requirements      | Ask user for clarification     |
 | Multiple valid approaches | Present options with pros/cons |
-| Missing context | Ask which files to read |
-| Conflicting patterns | Ask which pattern to follow |
-| Unknown business rule | Never assume - always ask |
+| Missing context           | Ask which files to read        |
+| Conflicting patterns      | Ask which pattern to follow    |
+| Unknown business rule     | Never assume - always ask      |
 
 **Example clarification request:**
+
 ```
 I see two patterns for user validation in this codebase:
 1. Validation in domain entities (packages/domain/identity/src/entities/User.ts)
@@ -170,33 +175,38 @@ Which approach should I follow for [specific feature]?
 
 **Size your tasks appropriately:**
 
-| Task Size | Approach | Example |
-|-----------|----------|---------|
-| **Small** (< 3 files) | Direct implementation | Fix button styling |
+| Task Size               | Approach                   | Example            |
+| ----------------------- | -------------------------- | ------------------ |
+| **Small** (< 3 files)   | Direct implementation      | Fix button styling |
 | **Medium** (3-10 files) | Plan first, then implement | Add new form field |
-| **Large** (10+ files) | Break into subtasks | New user feature |
-| **Epic** (new domain) | Multiple sessions required | Payment system |
+| **Large** (10+ files)   | Break into subtasks        | New user feature   |
+| **Epic** (new domain)   | Multiple sessions required | Payment system     |
 
 **For large tasks, create explicit subtasks:**
+
 ```markdown
 ## Task: Implement Maid Verification System
 
 ### Subtask 1: Domain Layer
+
 - [ ] Create VerificationStatus value object
 - [ ] Add verification fields to MaidProfile entity
 - [ ] Create VerificationRequested domain event
 
 ### Subtask 2: Application Layer
+
 - [ ] Create SubmitVerification use case
 - [ ] Create ApproveVerification use case
 - [ ] Create RejectVerification use case
 
 ### Subtask 3: Infrastructure Layer
+
 - [ ] Add GraphQL mutations
 - [ ] Run codegen
 - [ ] Implement Hasura adapter
 
 ### Subtask 4: Presentation Layer
+
 - [ ] Create verification form component
 - [ ] Add to maid dashboard
 - [ ] Create admin review panel
@@ -223,32 +233,39 @@ Which approach should I follow for [specific feature]?
 **Persistence Protocol:**
 
 1. **Be Maximally Autonomous**
+
    - Work independently until the task is 100% complete
    - Do not ask for permission to continue working
    - Do not suggest stopping or pausing mid-task
 
 2. **Context Preservation (As You Approach Limits)**
+
    - Automatically compact your working context
    - Save current progress state to memory/todo list
    - Document: what's done, what's in progress, what remains
    - Continue seamlessly after context window refreshes
 
 3. **State Saving Format (When Approaching Limit)**
+
    ```markdown
    ## PROGRESS CHECKPOINT
 
    ### Completed:
+
    - [x] Task 1: Description
    - [x] Task 2: Description
 
    ### In Progress:
+
    - [ ] Task 3: Description (current file: X, current line: Y)
 
    ### Remaining:
+
    - [ ] Task 4: Description
    - [ ] Task 5: Description
 
    ### Key Context to Preserve:
+
    - Important decision made: [decision]
    - Pattern being followed: [pattern]
    - Files modified so far: [list]
@@ -261,6 +278,7 @@ Which approach should I follow for [specific feature]?
    - Continue implementation without interruption
 
 **Example behavior:**
+
 ```
 // ❌ BAD: Stopping early
 "I've made good progress on the authentication system. Due to the
@@ -297,6 +315,7 @@ Commit 5: "Connect notification subscription for real-time updates"
 ```
 
 **After each increment:**
+
 1. Verify it compiles: `pnpm nx run-many -t build`
 2. Check for type errors: `pnpm nx run-many -t typecheck`
 3. Ensure tests pass: `pnpm nx run-many -t test`
@@ -324,6 +343,7 @@ console.log(data?.profiles_by_pk?.full_name);
 ```
 
 **Verification sources by priority:**
+
 1. **Generated types** (`/generated/graphql.ts`) - Most authoritative
 2. **GraphQL schema** (`schema.graphql`) - API contract
 3. **Entity definitions** (`/domain/*/entities/`) - Business logic
@@ -335,15 +355,16 @@ console.log(data?.profiles_by_pk?.full_name);
 
 **Match response length to task complexity:**
 
-| Task Type | Response Style |
-|-----------|----------------|
-| Simple fix | Brief: "Fixed typo in ProfileCard.jsx line 42" |
-| Code change | Show diff: `old_code → new_code` |
-| Bug analysis | Explain cause → solution → prevention |
-| Architecture question | Structured explanation with examples |
-| Feature implementation | Step-by-step with rationale |
+| Task Type              | Response Style                                 |
+| ---------------------- | ---------------------------------------------- |
+| Simple fix             | Brief: "Fixed typo in ProfileCard.jsx line 42" |
+| Code change            | Show diff: `old_code → new_code`               |
+| Bug analysis           | Explain cause → solution → prevention          |
+| Architecture question  | Structured explanation with examples           |
+| Feature implementation | Step-by-step with rationale                    |
 
 **Avoid:**
+
 - Repeating file contents unnecessarily
 - Over-explaining obvious changes
 - Adding unnecessary commentary
@@ -355,16 +376,17 @@ console.log(data?.profiles_by_pk?.full_name);
 
 **Use the right tool for each task:**
 
-| Task | Tool to Use | NOT This |
-|------|-------------|----------|
-| Find files by pattern | `Glob` | `find` command |
-| Search file contents | `Grep` | `grep` command |
-| Read file contents | `Read` | `cat` command |
-| Edit files | `Edit` | `sed` command |
-| Run builds/tests | `Bash` with npm/pnpm/nx | Direct file manipulation |
-| Explore codebase | `Task` with Explore agent | Manual Glob/Grep |
+| Task                  | Tool to Use               | NOT This                 |
+| --------------------- | ------------------------- | ------------------------ |
+| Find files by pattern | `Glob`                    | `find` command           |
+| Search file contents  | `Grep`                    | `grep` command           |
+| Read file contents    | `Read`                    | `cat` command            |
+| Edit files            | `Edit`                    | `sed` command            |
+| Run builds/tests      | `Bash` with npm/pnpm/nx   | Direct file manipulation |
+| Explore codebase      | `Task` with Explore agent | Manual Glob/Grep         |
 
 **Nx-specific commands (prefer over raw npm):**
+
 ```bash
 # Build
 pnpm nx run web:build
@@ -392,7 +414,7 @@ pnpm codegen
 
 ```javascript
 // ❌ HALLUCINATION RISK: Making up API endpoints
-"The API endpoint is /api/v2/maids/profile"
+'The API endpoint is /api/v2/maids/profile';
 // This endpoint doesn't exist - we use GraphQL!
 
 // ✅ VERIFIED: Check actual implementation
@@ -412,6 +434,7 @@ import { validateEmail } from '@ethio/validators';
 ```
 
 **When uncertain, explicitly state:**
+
 - "I need to verify this exists..."
 - "Let me check the actual implementation..."
 - "I'm not certain about X, should I investigate?"
@@ -423,6 +446,7 @@ import { validateEmail } from '@ethio/validators';
 **Follow existing UI patterns:**
 
 **Button usage:**
+
 ```jsx
 // Primary action (submit, confirm)
 <Button variant="default">Save Changes</Button>
@@ -438,6 +462,7 @@ import { validateEmail } from '@ethio/validators';
 ```
 
 **Form patterns:**
+
 ```jsx
 // Standard form with validation
 import { useForm } from 'react-hook-form';
@@ -450,13 +475,17 @@ const form = useForm({
 ```
 
 **Data fetching pattern:**
+
 ```jsx
 // Use generated hooks from api-client
-import { useGetMaidProfileQuery, useUpdateMaidProfileMutation } from '@ethio/api-client';
+import {
+  useGetMaidProfileQuery,
+  useUpdateMaidProfileMutation,
+} from '@ethio/api-client';
 
 function MaidProfile({ userId }) {
   const { data, loading, error } = useGetMaidProfileQuery({
-    variables: { id: userId }
+    variables: { id: userId },
   });
 
   const [updateProfile, { loading: updating }] = useUpdateMaidProfileMutation();
@@ -469,23 +498,24 @@ function MaidProfile({ userId }) {
 ```
 
 **Color system (Tailwind):**
+
 ```jsx
 // Brand colors (use sparingly)
-bg-primary     // #6e2be4 (purple)
-bg-secondary   // #1c409d (blue)
+bg - primary; // #6e2be4 (purple)
+bg - secondary; // #1c409d (blue)
 
 // Semantic colors (prefer these)
-bg-background  // Page background
-bg-card        // Card surfaces
-bg-muted       // Secondary backgrounds
-text-foreground // Primary text
-text-muted-foreground // Secondary text
+bg - background; // Page background
+bg - card; // Card surfaces
+bg - muted; // Secondary backgrounds
+text - foreground; // Primary text
+text - muted - foreground; // Secondary text
 
 // Status colors
-text-green-600   // Success
-text-yellow-600  // Warning
-text-red-600     // Error
-text-blue-600    // Info
+text - green - 600; // Success
+text - yellow - 600; // Warning
+text - red - 600; // Error
+text - blue - 600; // Info
 ```
 
 ---
@@ -496,14 +526,15 @@ text-blue-600    // Info
 
 **Three primary user types:**
 
-| Role | Dashboard Location | Key Features |
-|------|-------------------|--------------|
-| `maid` | `/maid/dashboard` | Profile, job applications, documents |
-| `sponsor` | `/sponsor/dashboard` | Browse maids, bookings, payments |
-| `agency` | `/agency/dashboard` | Manage maids, analytics, subscriptions |
-| `admin` | `/admin/*` | User management, verifications, reports |
+| Role      | Dashboard Location   | Key Features                            |
+| --------- | -------------------- | --------------------------------------- |
+| `maid`    | `/maid/dashboard`    | Profile, job applications, documents    |
+| `sponsor` | `/sponsor/dashboard` | Browse maids, bookings, payments        |
+| `agency`  | `/agency/dashboard`  | Manage maids, analytics, subscriptions  |
+| `admin`   | `/admin/*`           | User management, verifications, reports |
 
 **Role-based rendering:**
+
 ```jsx
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -547,6 +578,7 @@ import { useGetMaidDocumentsQuery } from '@ethio/api-client';
 ```
 
 **GraphQL naming conventions:**
+
 ```graphql
 # Queries: Get[Entity] or Get[Entity]List
 query GetMaidProfile { ... }
@@ -566,22 +598,23 @@ subscription OnBookingStatusChange { ... }
 
 ### D.16 File Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| React Components | PascalCase.jsx | `ProfileCard.jsx` |
-| Hooks | camelCase with use prefix | `useAuth.js` |
-| Services | camelCase with Service suffix | `profileService.js` |
-| GraphQL | kebab-case.graphql | `maid-profiles.graphql` |
-| Domain Entities | PascalCase.ts | `MaidProfile.ts` |
-| Value Objects | PascalCase.ts | `ProfileStatus.ts` |
-| Use Cases | PascalCase.ts | `UpdateMaidProfile.ts` |
-| Tests | [name].test.ts | `MaidProfile.test.ts` |
+| Type             | Convention                    | Example                 |
+| ---------------- | ----------------------------- | ----------------------- |
+| React Components | PascalCase.jsx                | `ProfileCard.jsx`       |
+| Hooks            | camelCase with use prefix     | `useAuth.js`            |
+| Services         | camelCase with Service suffix | `profileService.js`     |
+| GraphQL          | kebab-case.graphql            | `maid-profiles.graphql` |
+| Domain Entities  | PascalCase.ts                 | `MaidProfile.ts`        |
+| Value Objects    | PascalCase.ts                 | `ProfileStatus.ts`      |
+| Use Cases        | PascalCase.ts                 | `UpdateMaidProfile.ts`  |
+| Tests            | [name].test.ts                | `MaidProfile.test.ts`   |
 
 ---
 
 ### D.17 Common Troubleshooting
 
 **Build fails with type errors:**
+
 ```bash
 # Regenerate GraphQL types
 pnpm codegen
@@ -594,12 +627,14 @@ rm -rf node_modules && pnpm install
 ```
 
 **Apollo Client not fetching:**
+
 1. Check Firebase token: `localStorage.getItem('firebase_auth_token')`
 2. Verify Hasura endpoint in `.env`
 3. Check browser Network tab for GraphQL errors
 4. Ensure Apollo DevTools shows the query
 
 **"Module not found" errors:**
+
 ```bash
 # Check tsconfig paths
 cat tsconfig.base.json | grep "paths"
@@ -709,6 +744,7 @@ pnpm nx reset && rm -rf node_modules && pnpm install
 ## Pre-Completion Checklist
 
 ### Code Quality
+
 - [ ] No hardcoded values (use constants/env vars)
 - [ ] No console.log statements left in code
 - [ ] Error handling for async operations
@@ -716,17 +752,20 @@ pnpm nx reset && rm -rf node_modules && pnpm install
 - [ ] TypeScript types properly used (no `any`)
 
 ### Architecture Compliance
+
 - [ ] Domain logic stays in domain layer
 - [ ] No direct DB calls (use Hasura GraphQL)
 - [ ] Used existing patterns where available
 - [ ] No Supabase imports (use Firebase)
 
 ### Testing
+
 - [ ] Code compiles: pnpm nx run-many -t build
 - [ ] Types check: pnpm nx run-many -t typecheck
 - [ ] If new GraphQL: pnpm codegen ran successfully
 
 ### Documentation
+
 - [ ] Complex logic has comments explaining WHY
 - [ ] New features documented in relevant .md files
 ```
@@ -736,6 +775,7 @@ pnpm nx reset && rm -rf node_modules && pnpm install
 ## APPENDIX: ENVIRONMENT SETUP
 
 **Required environment variables:**
+
 ```bash
 # Firebase (Authentication & Storage)
 VITE_FIREBASE_API_KEY=...
@@ -756,18 +796,22 @@ See `.env.example` for complete list.
 ---
 
 <!-- nx configuration start-->
-# Nx Monorepo Guidelines
+<!-- Leave the start & end comments to automatically receive updates. -->
 
-- Run tasks via Nx: `pnpm nx run [project]:[target]`
-- For parallel tasks: `pnpm nx run-many -t build`
-- For affected projects: `pnpm nx affected -t test`
-- Use `nx_workspace` tool to understand project structure
-- Use `nx_project_details` for specific project analysis
-- Use `nx_docs` for Nx configuration questions
+# General Guidelines for working with Nx
+
+- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+- You have access to the Nx MCP server and its tools, use them to help the user
+- When answering questions about the repository, use the `nx_workspace` tool first to gain an understanding of the workspace architecture where applicable.
+- When working in individual projects, use the `nx_project_details` mcp tool to analyze and understand the specific project structure and dependencies
+- For questions around nx configuration, best practices or if you're unsure, use the `nx_docs` tool to get relevant, up-to-date docs. Always use this instead of assuming things about nx configuration
+- If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
+
 <!-- nx configuration end-->
 
 ---
 
 **Last Updated**: December 2025
 **Maintained By**: Development Team
+
 - claude.md

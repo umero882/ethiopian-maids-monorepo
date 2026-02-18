@@ -16,7 +16,7 @@ import {
   AuthError,
   updateProfile,
 } from 'firebase/auth';
-import { auth } from '../utils/firebaseConfig';
+import { auth, syncHasuraClaims, refreshHasuraClaims } from '../utils/firebaseConfig';
 import { authStorage } from '../utils/secureStorage';
 import { setAuthToken, apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
@@ -106,11 +106,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         // Get and store the ID token
         try {
-          const idToken = await user.getIdToken();
+          let idToken = await user.getIdToken();
           await authStorage.saveTokens(idToken);
 
           // Update Apollo Client auth token
           setAuthToken(idToken);
+
+          // Sync Hasura claims on session restoration to ensure JWT has proper claims
+          // This handles users who were created before the claims functions were deployed
+          try {
+            console.log('[Auth] Syncing Hasura claims on session restore...');
+            const syncResult = await syncHasuraClaims();
+            if (syncResult.success) {
+              // Force refresh token to get updated claims
+              idToken = await user.getIdToken(true);
+              await authStorage.saveTokens(idToken);
+              setAuthToken(idToken);
+              console.log('[Auth] Hasura claims synced on session restore');
+            }
+          } catch (syncError) {
+            // Non-fatal - continue with existing token
+            console.warn('[Auth] Failed to sync Hasura claims on restore:', syncError);
+          }
 
           // Get stored user data to retrieve user_type and profile_id
           const storedUserData = await authStorage.getUserData() as UserData | null;
@@ -229,9 +246,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = userCredential.user;
 
       // Get ID token for Hasura
-      const idToken = await user.getIdToken();
+      let idToken = await user.getIdToken();
       await authStorage.saveTokens(idToken);
       setAuthToken(idToken);
+
+      // Sync Hasura claims to ensure JWT has proper claims for authorization
+      // This calls a Cloud Function that sets custom claims based on user's role
+      try {
+        console.log('[Auth] Syncing Hasura claims...');
+        const syncResult = await syncHasuraClaims();
+        if (syncResult.success) {
+          // Force refresh token to get updated claims
+          idToken = await user.getIdToken(true);
+          await authStorage.saveTokens(idToken);
+          setAuthToken(idToken);
+          console.log('[Auth] Hasura claims synced, token refreshed');
+        }
+      } catch (syncError) {
+        // Non-fatal - claims will be synced on next login
+        console.warn('[Auth] Failed to sync Hasura claims:', syncError);
+      }
 
       // Fetch user_type and profile_id from database
       let userType: UserType = null;
@@ -351,7 +385,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Get ID token for Hasura
-      const idToken = await user.getIdToken();
+      let idToken = await user.getIdToken();
       await authStorage.saveTokens(idToken);
       setAuthToken(idToken);
 
@@ -381,6 +415,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.warn('[Auth] Profile creation had errors:', errors[0]?.message);
         } else {
           console.log('[Auth] Profile created in database:', data?.insert_profiles_one?.id);
+        }
+
+        // Sync Hasura claims after profile is created
+        // This ensures the JWT has the correct role claims
+        try {
+          console.log('[Auth] Syncing Hasura claims after signup...');
+          const syncResult = await syncHasuraClaims();
+          if (syncResult.success) {
+            // Force refresh token to get updated claims
+            idToken = await user.getIdToken(true);
+            await authStorage.saveTokens(idToken);
+            setAuthToken(idToken);
+            console.log('[Auth] Hasura claims synced, token refreshed');
+          }
+        } catch (syncError) {
+          // Non-fatal - claims will be synced on next login
+          console.warn('[Auth] Failed to sync Hasura claims:', syncError);
         }
       } catch (profileError) {
         // Don't fail registration if profile creation fails

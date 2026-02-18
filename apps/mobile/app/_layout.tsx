@@ -12,11 +12,14 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ApolloProvider } from '@apollo/client';
 import { apolloClient } from '@ethio/api-client';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ToastProvider } from '../context/ToastContext';
 import { SubscriptionProvider } from '../context/SubscriptionContext';
+import { OnboardingProvider } from '../context/OnboardingContext';
+import { SoundProvider } from '../context/SoundContext';
 import { registerServiceWorker, setupInstallPrompt } from '../utils/pwa';
 import { usePushNotifications } from '../hooks';
 
@@ -53,14 +56,20 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === 'auth';
+    const inOnboardingGroup = segments[0] === 'onboarding';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if not authenticated
-      router.replace('/auth/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if authenticated and on auth screen
-      router.replace('/(tabs)');
-    }
+    // Delay navigation to ensure routes are fully loaded
+    const timeout = setTimeout(() => {
+      if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+        // Redirect to login if not authenticated
+        router.replace('/auth/login');
+      } else if (isAuthenticated && inAuthGroup) {
+        // Redirect to home if authenticated and on auth screen
+        router.replace('/(tabs)');
+      }
+    }, 100);
+
+    return () => clearTimeout(timeout);
   }, [isAuthenticated, isLoading, segments]);
 
   if (isLoading) {
@@ -95,6 +104,10 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="auth"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="onboarding"
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -150,21 +163,30 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <ApolloProvider client={apolloClient}>
-        <AuthProvider>
-          <SubscriptionProvider>
-            <ToastProvider>
-              <RootLayoutNav />
-            </ToastProvider>
-          </SubscriptionProvider>
-        </AuthProvider>
-      </ApolloProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      <SafeAreaProvider>
+        <ApolloProvider client={apolloClient}>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <ToastProvider>
+                <SoundProvider>
+                  <OnboardingProvider>
+                    <RootLayoutNav />
+                  </OnboardingProvider>
+                </SoundProvider>
+              </ToastProvider>
+            </SubscriptionProvider>
+          </AuthProvider>
+        </ApolloProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
   loading: {
     flex: 1,
     justifyContent: 'center',

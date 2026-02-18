@@ -11,7 +11,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   ScrollView,
   Dimensions,
@@ -21,6 +20,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useQuery } from '@apollo/client';
 import { gql } from '@apollo/client';
@@ -331,7 +331,7 @@ const AnnouncementBanner = () => {
           </View>
         ))}
       </ScrollView>
-      <TouchableOpacity style={styles.announcementClose} onPress={handleDismiss}>
+      <TouchableOpacity style={styles.announcementClose} activeOpacity={0.7} delayPressIn={0} onPress={handleDismiss}>
         <Ionicons name="close" size={14} color="#92400E" />
       </TouchableOpacity>
     </View>
@@ -534,6 +534,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.completeProfileButton}
             activeOpacity={0.8}
+            delayPressIn={0}
             onPress={() => {
               const profileRoute = userProfile?.user_type === 'maid'
                 ? '/maid/profile'
@@ -556,8 +557,8 @@ export default function HomeScreen() {
         style={styles.hero}
         imageStyle={styles.heroImage}
       >
-        <View style={styles.heroOverlay} pointerEvents="box-none">
-          <View style={styles.heroContent} pointerEvents="box-none">
+        <View style={styles.heroOverlay}>
+          <View style={styles.heroContent}>
             {/* Trust indicators */}
             <View style={styles.trustRow}>
               {trustIndicators.map((item, idx) => (
@@ -575,7 +576,7 @@ export default function HomeScreen() {
             </Text>
 
             {/* CTA Buttons */}
-            <View style={styles.ctaContainer} pointerEvents="box-none">
+            <View style={styles.ctaContainer}>
               <TouchableOpacity
                 style={styles.ctaPrimary}
                 activeOpacity={0.8}

@@ -93,7 +93,7 @@ const HeroSection = () => {
                   >
                     <Button
                       size='lg'
-                      onClick={() => navigate(user ? '/maids' : '/register')}
+                      onClick={() => navigate(user ? '/maids' : '/get-started')}
                       className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-purple-500/25 text-lg font-semibold px-8 py-4 h-auto border-0 backdrop-blur-sm'
                     >
                       {user ? (

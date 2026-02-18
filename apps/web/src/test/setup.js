@@ -52,25 +52,37 @@ Object.defineProperty(navigator, 'clipboard', {
   writable: true,
 });
 
-// Mock Performance Observer
-global.PerformanceObserver = vi.fn().mockImplementation((callback) => ({
-  observe: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock Performance Observer as a proper class
+class MockPerformanceObserver {
+  constructor(callback) {
+    this.callback = callback;
+    this.observe = vi.fn();
+    this.disconnect = vi.fn();
+  }
+}
+global.PerformanceObserver = MockPerformanceObserver;
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation((callback) => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock IntersectionObserver as a proper class
+class MockIntersectionObserver {
+  constructor(callback) {
+    this.callback = callback;
+    this.observe = vi.fn();
+    this.unobserve = vi.fn();
+    this.disconnect = vi.fn();
+  }
+}
+global.IntersectionObserver = MockIntersectionObserver;
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation((callback) => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock ResizeObserver as a proper class - use vi.stubGlobal for proper jsdom environment support
+class MockResizeObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal('ResizeObserver', MockResizeObserver);
 
 // Mock crypto API
 Object.defineProperty(global, 'crypto', {
@@ -157,8 +169,8 @@ vi.mock('@/lib/validationSchemas', () => ({
 }));
 
 // Mock AuthContext to provide a safe default when tests don't wrap providers
-vi.mock('@/contexts/AuthContext', () => {
-  const actual = vi.importActual('@/contexts/AuthContext');
+vi.mock('@/contexts/AuthContext', async () => {
+  const actual = await vi.importActual('@/contexts/AuthContext');
   return {
     ...actual,
     useAuth: vi.fn(() => ({
@@ -309,8 +321,47 @@ vi.mock('firebase/storage', () => ({
   getStorage: vi.fn(() => ({})),
   ref: vi.fn(() => ({})),
   uploadBytes: vi.fn(() => Promise.resolve({ ref: {} })),
+  uploadBytesResumable: vi.fn(() => ({
+    on: vi.fn((event, onProgress, onError, onComplete) => {
+      if (onComplete) onComplete();
+    }),
+    snapshot: { ref: {} },
+  })),
   getDownloadURL: vi.fn(() => Promise.resolve('test-url')),
   deleteObject: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock('firebase/functions', () => ({
+  getFunctions: vi.fn(() => ({})),
+  httpsCallable: vi.fn(() => vi.fn(() => Promise.resolve({ data: {} }))),
+  connectFunctionsEmulator: vi.fn(),
+}));
+
+// Mock the Firebase client module to prevent initialization
+vi.mock('@/lib/firebaseClient', () => ({
+  auth: {
+    currentUser: null,
+    onAuthStateChanged: vi.fn((callback) => {
+      callback(null);
+      return vi.fn();
+    }),
+  },
+  storage: {},
+  functions: {},
+  FIREBASE_TOKEN_KEY: 'firebase_auth_token',
+  getIdToken: vi.fn(() => Promise.resolve('test-token')),
+  refreshIdToken: vi.fn(() => Promise.resolve('test-token')),
+  clearStoredToken: vi.fn(),
+  getStoredToken: vi.fn(() => 'test-token'),
+  uploadFile: vi.fn(() => Promise.resolve({ url: 'test-url', path: 'test-path' })),
+  deleteFile: vi.fn(() => Promise.resolve()),
+  getFileUrl: vi.fn(() => Promise.resolve('test-url')),
+  initRecaptcha: vi.fn(() => Promise.resolve({})),
+  signInWithPhone: vi.fn(() => Promise.resolve({ confirm: vi.fn() })),
+  linkPhoneNumber: vi.fn(() => Promise.resolve({})),
+  callCloudFunction: vi.fn(() => Promise.resolve({})),
+  setCustomClaimsForUser: vi.fn(() => Promise.resolve()),
+  app: {},
 }));
 
 // Mock Apollo Client
@@ -321,6 +372,41 @@ vi.mock('@ethio/api-client', () => ({
     subscribe: vi.fn(() => ({ subscribe: vi.fn() })),
   },
 }));
+
+// Mock Apollo Client React hooks for subscriptions
+// All imports should use @apollo/client (not @apollo/client/react) for Apollo v4 compatibility
+vi.mock('@apollo/client/react', () => ({
+  useQuery: vi.fn(() => ({ data: undefined, loading: false, error: undefined })),
+  useLazyQuery: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+  useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+  useSubscription: vi.fn(() => ({
+    data: undefined,
+    loading: false,
+    error: undefined,
+  })),
+  useApolloClient: vi.fn(() => ({
+    query: vi.fn(),
+    mutate: vi.fn(),
+    subscribe: vi.fn(),
+  })),
+  ApolloProvider: ({ children }) => children,
+}));
+
+// Also mock @apollo/client to include useSubscription
+vi.mock('@apollo/client', async () => {
+  const actual = await vi.importActual('@apollo/client');
+  return {
+    ...actual,
+    useQuery: vi.fn(() => ({ data: undefined, loading: false, error: undefined })),
+    useLazyQuery: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+    useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+    useSubscription: vi.fn(() => ({
+      data: undefined,
+      loading: false,
+      error: undefined,
+    })),
+  };
+});
 
 // Mock React Router hooks only (preserve actual router components for tests that need them)
 vi.mock('react-router-dom', async () => {
@@ -363,6 +449,18 @@ vi.mock('@/components/ui/card', () => {
       mockReact.createElement(
         'h3',
         { ...props, 'data-testid': 'card-title' },
+        children
+      ),
+    CardDescription: ({ children, ...props }) =>
+      mockReact.createElement(
+        'p',
+        { ...props, 'data-testid': 'card-description' },
+        children
+      ),
+    CardFooter: ({ children, ...props }) =>
+      mockReact.createElement(
+        'div',
+        { ...props, 'data-testid': 'card-footer' },
         children
       ),
   };
@@ -496,6 +594,7 @@ if (typeof Element !== 'undefined') {
   Element.prototype.hasPointerCapture = vi.fn(() => false);
   Element.prototype.setPointerCapture = vi.fn();
   Element.prototype.releasePointerCapture = vi.fn();
+  Element.prototype.scrollIntoView = vi.fn();
 }
 
 // Mock scrollTo

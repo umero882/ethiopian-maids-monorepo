@@ -168,8 +168,8 @@ const DeploymentTest = () => {
                   </li>
                   <li>
                     •{' '}
-                    <a href='/register' className='underline'>
-                      Registration
+                    <a href='/get-started' className='underline'>
+                      Get Started
                     </a>
                   </li>
                   <li>

@@ -6,7 +6,8 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Image } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMaidDashboard, useRecentBookings, useSubscription } from '../../hooks';
@@ -100,6 +101,8 @@ const SubscriptionCard = ({ planType, status, daysRemaining, onUpgrade, onManage
         {planType !== 'free' && (
           <TouchableOpacity
             style={styles.manageButton}
+            activeOpacity={0.7}
+            delayPressIn={0}
             onPress={onManage}
           >
             <Text style={styles.manageButtonText}>Manage</Text>
@@ -108,6 +111,8 @@ const SubscriptionCard = ({ planType, status, daysRemaining, onUpgrade, onManage
         {upgradeConfig && (
           <TouchableOpacity
             style={[styles.upgradeButton, { backgroundColor: upgradeConfig.color }]}
+            activeOpacity={0.7}
+            delayPressIn={0}
             onPress={() => onUpgrade(upgradeConfig.targetPlan)}
           >
             <Ionicons name="arrow-up-circle" size={16} color="#fff" />
@@ -132,6 +137,8 @@ interface MenuItemProps {
 const MenuItem = ({ icon, title, subtitle, route, badge, badgeColor, onPress }: MenuItemProps) => (
   <TouchableOpacity
     style={styles.menuItem}
+    activeOpacity={0.7}
+    delayPressIn={0}
     onPress={onPress || (route ? () => router.push(route as any) : undefined)}
   >
     <View style={styles.menuItemLeft}>
@@ -216,13 +223,14 @@ export default function MaidDashboard({ user, onSignOut }: MaidDashboardProps) {
     <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />
       }
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/maid/profile')}>
+        <TouchableOpacity activeOpacity={0.7} delayPressIn={0} onPress={() => router.push('/maid/profile')}>
           {profile.avatarUrl ? (
             <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
           ) : (
@@ -300,7 +308,7 @@ export default function MaidDashboard({ user, onSignOut }: MaidDashboardProps) {
 
       {/* Sign Out */}
       <View style={styles.section}>
-        <TouchableOpacity style={styles.signOutButton} onPress={onSignOut}>
+        <TouchableOpacity style={styles.signOutButton} activeOpacity={0.7} delayPressIn={0} onPress={onSignOut}>
           <Ionicons name="log-out-outline" size={22} color="#EF4444" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>

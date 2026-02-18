@@ -12,7 +12,6 @@ import {
   FlatList,
   SectionList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Image,
@@ -21,6 +20,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useConversations, Conversation, getDisplayName, Profile, useOnlineStatus } from '../../hooks/useMessages';

@@ -1,7 +1,7 @@
-import { vi, beforeEach, describe, test, expect } from 'vitest';
+import { vi, beforeEach, afterEach, describe, test, expect } from 'vitest';
 
-// Mock the stripeBillingService since billingService redirects to it
-vi.mock('../stripeBillingService', () => ({
+// Mock the stripeBillingService.graphql since billingService redirects to it
+vi.mock('../stripeBillingService.graphql', () => ({
   __esModule: true,
   default: {
     createCheckoutSession: vi.fn().mockResolvedValue({
@@ -13,13 +13,26 @@ vi.mock('../stripeBillingService', () => ({
   },
 }));
 
+// Mock logger to avoid console output
+vi.mock('@/utils/logger', () => ({
+  createLogger: () => ({
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  }),
+}));
+
 let billingService;
 
 describe('billingService', () => {
   beforeEach(async () => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
-    // Import after mocks are applied so the mocked stripeBillingService is used
-    billingService = (await import('../billingService')).billingService;
+    // Reset modules and import fresh
+    vi.resetModules();
+    const module = await import('../billingService');
+    billingService = module.billingService;
   });
 
   afterEach(() => {
@@ -27,13 +40,13 @@ describe('billingService', () => {
   });
 
   test('createSubscription returns success from redirect flow', async () => {
-    const promise = billingService.createSubscription(
+    // Use real timers for async operations
+    vi.useRealTimers();
+    const result = await billingService.createSubscription(
       'user1',
       'maid',
       'plan_basic'
     );
-    vi.runAllTimers();
-    const result = await promise;
     expect(result.success).toBe(true);
   });
 

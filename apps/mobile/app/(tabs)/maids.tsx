@@ -12,7 +12,6 @@ import {
   TextInput,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Modal,
@@ -21,6 +20,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -605,7 +605,7 @@ export default function MaidsScreen() {
               </View>
 
               {/* Experience Badge */}
-              {item.experience_years && item.experience_years > 0 && (
+              {item.experience_years != null && item.experience_years > 0 && (
                 <View style={styles.experienceBadgeRight}>
                   <Text style={styles.experienceBadgeRightText}>{`${item.experience_years} yrs`}</Text>
                 </View>

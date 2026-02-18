@@ -11,10 +11,10 @@ import {
   Text,
   StyleSheet,
   Animated,
-  TouchableOpacity,
   Dimensions,
   Platform,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

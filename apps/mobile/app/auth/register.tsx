@@ -6,7 +6,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Modal, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Modal, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { usePhoneAuth } from '../../hooks/usePhoneAuth';

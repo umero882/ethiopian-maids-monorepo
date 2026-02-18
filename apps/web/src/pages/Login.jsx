@@ -16,6 +16,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
 import NetworkStatusChecker from '@/components/NetworkStatusChecker';
 import { auth } from '@/lib/firebaseClient';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getUserFriendlyError, isNetworkError } from '@/lib/errorMessages';
 
 const Login = () => {
   const { login, user } = useAuth();
@@ -64,7 +65,7 @@ const Login = () => {
       toast({
         title: 'Missing Information',
         description: 'Please fill in all fields.',
-        variant: 'destructive',
+        variant: 'warning',
       });
       setIsSubmitting(false);
       return;
@@ -80,6 +81,7 @@ const Login = () => {
       toast({
         title: 'Login Successful',
         description: 'Welcome back! Redirecting to your dashboard...',
+        variant: 'success',
       });
 
       // Navigate immediately - the useEffect will handle the redirect when user state updates
@@ -92,60 +94,34 @@ const Login = () => {
         }
       }, 1000);
     } catch (error) {
-      console.error('❌ Login error:', error);
-      setLoginFailed(true); // Set login failed state to show network checker
+      // Log technical error for debugging (never exposed to users)
+      console.error('[Login] Authentication failed:', error.message);
 
-      // Provide more specific error messages with contextual recovery guidance
-      let errorTitle = 'We couldn\'t sign you in';
-      let errorDescription = error.message || 'Please try again.';
-      let action = null;
+      // Get user-friendly error message
+      const friendlyError = getUserFriendlyError(error);
 
-      if (
-        error.message.includes('Network connection failed') ||
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('network') ||
-        error.message.includes('connection')
-      ) {
-        errorTitle = 'Check your internet connection';
-        errorDescription =
-          'Unable to connect to the server. Please check your network connection and try again.';
-        action = {
-          altText: 'Retry connection',
-          action: () => handleRetryConnection()
-        };
-      } else if (
-        error.message.includes('Invalid login credentials') ||
-        error.message.includes('authentication') ||
-        error.message.includes('password') ||
-        error.message.includes('email')
-      ) {
-        errorTitle = 'Check your password';
-        errorDescription =
-          'Your email or password seems incorrect. Double-check your credentials and try again.';
-        action = {
-          altText: 'Reset password',
-          action: () => navigate('/reset-password')
-        };
-      } else if (error.message.includes('too many')) {
-        errorTitle = 'Too many attempts';
-        errorDescription =
-          'Please wait a moment before trying again.';
-      } else if (error.message.includes('account')) {
-        errorTitle = 'Account issue';
-        errorDescription =
-          'There may be an issue with your account. Please contact support if this continues.';
-      } else if (error.message.includes('server')) {
-        errorTitle = 'Server temporarily unavailable';
-        errorDescription =
-          'Our servers are experiencing issues. Please try again in a few minutes.';
+      // For network errors: show inline NetworkStatusChecker (no toast to avoid duplication)
+      // For auth errors: show toast only
+      if (isNetworkError(error)) {
+        setLoginFailed(true);
+        // Don't show toast for network errors - NetworkStatusChecker handles it
+      } else {
+        // Build toast action if the error has a suggested action
+        let toastAction = null;
+        if (friendlyError.action?.path) {
+          toastAction = {
+            altText: friendlyError.action.label,
+            action: () => navigate(friendlyError.action.path)
+          };
+        }
+
+        toast({
+          title: friendlyError.title,
+          description: friendlyError.message,
+          variant: 'destructive',
+          action: toastAction
+        });
       }
-
-      toast({
-        title: errorTitle,
-        description: errorDescription,
-        variant: 'destructive',
-        action
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -170,10 +146,15 @@ const Login = () => {
         });
       }
     } catch (error) {
-      console.error(`${provider} login error:`, error);
+      // Log technical error for debugging
+      console.error(`[Login] ${provider} authentication failed:`, error.message);
+
+      // Get user-friendly error message
+      const friendlyError = getUserFriendlyError(error);
+
       toast({
-        title: 'Login Failed',
-        description: error.message || `Could not sign in with ${provider}. Please try again.`,
+        title: friendlyError.title,
+        description: friendlyError.message,
         variant: 'destructive',
       });
     }
@@ -379,10 +360,10 @@ const Login = () => {
                 <p className='text-gray-300'>
                   Don't have an account?{' '}
                   <Link
-                    to='/register'
+                    to='/get-started'
                     className={`text-purple-300 hover:text-white font-semibold transition-colors duration-200 hover:underline ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}
                   >
-                    Register here
+                    Get Started
                   </Link>
                 </p>
               </div>

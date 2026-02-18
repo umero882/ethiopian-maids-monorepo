@@ -1,17 +1,21 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock performance APIs
-const mockPerformanceObserver = vi.fn();
+const mockPerformanceObserverCallbacks = [];
 const mockDisconnect = vi.fn();
+const mockObserve = vi.fn();
 
-// Mock PerformanceObserver constructor
-global.PerformanceObserver = vi.fn().mockImplementation((callback) => {
-  mockPerformanceObserver.mockImplementation(callback);
-  return {
-    observe: vi.fn(),
-    disconnect: mockDisconnect,
-  };
-});
+// Mock PerformanceObserver as a proper class
+class MockPerformanceObserver {
+  constructor(callback) {
+    this.callback = callback;
+    mockPerformanceObserverCallbacks.push(callback);
+    this.observe = mockObserve;
+    this.disconnect = mockDisconnect;
+  }
+}
+
+global.PerformanceObserver = MockPerformanceObserver;
 
 // Mock performance.memory
 Object.defineProperty(global.performance, 'memory', {
@@ -29,21 +33,26 @@ global.performance.measure = vi.fn();
 global.performance.getEntriesByName = vi.fn();
 global.performance.getEntriesByType = vi.fn().mockReturnValue([]);
 
-// Mock window and document
-Object.defineProperty(global, 'window', {
-  value: {
-    location: { origin: 'http://localhost:3000' },
-  },
-  writable: true,
-});
+// Store original window and document for restoration
+const originalWindow = global.window;
+const originalDocument = global.document;
 
-Object.defineProperty(global, 'document', {
-  value: {
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  },
-  writable: true,
-});
+// Mock window properties needed for performance testing
+if (typeof global.window !== 'undefined') {
+  Object.defineProperty(global.window, 'location', {
+    value: { origin: 'http://localhost:3000' },
+    writable: true,
+    configurable: true,
+  });
+}
+
+// Mock document event listeners
+const mockDocumentAddEventListener = vi.fn();
+const mockDocumentRemoveEventListener = vi.fn();
+if (typeof global.document !== 'undefined') {
+  global.document.addEventListener = mockDocumentAddEventListener;
+  global.document.removeEventListener = mockDocumentRemoveEventListener;
+}
 
 describe('PerformanceMonitor', () => {
   let PerformanceMonitor;
@@ -53,6 +62,11 @@ describe('PerformanceMonitor', () => {
     // Reset all mocks
     vi.clearAllMocks();
     mockDisconnect.mockClear();
+    mockObserve.mockClear();
+    mockPerformanceObserverCallbacks.length = 0;
+
+    // Reset module cache to get fresh instance
+    vi.resetModules();
 
     // Dynamically import after mocking globals
     const module = await import('../performance.js');
@@ -93,44 +107,28 @@ describe('PerformanceMonitor', () => {
     test('should record LCP metrics correctly', () => {
       monitor.init();
 
-      // Simulate LCP observation
-      const mockEntries = [
-        { startTime: 1500 }
-      ];
+      // There should be 3 observers (LCP, FID, CLS)
+      expect(mockPerformanceObserverCallbacks.length).toBeGreaterThanOrEqual(1);
 
-      const lcpCallback = mockPerformanceObserver.mock.calls.find(
-        call => call[0].toString().includes('LCP')
-      )?.[0];
+      // Simulate LCP observation using the first callback (LCP observer)
+      const lcpCallback = mockPerformanceObserverCallbacks[0];
+      const mockEntries = [{ startTime: 1500 }];
 
-      if (lcpCallback) {
-        lcpCallback({
-          getEntries: () => mockEntries
-        });
+      lcpCallback({ getEntries: () => mockEntries });
 
-        expect(monitor.metrics.has('LCP')).toBe(true);
-        expect(monitor.metrics.get('LCP')[0].value).toBe(1500);
-      }
+      expect(monitor.metrics.has('LCP')).toBe(true);
+      expect(monitor.metrics.get('LCP')[0].value).toBe(1500);
     });
 
     test('should record FID metrics correctly', () => {
       monitor.init();
 
-      // Simulate FID observation
-      const mockEntries = [
-        {
-          processingStart: 150,
-          startTime: 100
-        }
-      ];
-
-      const fidCallback = mockPerformanceObserver.mock.calls.find(
-        call => call[0].toString().includes('FID')
-      )?.[0];
+      // Simulate FID observation using the second callback (FID observer)
+      const fidCallback = mockPerformanceObserverCallbacks[1];
+      const mockEntries = [{ processingStart: 150, startTime: 100 }];
 
       if (fidCallback) {
-        fidCallback({
-          getEntries: () => mockEntries
-        });
+        fidCallback({ getEntries: () => mockEntries });
 
         expect(monitor.metrics.has('FID')).toBe(true);
         expect(monitor.metrics.get('FID')[0].value).toBe(50);
@@ -140,38 +138,25 @@ describe('PerformanceMonitor', () => {
     test('should record CLS metrics correctly', () => {
       monitor.init();
 
-      // Simulate CLS observation
-      const mockEntries = [
-        {
-          value: 0.05,
-          hadRecentInput: false
-        },
-        {
-          value: 0.03,
-          hadRecentInput: false
-        }
-      ];
-
-      const clsCallback = mockPerformanceObserver.mock.calls.find(
-        call => call[0].toString().includes('CLS')
-      )?.[0];
+      // Simulate CLS observation using the third callback (CLS observer)
+      const clsCallback = mockPerformanceObserverCallbacks[2];
 
       if (clsCallback) {
         // First entry
         clsCallback({
-          getEntries: () => [mockEntries[0]]
+          getEntries: () => [{ value: 0.05, hadRecentInput: false }]
         });
 
         // Second entry
         clsCallback({
-          getEntries: () => [mockEntries[1]]
+          getEntries: () => [{ value: 0.03, hadRecentInput: false }]
         });
 
         expect(monitor.metrics.has('CLS')).toBe(true);
         // CLS should accumulate values
         const clsValues = monitor.metrics.get('CLS');
         expect(clsValues.length).toBe(2);
-        expect(clsValues[1].value).toBe(0.08); // 0.05 + 0.03
+        expect(clsValues[1].value).toBeCloseTo(0.08, 2); // 0.05 + 0.03
       }
     });
   });
@@ -325,7 +310,7 @@ describe('PerformanceMonitor', () => {
 
       monitor.cleanup();
 
-      expect(global.document.removeEventListener).toHaveBeenCalled();
+      expect(mockDocumentRemoveEventListener).toHaveBeenCalled();
     });
 
     test('should handle cleanup errors gracefully', () => {
@@ -395,14 +380,14 @@ describe('PerformanceMonitor', () => {
       monitor.init();
 
       // Verify click listener was added
-      expect(global.document.addEventListener).toHaveBeenCalledWith(
+      expect(mockDocumentAddEventListener).toHaveBeenCalledWith(
         'click',
         expect.any(Function),
         { passive: true }
       );
 
       // Simulate click
-      const clickHandler = global.document.addEventListener.mock.calls
+      const clickHandler = mockDocumentAddEventListener.mock.calls
         .find(call => call[0] === 'click')?.[1];
 
       if (clickHandler) {

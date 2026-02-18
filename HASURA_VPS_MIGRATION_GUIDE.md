@@ -196,13 +196,15 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_DEV_MODE: "false"
 
-      # Firebase JWT Authentication
+      # Firebase JWT Authentication with Custom Claims for Hasura RBAC
       HASURA_GRAPHQL_JWT_SECRET: |
         {
           "type": "RS256",
           "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
           "audience": "${FIREBASE_PROJECT_ID}",
-          "issuer": "https://securetoken.google.com/${FIREBASE_PROJECT_ID}"
+          "issuer": "https://securetoken.google.com/${FIREBASE_PROJECT_ID}",
+          "claims_namespace": "https://hasura.io/jwt/claims",
+          "claims_format": "json"
         }
 
       # Unauthorized Role (for public queries)

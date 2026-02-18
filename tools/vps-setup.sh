@@ -135,7 +135,7 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET}
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_DEV_MODE: "false"
-      HASURA_GRAPHQL_JWT_SECRET: '{"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","audience":"${FIREBASE_PROJECT_ID}","issuer":"https://securetoken.google.com/${FIREBASE_PROJECT_ID}"}'
+      HASURA_GRAPHQL_JWT_SECRET: '{"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","audience":"${FIREBASE_PROJECT_ID}","issuer":"https://securetoken.google.com/${FIREBASE_PROJECT_ID}","claims_namespace":"https://hasura.io/jwt/claims","claims_format":"json"}'
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
       HASURA_GRAPHQL_PG_CONNECTIONS: 50
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: "startup, http-log, webhook-log, websocket-log"

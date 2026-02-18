@@ -106,7 +106,7 @@ const AboutPage = () => {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
-              to="/register"
+              to="/get-started"
               className="inline-flex items-center px-6 py-3 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
             >
               Get Started
@@ -378,7 +378,7 @@ const AboutPage = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/register"
+              to="/get-started"
               className="inline-flex items-center px-8 py-4 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors text-lg"
             >
               Get Started Now
