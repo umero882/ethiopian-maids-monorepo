@@ -23,7 +23,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +63,6 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -110,7 +108,6 @@ import {
   Grid3X3,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
-import { useDebounce } from '@/hooks/useDebounce';
 
 // Helper function to format date
 const formatDate = (dateString) => {

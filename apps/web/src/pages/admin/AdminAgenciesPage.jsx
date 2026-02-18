@@ -22,7 +22,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Table,
   TableBody,
@@ -55,7 +54,6 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -90,7 +88,6 @@ import {
 import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
-import { useDebounce } from '@/hooks/useDebounce';
 
 const AdminAgenciesPage = () => {
   const { logAdminActivity } = useAdminAuth();
@@ -588,7 +585,6 @@ const AdminAgenciesPage = () => {
     const [agencyData, setAgencyData] = useState(initialAgency);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
 
     // Fetch full agency details when dialog opens
     useEffect(() => {

@@ -22,7 +22,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +53,6 @@ import {
 } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -89,7 +87,6 @@ import {
   Globe,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
-import { useDebounce } from '@/hooks/useDebounce';
 
 // Helper function to calculate match score
 const calculateMatchScore = (applicant, jobRequirements = []) => {

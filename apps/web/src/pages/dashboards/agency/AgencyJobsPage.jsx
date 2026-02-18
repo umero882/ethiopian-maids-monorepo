@@ -24,7 +24,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +48,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Plus,
   Search,
@@ -77,7 +75,6 @@ import {
   Star,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
-import { useDebounce } from '@/hooks/useDebounce';
 
 // Helper function to format currency
 const formatCurrency = (amount, currency = 'USD') => {

@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Heart,
   Search,
@@ -30,7 +29,6 @@ import {
 } from 'lucide-react';
 import MaidCard from '@/components/maids/MaidCard';
 import EmptyState from '@/components/ui/EmptyState';
-import { useDebounce } from '@/hooks/useDebounce';
 
 const SponsorFavoritesPage = () => {
   const navigate = useNavigate();

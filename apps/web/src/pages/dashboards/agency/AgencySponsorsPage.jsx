@@ -44,7 +44,6 @@ import AgencyDashboardService from '@/services/agencyDashboardService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClientPermissions } from '@/hooks/usePermissions';
 import { getSponsorDisplayName } from '@/lib/displayName';
-import { useDebounce } from '@/hooks/useDebounce';
 
 const AgencySponsorsPage = () => {
   const { user } = useAuth();
@@ -84,7 +83,6 @@ const AgencySponsorsPage = () => {
     sponsor_type: 'individual'
   });
   const [emailError, setEmailError] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [editSponsor, setEditSponsor] = useState(null);
@@ -92,7 +90,6 @@ const AgencySponsorsPage = () => {
   // Tab CRUD state
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [tempNotes, setTempNotes] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
   const [savingNotes, setSavingNotes] = useState(false);
 
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
@@ -104,7 +101,6 @@ const AgencySponsorsPage = () => {
   const [isLinkJobOpen, setIsLinkJobOpen] = useState(false);
   const [availableJobs, setAvailableJobs] = useState([]);
   const [selectedJobToLink, setSelectedJobToLink] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
   const [linkingJob, setLinkingJob] = useState(false);
 
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);

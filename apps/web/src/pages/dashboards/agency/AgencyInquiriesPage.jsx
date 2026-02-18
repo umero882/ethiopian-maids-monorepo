@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +31,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +48,6 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
-import { useDebounce } from '@/hooks/useDebounce';
 
 // StatusBadge component
 const StatusBadge = ({ status }) => {
@@ -88,7 +85,6 @@ const AgencyInquiriesPage = () => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [messageText, setMessageText] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     const fetchInquiries = async () => {
