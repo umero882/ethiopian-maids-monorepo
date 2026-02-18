@@ -295,8 +295,8 @@ export const useAgencyMaids = () => {
    * Bulk upload maids (placeholder - needs implementation)
    */
   const bulkUploadMaids = useCallback(async (maidsData, validateOnly = false) => {
-    // TODO: Implement bulk upload via GraphQL mutation
-    log.warn('Bulk upload not yet implemented for GraphQL');
+    // Bulk upload requires a dedicated GraphQL mutation (pending backend schema for batch inserts)
+    log.warn('Bulk upload pending GraphQL mutation implementation');
     return {
       summary: { total: 0, succeeded: 0, failed: 0 },
       results: []

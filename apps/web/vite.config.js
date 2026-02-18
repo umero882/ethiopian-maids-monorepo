@@ -43,6 +43,8 @@ export default defineConfig(({ mode }) => {
   console.log('[Vite Config] VITE_FIREBASE_PROJECT_ID:', env.VITE_FIREBASE_PROJECT_ID ? 'LOADED ✓' : 'NOT FOUND ✗');
   console.log('[Vite Config] VITE_FIREBASE_STORAGE_BUCKET:', env.VITE_FIREBASE_STORAGE_BUCKET ? 'LOADED ✓' : 'NOT FOUND ✗');
 
+  const isProduction = mode === 'production';
+
   return {
   root: path.resolve(__dirname, '.'),
   customLogger: logger,
@@ -206,9 +208,12 @@ export default defineConfig(({ mode }) => {
       '@ethio-maids/infra-profiles-agency': path.resolve(__dirname, './packages/infra/profiles-agency/index.js'),
     },
   },
+  esbuild: isProduction ? {
+    drop: ['console', 'debugger'],
+  } : {},
   build: {
-    chunkSizeWarningLimit: 500, // Relaxed limit
-    minify: 'esbuild', // Use esbuild instead of terser - more reliable
+    chunkSizeWarningLimit: 500,
+    minify: 'esbuild',
     target: 'es2020',
     sourcemap: false,
     rollupOptions: {
@@ -221,7 +226,17 @@ export default defineConfig(({ mode }) => {
         '@babel/generator',
         '@babel/types',
       ],
-      // No manual chunks - let Vite handle everything automatically
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-apollo': ['@apollo/client', 'graphql'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot', 'class-variance-authority', 'lucide-react'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth'],
+          'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+          'vendor-charts': ['recharts'],
+          'vendor-animation': ['framer-motion'],
+        }
+      },
     },
   },
 };

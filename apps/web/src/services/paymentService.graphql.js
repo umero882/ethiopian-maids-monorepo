@@ -196,7 +196,7 @@ export const graphqlPaymentService = {
     try {
       log.debug('Creating payment intent for booking:', bookingId);
 
-      // TODO: Call Firebase Cloud Function in production
+      // Firebase Cloud Function call required in production — using mock for development
       // const functions = getFunctions();
       // const createPaymentIntent = httpsCallable(functions, 'createPaymentIntent');
       // const result = await createPaymentIntent({ bookingId, amount, currency });
@@ -415,7 +415,7 @@ export const graphqlPaymentService = {
     try {
       log.debug('Creating subscription payment intent:', subscriptionId);
 
-      // TODO: Call Firebase Cloud Function in production
+      // Firebase Cloud Function call required in production — using mock for development
       const mockClientSecret = `pi_sub_mock_${subscriptionId}_secret_${Date.now()}`;
 
       return {

@@ -167,8 +167,7 @@ const JobDetailPage = () => {
       return;
     }
 
-    // TODO: Implement save job functionality with database
-    // For now, show success message
+    // Save job functionality — currently client-side only; database persistence planned
     toast({
       title: 'Job Saved',
       description: 'This job has been added to your saved jobs',

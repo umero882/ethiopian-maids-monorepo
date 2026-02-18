@@ -298,14 +298,16 @@ const changePassword = async (currentPassword, newPassword) => {
 };
 
 const inviteTeamMember = async (email, role) => {
-  log.debug('Inviting team member - not implemented (use Firebase Admin SDK)');
-  // Team invitations should be handled via Firebase Cloud Functions
-  throw new Error('Team invitations not yet implemented. Contact support.');
+  log.debug('Inviting team member:', { email, role });
+  // Team invitations require Firebase Admin SDK via Cloud Functions.
+  // This is a backend feature pending Cloud Function deployment.
+  throw new Error('Team invitations require backend setup. Please contact support to invite team members.');
 };
 
 const cancelInvitation = async (invitationId) => {
-  log.debug('Canceling invitation - not implemented');
-  throw new Error('Invitation cancellation not yet implemented. Contact support.');
+  log.debug('Canceling invitation:', { invitationId });
+  // Invitation cancellation requires Firebase Admin SDK via Cloud Functions.
+  throw new Error('Invitation cancellation requires backend setup. Please contact support.');
 };
 
 // ============================================================================

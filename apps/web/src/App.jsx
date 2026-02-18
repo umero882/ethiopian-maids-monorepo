@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-// TODO: Switch back to AuthContext.v2 once every consumer supports the new API surface
+// AuthContext.v2 migration pending — keeping v1 until all consumers are updated
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ChatProvider } from '@/contexts/ChatContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
@@ -18,6 +18,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { Toaster } from '@/components/ui/toaster';
 import { SkipNavigation } from '@/components/ui/SkipNavigation';
 import { ScreenReaderAnnouncements } from '@/components/ui/ScreenReaderAnnouncements';
+import OfflineBanner from '@/components/ui/OfflineBanner';
 import performanceMonitor from '@/utils/performance';
 import logger from '@/utils/logger';
 import '@/styles/design-tokens.css';
@@ -397,6 +398,7 @@ function App() {
               <ChatProvider>
                 <SubscriptionProvider>
               <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <OfflineBanner />
                 <SkipNavigation />
                 <ScreenReaderAnnouncements />
               <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50'>

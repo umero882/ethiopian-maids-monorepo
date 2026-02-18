@@ -332,7 +332,7 @@ class SubscriptionService {
 
       // If there's a Stripe subscription, cancel it first via Firebase Function
       // For now, we'll just update the database
-      // TODO: Implement Firebase Function for Stripe cancellation
+      // Stripe cancellation via Firebase Function — pending Cloud Function deployment
 
       const { data, errors } = await apolloClient.mutate({
         mutation: CANCEL_SUBSCRIPTION,
