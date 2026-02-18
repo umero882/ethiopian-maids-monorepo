@@ -1,4 +1,5 @@
 ﻿import React, { useMemo, useState, useEffect } from 'react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -54,7 +55,6 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import SEO from '@/components/global/SEO';
 import { useCurrency } from '@/hooks/useCurrency';
 import {
-import { usePageTitle } from '@/hooks/usePageTitle';
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,

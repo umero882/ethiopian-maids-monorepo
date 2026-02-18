@@ -4,6 +4,7 @@
  * Shows all profile attributes including video CV
  */
 
+import { usePageTitle } from '@/hooks/usePageTitle';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -19,7 +20,6 @@ import BookingRequestDialog from '@/components/maids/BookingRequestDialog';
 import ContactActionPopup from '@/components/maids/ContactActionPopup';
 import { getMaidDisplayName } from '@/lib/displayName';
 import {
-import { usePageTitle } from '@/hooks/usePageTitle';
   ArrowLeft,
   MapPin,
   Calendar,

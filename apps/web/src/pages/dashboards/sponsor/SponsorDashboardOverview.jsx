@@ -14,8 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import SubscriptionSuccessBanner from '@/components/subscription/SubscriptionSuccessBanner';
 import ProUserBadge from '@/components/subscription/ProUserBadge';
-import {
 import { usePageTitle } from '@/hooks/usePageTitle';
+import {
   Calendar,
   Heart,
   MessageSquare,

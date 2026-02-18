@@ -1,7 +1,7 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-import { usePageTitle } from '@/hooks/usePageTitle';
   Users,
   Shield,
   Globe,

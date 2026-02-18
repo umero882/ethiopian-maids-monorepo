@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import SEO from '@/components/global/SEO';
 import { motion } from 'framer-motion';
@@ -31,7 +32,6 @@ import { useDebounce } from 'use-debounce';
 import { maidService } from '@/services/maidService';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import {
-import { usePageTitle } from '@/hooks/usePageTitle';
   Select,
   SelectContent,
   SelectItem,
