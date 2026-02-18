@@ -97,6 +97,7 @@ import VoiceRecorder from '@/components/chat/VoiceRecorder';
 import VoicePlayer from '@/components/chat/VoicePlayer';
 import { graphqlNotificationService } from '@/services/notificationService.graphql';
 import EmptyState from '@/components/ui/EmptyState';
+import { MessageListSkeleton } from '@/components/ui/skeletons';
 
 // GraphQL Queries
 const GET_CONVERSATIONS = gql`
@@ -1268,8 +1269,16 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
           <CardContent className="flex-1 p-0 overflow-hidden">
             <ScrollArea className="h-full">
               {conversationsLoading && conversations.length === 0 ? (
-                <div className="flex items-center justify-center py-12">
-                  <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+                <div className="p-4 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2">
+                      <div className="h-10 w-10 rounded-full bg-muted animate-pulse flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                        <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : conversationsError ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -1429,9 +1438,7 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
                 <ScrollArea className="h-full">
                   <div className="p-4">
                     {messagesLoading && messages.length === 0 ? (
-                      <div className="flex items-center justify-center py-12">
-                        <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
-                      </div>
+                      <MessageListSkeleton count={4} />
                     ) : messages.length === 0 ? (
                       <EmptyState
                         icon={MessageSquare}
@@ -1641,6 +1648,7 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
         </Card>
       </div>
 
+ aria-label='Send message'
       {/* Image Viewer Modal */}
       <Dialog open={!!viewerImage} onOpenChange={() => setViewerImage(null)}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95">

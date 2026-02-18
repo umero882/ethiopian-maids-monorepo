@@ -624,7 +624,8 @@ const Notifications = () => {
                                 <div className='flex items-center space-x-2 ml-4'>
                                   {!notification.read && (
                                     <Button
-                                      size='icon'
+                                      size="icon"
+                                      aria-label="Mark as read"
                                       variant='ghost'
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -636,6 +637,7 @@ const Notifications = () => {
                                     </Button>
                                   )}
                                   <Button
+                                  aria-label='Delete notification'
                                     size='icon'
                                     variant='ghost'
                                     onClick={(e) => {

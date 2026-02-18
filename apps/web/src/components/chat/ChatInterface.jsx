@@ -414,6 +414,7 @@ const ChatInterface = ({ isOpen, onClose }) => {
                             <Button
                               onClick={handleSendMessage}
                               size='icon'
+                              aria-label='Send message'
                               className='h-10 w-10 rounded-full flex-shrink-0'
                             >
                               <Send className='h-4 w-4' />

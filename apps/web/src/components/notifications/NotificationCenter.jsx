@@ -478,7 +478,8 @@ export function NotificationCenter() {
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon"
+          aria-label="View notifications" className="relative">
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <motion.span

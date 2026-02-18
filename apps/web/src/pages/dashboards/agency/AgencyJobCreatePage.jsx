@@ -606,7 +606,8 @@ const AgencyJobCreatePage = () => {
                           }
                         }}
                       />
-                      <Button type='button' onClick={addSkill} variant='outline' size='icon'>
+                      <Button type='button' onClick={addSkill} variant='outline' size='icon'
+                      aria-label='Add skill'>
                         <Plus className='h-4 w-4' />
                       </Button>
                     </div>
@@ -670,6 +671,7 @@ const AgencyJobCreatePage = () => {
                           }
                         }}
                       />
+                      aria-label='Add language'
                       <Button type='button' onClick={addLanguage} variant='outline' size='icon'>
                         <Plus className='h-4 w-4' />
                       </Button>

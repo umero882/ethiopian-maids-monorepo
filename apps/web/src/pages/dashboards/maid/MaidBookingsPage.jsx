@@ -395,6 +395,7 @@ const MaidBookingsPage = () => {
                                   <Button
                                     variant='ghost'
                                     size='icon'
+                                    aria-label='Toggle booking details'
                                     onClick={() =>
                                       toggleRowExpansion(booking.id)
                                     }

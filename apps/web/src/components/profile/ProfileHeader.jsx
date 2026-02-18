@@ -60,6 +60,7 @@ const ProfileHeader = ({ profileData, isEditing, onInputChange, children }) => {
             {isEditing && (
               <Button
                 size='icon'
+                aria-label='Change avatar'
                 className='absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0'
                 onClick={() => document.getElementById('avatarUpload')?.click()}
               >

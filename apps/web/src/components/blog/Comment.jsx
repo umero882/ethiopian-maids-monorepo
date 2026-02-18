@@ -345,6 +345,7 @@ const Comment = ({ comment, onCommentUpdated, onCommentDeleted, onReply }) => {
                   <Button
                     variant='ghost'
                     size='icon'
+                    aria-label='Comment options'
                     className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
                   >
                     <MoreVertical className='h-4 w-4' />

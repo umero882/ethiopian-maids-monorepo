@@ -241,6 +241,7 @@ export function RealtimeChat({ otherUserId, otherUserName, otherUserAvatar }) {
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
             size="icon"
+            aria-label="Send message"
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

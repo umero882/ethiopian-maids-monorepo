@@ -441,6 +441,7 @@ const DashboardLayout = ({ children }) => {
             <Button
               variant='ghost'
               size='icon'
+              aria-label='Open sidebar menu'
               className='md:hidden fixed top-4 left-4 z-50 bg-white shadow-md'
             >
               <Menu className='h-6 w-6 text-gray-700' />
@@ -510,6 +511,7 @@ const DashboardLayout = ({ children }) => {
                     <>
                       <Button
                         variant='ghost'
+                        aria-label='View notifications'
                         size='icon'
                         onClick={() =>
                           navigate(
@@ -522,6 +524,7 @@ const DashboardLayout = ({ children }) => {
                         <Bell className='h-5 w-5 text-gray-500' />
                       </Button>
                       <Button
+                      aria-label='View profile'
                         variant='ghost'
                         size='icon'
                         onClick={() => navigate('/profile')}
@@ -531,6 +534,7 @@ const DashboardLayout = ({ children }) => {
                     </>
                   )}
                   {profileIncomplete && (
+                  aria-label='Complete profile'
                     <Button
                       variant='ghost'
                       size='icon'

@@ -295,7 +295,8 @@ const SponsorJobDetailPage = () => {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant='outline' size='icon' disabled={actionLoading}>
+              <Button variant='outline' size='icon'
+              aria-label='More actions' disabled={actionLoading}>
                 {actionLoading ? (
                   <Loader2 className='h-4 w-4 animate-spin' />
                 ) : (

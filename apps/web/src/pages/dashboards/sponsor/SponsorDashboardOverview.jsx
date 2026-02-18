@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { DashboardStatsSkeleton, CardSkeleton, TableSkeleton } from '@/components/ui/skeletons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription, SUBSCRIPTION_PLANS } from '@/contexts/SubscriptionContext';
 import { sponsorService } from '@/services/sponsorService';
@@ -250,11 +251,13 @@ const SponsorDashboardOverview = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+      <div className="space-y-6">
+        <DashboardStatsSkeleton count={4} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
+        <TableSkeleton rows={4} cols={3} />
       </div>
     );
   }

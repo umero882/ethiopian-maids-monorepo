@@ -592,6 +592,7 @@ const SponsorFeedbackPage = () => {
                     type='button'
                     variant='ghost'
                     size='icon'
+                    aria-label='Rate star'
                     onClick={() => setFeedbackRating(star)}
                     className={`p-1 ${
                       feedbackRating >= star
@@ -666,6 +667,7 @@ const SponsorFeedbackPage = () => {
                     key={star}
                     type='button'
                     variant='ghost'
+                    aria-label='Rate star'
                     size='icon'
                     onClick={() => setEditRating(star)}
                     className={`p-1 ${

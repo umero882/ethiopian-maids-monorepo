@@ -433,12 +433,14 @@ const SponsorDashboard = () => {
                 <Button
                   variant='outline'
                   size='icon'
+                  aria-label='Scroll left'
                   onClick={() => scrollCarousel('left')}
                 >
                   <ChevronLeft className='h-5 w-5' />
                 </Button>
                 <Button
                   variant='outline'
+                  aria-label='Scroll right'
                   size='icon'
                   onClick={() => scrollCarousel('right')}
                 >

@@ -301,6 +301,7 @@ const JobDetailPage = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Save job"
                       onClick={handleSaveJob}
                       className="text-gray-400 hover:text-yellow-500"
                     >

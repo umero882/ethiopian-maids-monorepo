@@ -512,6 +512,7 @@ const AgencyEditMaidPage = () => {
                     type='button'
                     variant='destructive'
                     size='icon'
+                    aria-label='Remove photo'
                     className='absolute -top-2 -right-2 h-8 w-8 rounded-full'
                     onClick={handleRemovePhoto}
                   >

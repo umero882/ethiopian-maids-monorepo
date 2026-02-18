@@ -2553,6 +2553,7 @@ const MaidCompletionForm = ({ onUpdate, initialData = {} }) => {
                   type='button'
                   variant='ghost'
                   size='icon'
+                  aria-label='Remove document'
                   onClick={() => removeDocument(index)}
                   className='text-red-500 hover:text-red-700'
                 >

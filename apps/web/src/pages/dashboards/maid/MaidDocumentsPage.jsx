@@ -705,6 +705,7 @@ const MaidDocumentsPage = () => {
                                   <Button
                                     variant='ghost'
                                     size='icon'
+                                    aria-label='View document'
                                     onClick={() => handleViewDocument(doc.id)}
                                     title='View Document'
                                   >
@@ -713,6 +714,7 @@ const MaidDocumentsPage = () => {
                                 )}
                                 <Button
                                   variant='ghost'
+                                  aria-label='Upload document'
                                   size='icon'
                                   onClick={() => handleDocumentUpload(doc.id)}
                                   title='Upload or Update'
@@ -836,6 +838,7 @@ const MaidDocumentsPage = () => {
                   />
                   <Button
                     type='button'
+                    aria-label='Set expiry date'
                     variant='outline'
                     size='icon'
                     onClick={() => handleExpiryDateChange(addMonths(new Date(), 12))}

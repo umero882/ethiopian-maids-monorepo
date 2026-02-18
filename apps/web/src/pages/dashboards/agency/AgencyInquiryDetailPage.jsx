@@ -763,6 +763,7 @@ const AgencyInquiryDetailPage = () => {
                           <Button
                             variant='outline'
                             size='icon'
+                            aria-label='AI suggestions'
                             className='h-10 w-10 rounded-md bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
                             disabled={generatingSuggestions || sendingMessage}
                           >
