@@ -10,6 +10,7 @@ import WhatsAppAssistantSection from '@/components/home/WhatsAppAssistantSection
 import SEO from '@/components/global/SEO';
 import FindJobsCTA from '@/components/home/FindJobsCTA';
 import FloatingWhatsAppButton from '@/components/common/FloatingWhatsAppButton';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const Home = () => {
   const seo = useMemo(
@@ -97,6 +98,7 @@ const Home = () => {
     []
   );
 
+  usePageTitle('Home');
   return (
     <div className='min-h-screen'>
       <SEO {...seo} jsonLd={seoJsonLd} />

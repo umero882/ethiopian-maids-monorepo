@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import BlogFeed from '@/components/blog/BlogFeed';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const Blog = () => {
+  usePageTitle('Community Blog');
   const { user } = useAuth();
 
   return (

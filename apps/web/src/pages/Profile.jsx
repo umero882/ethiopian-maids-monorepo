@@ -47,9 +47,11 @@ import { sponsorService } from '@/services/sponsorService';
 import { profileService } from '@/services/profileService';
 import { agencyService } from '@/services/agencyService';
 import { toast } from '@/components/ui/use-toast';
+import { usePageTitle } from '@/hooks/usePageTitle';
 // Debug component removed during Phase 1 cleanup
 
 const Profile = () => {
+  usePageTitle('My Profile');
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

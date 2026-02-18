@@ -42,8 +42,10 @@ import { PipelineFunnelChart } from '@/components/charts/PipelineFunnelChart';
 import { TimeToHireTrendChart } from '@/components/charts/TimeToHireTrendChart';
 import { TasksSLAPanel } from '@/components/dashboard/TasksSLAPanel';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const AgencyHomePage = () => {
+  usePageTitle('Agency Dashboard');
   const {
     kpis,
     alerts,

@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import SubscriptionSuccessBanner from '@/components/subscription/SubscriptionSuccessBanner';
 import ProUserBadge from '@/components/subscription/ProUserBadge';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   Calendar,
   Heart,
   MessageSquare,
@@ -71,6 +72,7 @@ const GET_RECOMMENDED_MAIDS = gql`
 `;
 
 const SponsorDashboardOverview = () => {
+  usePageTitle('Sponsor Dashboard');
   const { user } = useAuth();
   const { refreshSubscription, subscriptionPlan, dbSubscription } = useSubscription();
   const navigate = useNavigate();

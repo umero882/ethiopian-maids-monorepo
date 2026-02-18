@@ -17,8 +17,10 @@ import NetworkStatusChecker from '@/components/NetworkStatusChecker';
 import { auth } from '@/lib/firebaseClient';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getUserFriendlyError, isNetworkError } from '@/lib/errorMessages';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const Login = () => {
+  usePageTitle('Login');
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);

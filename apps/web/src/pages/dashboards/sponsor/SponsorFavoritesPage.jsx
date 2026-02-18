@@ -5,6 +5,7 @@ import { sponsorService } from '@/services/sponsorService';
 import { useChat } from '@/contexts/ChatContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Heart,
   Search,
@@ -28,6 +30,7 @@ import {
 } from 'lucide-react';
 import MaidCard from '@/components/maids/MaidCard';
 import EmptyState from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const SponsorFavoritesPage = () => {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ const SponsorFavoritesPage = () => {
   const [filteredFavorites, setFilteredFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [removing, setRemoving] = useState(null);
 
   useEffect(() => {

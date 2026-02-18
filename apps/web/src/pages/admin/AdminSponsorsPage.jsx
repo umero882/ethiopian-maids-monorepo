@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import logger from '@/utils/logger';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Table,
   TableBody,
@@ -49,6 +51,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -76,6 +79,7 @@ import {
 import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const AdminSponsorsPage = () => {
   const { logAdminActivity } = useAdminAuth();
@@ -83,6 +87,7 @@ const AdminSponsorsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [subscriptionFilter, setSubscriptionFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);

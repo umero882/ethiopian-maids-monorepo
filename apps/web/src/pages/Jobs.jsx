@@ -28,8 +28,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import SEO from '@/components/global/SEO';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const Jobs = () => {
+  usePageTitle('Jobs');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');

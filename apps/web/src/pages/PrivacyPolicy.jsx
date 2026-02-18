@@ -8,6 +8,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Shield, Eye, Database, Lock, Globe, UserCheck, Bell, Mail, Phone, FileText, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const PrivacyPolicy = () => {
   const lastUpdated = 'January 2025';
   const effectiveDate = 'January 1, 2025';
 
+  usePageTitle('Privacy Policy');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Hero Header */}

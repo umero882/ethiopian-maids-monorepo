@@ -5,6 +5,7 @@ import { agencyService } from '@/services/agencyService';
 import { toast } from '@/components/ui/use-toast';
 import ProfileCompletionGate from '@/components/agency/ProfileCompletionGate';
 import { Button } from '@/components/ui/button';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +49,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Plus,
   Search,
@@ -74,6 +77,7 @@ import {
   Star,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Helper function to format currency
 const formatCurrency = (amount, currency = 'USD') => {
@@ -170,6 +174,7 @@ const AgencyJobsPage = () => {
   const [jobListings, setJobListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState([]);

@@ -470,7 +470,7 @@ const SettingsForm = ({ settings, onUpdate }) => {
                 />
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="icon" aria-label="Remove item"
                   onClick={copyWebhookUrl}
                   disabled={!formData.whatsapp_webhook_url}
                 >

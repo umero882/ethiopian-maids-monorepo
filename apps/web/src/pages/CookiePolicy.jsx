@@ -7,10 +7,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie, Shield, Settings, BarChart3, Target, Clock, Globe, Mail, Phone, AlertCircle } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const CookiePolicy = () => {
   const lastUpdated = 'January 2025';
 
+  usePageTitle('Cookie Policy');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Hero Header */}

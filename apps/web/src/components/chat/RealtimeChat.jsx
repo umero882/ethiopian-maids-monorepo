@@ -240,7 +240,7 @@ export function RealtimeChat({ otherUserId, otherUserName, otherUserAvatar }) {
           <Button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            size="icon"
+            size="icon" aria-label="Send message"
             aria-label="Send message"
           >
             {sending ? (

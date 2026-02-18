@@ -54,6 +54,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import SEO from '@/components/global/SEO';
 import { useCurrency } from '@/hooks/useCurrency';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -65,6 +66,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const PricingPage = () => {
+  usePageTitle('Pricing');
   const { user } = useAuth();
   const navigate = useNavigate();
   const {

@@ -8,6 +8,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FileText, Shield, Users, CreditCard, AlertCircle, Scale, Mail, Phone, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const TermsOfService = () => {
   const lastUpdated = 'January 2025';
   const effectiveDate = 'January 1, 2025';
 
+  usePageTitle('Terms of Service');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Hero Header */}

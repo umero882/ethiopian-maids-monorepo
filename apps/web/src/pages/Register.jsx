@@ -19,6 +19,7 @@ import { auth, setUserTypeClaim } from '@/lib/firebaseClient';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useFirebasePhoneAuth, PHONE_VERIFICATION_STATES } from '@/hooks/useFirebasePhoneAuth';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   User,
   Mail,
   Lock,
@@ -51,6 +52,7 @@ const COUNTRY_DIAL_CODES = {
 };
 
 const Register = () => {
+  usePageTitle('None');
   const { register, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

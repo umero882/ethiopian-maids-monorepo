@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { agencyService } from '@/services/agencyService';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +54,7 @@ import {
 } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -86,6 +89,7 @@ import {
   Globe,
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Helper function to calculate match score
 const calculateMatchScore = (applicant, jobRequirements = []) => {
@@ -211,6 +215,7 @@ const AgencyApplicantsPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [statusFilter, setStatusFilter] = useState('all');
   const [jobFilter, setJobFilter] = useState('all');
   const [scoreFilter, setScoreFilter] = useState('all');

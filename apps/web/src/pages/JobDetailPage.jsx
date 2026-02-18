@@ -51,8 +51,10 @@ import { getJobById, submitApplication } from '@/services/jobService';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import SEO from '@/components/global/SEO';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const JobDetailPage = () => {
+  usePageTitle('Job Details');
   const { jobId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -300,7 +302,7 @@ const JobDetailPage = () => {
                     </div>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Share job"
                       aria-label="Save job"
                       onClick={handleSaveJob}
                       className="text-gray-400 hover:text-yellow-500"

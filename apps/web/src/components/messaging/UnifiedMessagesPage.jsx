@@ -1655,7 +1655,7 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
           <div className="relative">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Send message"
               onClick={() => setViewerImage(null)}
               className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
             >

@@ -188,6 +188,7 @@ import AdditionalDocuments from '@/components/ui/AdditionalDocuments';
 // Local storage mode: no remote document service
 import { getDefaultLocation, getDefaultCurrencyForRegion } from '@/lib/locationUtils';
 import { ProfileSkeleton } from '@/components/ui/loading-states';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 // Enhanced constants with better UX
 const KEY_RESPONSIBILITIES = [
@@ -293,6 +294,7 @@ const AVAILABILITY_OPTIONS = [
 ];
 
 const MaidProfilePage = () => {
+  usePageTitle('Maid Dashboard');
   const { user } = useAuth();
   const navigate = useNavigate();
 

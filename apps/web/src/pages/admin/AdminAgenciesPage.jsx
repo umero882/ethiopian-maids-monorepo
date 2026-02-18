@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import logger from '@/utils/logger';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Table,
   TableBody,
@@ -53,6 +55,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Search,
   Filter,
@@ -87,6 +90,7 @@ import {
 import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const AdminAgenciesPage = () => {
   const { logAdminActivity } = useAdminAuth();
@@ -94,6 +98,7 @@ const AdminAgenciesPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [subscriptionFilter, setSubscriptionFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -583,6 +588,7 @@ const AdminAgenciesPage = () => {
     const [agencyData, setAgencyData] = useState(initialAgency);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
     // Fetch full agency details when dialog opens
     useEffect(() => {

@@ -36,10 +36,12 @@ import {
   useOnRecentTransactionsSubscription
 } from '@ethio/api-client';
 import { createLogger } from '@/utils/logger';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const log = createLogger('AdminDashboard');
 
 const AdminDashboard = () => {
+  usePageTitle('Admin Dashboard');
   const { adminUser, logAdminActivity } = useAdminAuth();
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isConnected, setIsConnected] = useState(true);

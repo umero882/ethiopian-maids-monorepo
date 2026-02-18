@@ -1181,7 +1181,7 @@ const AgencyCalendarPage = () => {
           {/* Calendar Header */}
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="icon"
+              <Button variant="outline" size="icon" aria-label="Previous month"
               aria-label="Previous month" onClick={() => navigateMonth(-1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -1189,7 +1189,7 @@ const AgencyCalendarPage = () => {
                 {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h2>
               aria-label='Next month'
-              <Button variant="outline" size="icon" onClick={() => navigateMonth(1)}>
+              <Button variant="outline" size="icon" aria-label="Next month" onClick={() => navigateMonth(1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => setCurrentMonth(new Date())}>

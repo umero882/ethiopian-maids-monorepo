@@ -23,6 +23,7 @@ import { createLogger } from '@/utils/logger';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import EmptyState from '@/components/ui/EmptyState';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   Bell,
   MessageCircle,
   Briefcase,
@@ -133,6 +134,7 @@ const DELETE_NOTIFICATION = gql`
 `;
 
 const Notifications = () => {
+  usePageTitle('Notifications');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -624,7 +626,7 @@ const Notifications = () => {
                                 <div className='flex items-center space-x-2 ml-4'>
                                   {!notification.read && (
                                     <Button
-                                      size="icon"
+                                      size="icon" aria-label="Notification action"
                                       aria-label="Mark as read"
                                       variant='ghost'
                                       onClick={(e) => {

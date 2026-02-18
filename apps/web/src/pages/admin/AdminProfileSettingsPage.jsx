@@ -790,7 +790,7 @@ const AdminProfileSettingsPage = () => {
               />
               <Button
                 variant="outline"
-                size="icon"
+                size="icon" aria-label="Upload avatar"
                 aria-label="Upload avatar"
                 className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
                 onClick={() => fileInputRef.current?.click()}

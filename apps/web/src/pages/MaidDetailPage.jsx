@@ -19,6 +19,7 @@ import BookingRequestDialog from '@/components/maids/BookingRequestDialog';
 import ContactActionPopup from '@/components/maids/ContactActionPopup';
 import { getMaidDisplayName } from '@/lib/displayName';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   ArrowLeft,
   MapPin,
   Calendar,
@@ -118,6 +119,7 @@ const formatDate = (dateString) => {
 const VideoPlayerModal = ({ isOpen, onClose, videoUrl, maidName }) => {
   const videoRef = useRef(null);
 
+  usePageTitle('Maid Profile');
   useEffect(() => {
     if (!isOpen && videoRef.current) {
       videoRef.current.pause();

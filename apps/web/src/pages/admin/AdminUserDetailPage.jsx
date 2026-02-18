@@ -535,7 +535,7 @@ export function AdminUserDetailPage() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon"
+                  <Button variant="outline" size="icon" aria-label="Edit user"
                   aria-label="More actions">
                     <MoreVertical className="h-4 w-4" />
                   </Button>

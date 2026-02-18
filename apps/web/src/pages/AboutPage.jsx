@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   Users,
   Shield,
   Globe,
@@ -93,6 +94,7 @@ const AboutPage = () => {
     'Verified by Ethiopian Embassy Network',
   ];
 
+  usePageTitle('About Us');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Hero Section */}

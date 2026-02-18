@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, Loader2, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  usePageTitle('Forgot Password');
   const { requestPasswordReset } = useAuth();
 
   const [email, setEmail] = useState('');

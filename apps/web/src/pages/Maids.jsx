@@ -31,6 +31,7 @@ import { useDebounce } from 'use-debounce';
 import { maidService } from '@/services/maidService';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import {
+import { usePageTitle } from '@/hooks/usePageTitle';
   Select,
   SelectContent,
   SelectItem,
@@ -39,6 +40,7 @@ import {
 } from '@/components/ui/select';
 
 const Maids = () => {
+  usePageTitle('Browse Maids');
   const { user } = useAuth();
   const { createConversation, setActiveConversation } = useChat();
   const navigate = useNavigate();
