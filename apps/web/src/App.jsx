@@ -26,8 +26,7 @@ import '@/styles/design-tokens.css';
 const Home = React.lazy(() => import(/* webpackChunkName: "home" */ '@/pages/Home'));
 const Login = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/Login'));
 const UnifiedOnboarding = React.lazy(() => import(/* webpackChunkName: "unified-onboarding" */ '@/pages/UnifiedOnboarding'));
-const TestEnv = React.lazy(() => import(/* webpackChunkName: "test" */ '@/pages/TestEnv'));
-const DiagnoseApollo = React.lazy(() => import(/* webpackChunkName: "test" */ '@/pages/diagnose-apollo'));
+// REMOVED: TestEnv and DiagnoseApollo pages (exposed admin secrets)
 const VerifyEmail = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/VerifyEmail'));
 const ForgotPassword = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import(/* webpackChunkName: "auth" */ '@/pages/ResetPassword'));
@@ -517,22 +516,7 @@ function App() {
                         </Suspense>
                       }
                     />
-                    <Route
-                      path='/test-env'
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <TestEnv />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path='/diagnose-apollo'
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <DiagnoseApollo />
-                        </Suspense>
-                      }
-                    />
+                    {/* REMOVED: /test-env and /diagnose-apollo routes (security - exposed admin secrets) */}
                     <Route
                       path='/graphql-test'
                       element={

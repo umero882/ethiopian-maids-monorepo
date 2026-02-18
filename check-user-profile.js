@@ -5,7 +5,7 @@
 const fetch = require('node-fetch');
 
 const HASURA_ENDPOINT = 'https://ethio-maids-01.hasura.app/v1/graphql';
-const HASURA_ADMIN_SECRET = 'GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F';
+const HASURA_ADMIN_SECRET = process.env.HASURA_ADMIN_SECRET || '';
 
 async function checkProfiles() {
   // Get all profiles with agency user_type

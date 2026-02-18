@@ -19,7 +19,7 @@ const log = createLogger('AuthContext');
 
 // Direct GraphQL fetch function to bypass Apollo Client issues
 const HASURA_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://ethio-maids-01.hasura.app/v1/graphql';
-const HASURA_ADMIN_SECRET = import.meta.env.VITE_HASURA_ADMIN_SECRET;
+// SECURITY: Admin secret removed from client - use JWT auth only
 
 async function fetchProfileDirect(userId) {
   const query = `
@@ -43,12 +43,15 @@ async function fetchProfileDirect(userId) {
     }
   `;
 
+  // Get JWT token from Firebase Auth
+  const token = getStoredToken();
+
   try {
     const response = await fetch(HASURA_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(HASURA_ADMIN_SECRET ? { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET } : {}),
+        ...(token ? { 'authorization': `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         query,
@@ -57,7 +60,7 @@ async function fetchProfileDirect(userId) {
     });
 
     const result = await response.json();
-    console.log('🔍 fetchProfileDirect - Raw response:', result);
+    
     return result;
   } catch (error) {
     console.error('🔍 fetchProfileDirect - Error:', error);

@@ -17,7 +17,7 @@ export function checkAllConfigurations() {
 
   const hasuraConfig = {
     graphqlUrl: import.meta.env.VITE_HASURA_GRAPHQL_URL,
-    adminSecret: import.meta.env.VITE_HASURA_ADMIN_SECRET,
+    // adminSecret removed - not used in client apps
   };
 
   return {
@@ -37,7 +37,7 @@ export function checkAllConfigurations() {
         graphqlUrl: hasuraConfig.graphqlUrl
           ? `${hasuraConfig.graphqlUrl.substring(0, 30)}...`
           : 'Not set',
-        adminSecret: hasuraConfig.adminSecret ? '✓ Set' : 'Not set',
+        // adminSecret: removed from client for security
       },
     },
     mockData: {

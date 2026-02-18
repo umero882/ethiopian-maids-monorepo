@@ -39,7 +39,6 @@ export default defineConfig(({ mode }) => {
 
   // Log environment loading
   console.log('[Vite Config] Loading environment variables from:', monorepoRoot);
-  console.log('[Vite Config] VITE_HASURA_ADMIN_SECRET:', env.VITE_HASURA_ADMIN_SECRET ? 'LOADED ✓' : 'NOT FOUND ✗');
   console.log('[Vite Config] VITE_FIREBASE_API_KEY:', env.VITE_FIREBASE_API_KEY ? 'LOADED ✓' : 'NOT FOUND ✗');
   console.log('[Vite Config] VITE_FIREBASE_PROJECT_ID:', env.VITE_FIREBASE_PROJECT_ID ? 'LOADED ✓' : 'NOT FOUND ✗');
   console.log('[Vite Config] VITE_FIREBASE_STORAGE_BUCKET:', env.VITE_FIREBASE_STORAGE_BUCKET ? 'LOADED ✓' : 'NOT FOUND ✗');
@@ -51,7 +50,6 @@ export default defineConfig(({ mode }) => {
   define: {
     // Explicitly define environment variables to ensure they're available
     // Both import.meta.env and process.env formats for cross-platform compatibility
-    'import.meta.env.VITE_HASURA_ADMIN_SECRET': JSON.stringify(env.VITE_HASURA_ADMIN_SECRET),
     'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),
     'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN),
     'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID),
@@ -62,7 +60,6 @@ export default defineConfig(({ mode }) => {
     // process.env format for shared packages (api-client)
     'process.env.VITE_HASURA_GRAPHQL_ENDPOINT': JSON.stringify(env.VITE_HASURA_GRAPHQL_ENDPOINT),
     'process.env.VITE_HASURA_WS_ENDPOINT': JSON.stringify(env.VITE_HASURA_WS_ENDPOINT),
-    'process.env.VITE_HASURA_ADMIN_SECRET': JSON.stringify(env.VITE_HASURA_ADMIN_SECRET),
     'process.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),
     'process.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN),
     'process.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID),

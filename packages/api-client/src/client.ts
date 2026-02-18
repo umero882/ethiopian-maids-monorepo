@@ -63,13 +63,9 @@ const HASURA_WS_ENDPOINT = getEnvVar(
   'wss://api.ethiopianmaids.com/v1/graphql'    // VPS Hasura WebSocket endpoint
 );
 
-// Admin secret should ONLY be set for server-side/admin tools, NEVER for client apps
-// Client apps must use JWT authentication via Firebase tokens
-const HASURA_ADMIN_SECRET = getEnvVar(
-  'VITE_HASURA_ADMIN_SECRET',
-  'EXPO_PUBLIC_HASURA_ADMIN_SECRET',
-  ''
-);
+// SECURITY: Admin secret must NEVER be used in client apps.
+// All client authentication uses JWT tokens from Firebase Auth.
+// Admin secret is only for server-side tools (Firebase Functions, migration scripts).
 
 // Log the endpoint being used for debugging (only in development)
 if (typeof __DEV__ !== 'undefined' && __DEV__) {
@@ -129,19 +125,11 @@ function getAuthToken(): string {
 const authLink = setContext((_, { headers }) => {
   const token = getAuthToken();
 
-  // Build auth headers
+  // Build auth headers - JWT only (no admin secret in client apps)
   const authHeaders: Record<string, string> = {};
 
-  if (HASURA_ADMIN_SECRET) {
-    // Admin secret only for server-side/admin tools (never for client apps)
-    authHeaders['x-hasura-admin-secret'] = HASURA_ADMIN_SECRET;
-    console.log('[Apollo Client] Using admin secret authentication');
-  } else if (token) {
-    // JWT token from Firebase Auth (default for all client apps)
+  if (token) {
     authHeaders['authorization'] = `Bearer ${token}`;
-    console.log('[Apollo Client] Using JWT token authentication');
-  } else {
-    console.warn('[Apollo Client] No authentication credentials available');
   }
 
   return {
@@ -194,12 +182,10 @@ const wsLink = new GraphQLWsLink(
     connectionParams: () => {
       const token = getAuthToken();
 
-      // Build auth headers (same logic as authLink)
+      // Build auth headers - JWT only
       const authHeaders: Record<string, string> = {};
 
-      if (HASURA_ADMIN_SECRET) {
-        authHeaders['x-hasura-admin-secret'] = HASURA_ADMIN_SECRET;
-      } else if (token) {
+      if (token) {
         authHeaders['authorization'] = `Bearer ${token}`;
       }
 
