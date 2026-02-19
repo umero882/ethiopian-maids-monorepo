@@ -331,6 +331,8 @@ const PhoneVerifyStep = () => {
 
   return (
     <div className="space-y-4">
+      {/* Hidden reCAPTCHA container */}
+      <div id="recaptcha-container-phone" style={{ display: 'none' }} />
       <StepCard
         title="Verify Your Phone"
         description="We'll send you a verification code"

@@ -48,23 +48,40 @@ export function useFirebasePhoneAuth(options = {}) {
   const confirmationResultRef = useRef(null);
   const recaptchaInitialized = useRef(false);
 
-  // Cleanup on unmount
+  // Initialize reCAPTCHA on mount (with delay to ensure DOM is ready)
   useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        if (!recaptchaInitialized.current) {
+          initRecaptchaVerifier(buttonId);
+          recaptchaInitialized.current = true;
+          log.debug('reCAPTCHA pre-initialized on mount');
+        }
+      } catch (err) {
+        log.warn('reCAPTCHA pre-init failed (will retry on send):', err.message);
+      }
+    }, 1000); // Wait 1s for DOM to be fully ready
+
     return () => {
+      clearTimeout(timer);
       cleanupRecaptcha();
       recaptchaInitialized.current = false;
     };
-  }, []);
+  }, [buttonId]);
 
   /**
    * Initialize reCAPTCHA verifier
    */
   const initializeRecaptcha = useCallback(() => {
-    if (recaptchaInitialized.current) {
+    if (recaptchaInitialized.current && window.recaptchaVerifier) {
       return window.recaptchaVerifier;
     }
 
     try {
+      // Clean up any stale verifier first
+      cleanupRecaptcha();
+      recaptchaInitialized.current = false;
+
       const verifier = initRecaptchaVerifier(buttonId);
       recaptchaInitialized.current = true;
       log.debug('reCAPTCHA initialized');
