@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { smsService } from '@/services/smsService';
+import { initRecaptchaVerifier, sendPhoneOTP, cleanupRecaptcha } from '@/lib/firebaseClient';
 import {
   Phone,
   MessageSquare,
@@ -40,11 +40,13 @@ const PhoneVerification = ({
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isCodeSent, setIsCodeSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const inputRefs = useRef([]);
 
   // Auto-send verification code when component mounts
   useEffect(() => {
     sendVerificationCode();
+    return () => cleanupRecaptcha();
   }, []);
 
   // Countdown timer
@@ -57,55 +59,48 @@ const PhoneVerification = ({
     }
   }, [timeLeft, isCodeSent]);
 
+  const formatPhoneNumber = (phone) => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('971')) return `+${cleaned}`;
+    if (cleaned.startsWith('0')) return `+971${cleaned.substring(1)}`;
+    if (cleaned.startsWith('+')) return phone;
+    return `+971${cleaned}`;
+  };
+
   const sendVerificationCode = async () => {
     setIsSendingCode(true);
     try {
-      // Format phone number to E.164 format
-      const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
+      const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      if (!smsService.isValidPhoneNumber(formattedPhone)) {
-        throw new Error('Invalid phone number format');
-      }
+      // Initialize reCAPTCHA verifier
+      const recaptchaVerifier = initRecaptchaVerifier('phone-sign-in-button');
 
-      const result = await smsService.sendVerificationCode(formattedPhone);
+      // Send OTP via Firebase
+      const result = await sendPhoneOTP(formattedPhone, recaptchaVerifier);
+      setConfirmationResult(result);
 
       setIsCodeSent(true);
       setTimeLeft(60);
       setCanResend(false);
 
-      // Check if we're in development mode and show appropriate message
-      if (result.data?.developmentMode && result.data?.verificationCode) {
-        toast({
-          title: 'Development Mode',
-          description: `For testing, use code: ${result.data.verificationCode}`,
-          duration: 10000, // Show longer for development
-        });
-      } else {
-        toast({
-          title: 'Verification Code Sent',
-          description: `A 6-digit code has been sent to ${formattedPhone}`,
-        });
-      }
+      toast({
+        title: 'Verification Code Sent',
+        description: `A 6-digit code has been sent to ${formattedPhone}`,
+      });
     } catch (error) {
       console.error('Send verification error:', error);
+      cleanupRecaptcha();
 
-      // Show user-friendly error message
       let errorMessage = 'Could not send verification code. Please try again.';
 
-      if (error.message.includes('SMS service is not configured')) {
-        errorMessage = 'For testing, you can use the code: 123456';
-
-        // In development, still allow proceeding with test code
-        setIsCodeSent(true);
-        setTimeLeft(60);
-        setCanResend(false);
-
-        toast({
-          title: 'Development Mode',
-          description: errorMessage,
-          duration: 10000,
-        });
-        return;
+      if (error.code === 'auth/invalid-phone-number') {
+        errorMessage = 'Invalid phone number. Please check and try again.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else if (error.code === 'auth/captcha-check-failed') {
+        errorMessage = 'Verification failed. Please refresh and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       toast({
@@ -159,10 +154,19 @@ const PhoneVerification = ({
   };
 
   const handleVerifyCode = async (code) => {
+    if (!confirmationResult) {
+      toast({
+        title: 'Error',
+        description: 'Please request a new verification code.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsVerifying(true);
     try {
-      const formattedPhone = smsService.formatPhoneNumber(phoneNumber);
-      await smsService.verifyCode(formattedPhone, code);
+      await confirmationResult.confirm(code);
+      const formattedPhone = formatPhoneNumber(phoneNumber);
 
       toast({
         title: 'Phone Verified',
@@ -171,14 +175,19 @@ const PhoneVerification = ({
 
       onVerificationComplete(formattedPhone);
     } catch (error) {
+      let errorMessage = 'Invalid verification code. Please try again.';
+      if (error.code === 'auth/invalid-verification-code') {
+        errorMessage = 'Incorrect code. Please check and try again.';
+      } else if (error.code === 'auth/code-expired') {
+        errorMessage = 'Code expired. Please request a new one.';
+      }
+
       toast({
         title: 'Verification Failed',
-        description:
-          error.message || 'Invalid verification code. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
 
-      // Clear the code inputs
       setVerificationCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -221,7 +230,7 @@ const PhoneVerification = ({
                 Enter the 6-digit code sent to
                 <br />
                 <span className='font-semibold text-white'>
-                  {smsService.formatPhoneNumber(phoneNumber)}
+                  {formatPhoneNumber(phoneNumber)}
                 </span>
               </CardDescription>
             </CardHeader>
@@ -314,6 +323,10 @@ const PhoneVerification = ({
                   {isVerifying ? 'Verifying...' : 'Verify'}
                 </Button>
               </div>
+
+              {/* reCAPTCHA container (invisible) */}
+              <div id="phone-sign-in-button" />
+              <div id="recaptcha-container-phone" />
 
               {/* Help Text */}
               <div className='text-center text-sm text-gray-400'>
