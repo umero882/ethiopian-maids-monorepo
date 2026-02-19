@@ -546,7 +546,7 @@ const Register = () => {
                         <Card className='h-full card-hover border-white/20 bg-white/5 group-hover:bg-white/10 transition-all duration-300'>
                           <CardContent className='p-4 flex items-center'>
                             <div
-                              className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${type.color} rounded-lg overflow-hidden flex-shrink-0`}
+                              className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-lg overflow-hidden flex-shrink-0"
                             >
                               <img
                                 src={type.icon}
