@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/components/ui/use-toast';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 // Storage key for draft persistence
 const STORAGE_KEY = 'ethiopian_maids_onboarding_draft';
@@ -117,6 +118,7 @@ export const OnboardingProvider = ({ children }) => {
   const [state, setState] = useState(initialState);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const saveTimeoutRef = useRef(null);
+  const { play: playSound } = useGameSounds();
   const storage = getStorage();
 
   // Load draft from localStorage on mount
@@ -267,6 +269,7 @@ export const OnboardingProvider = ({ children }) => {
 
   // Navigate to next step
   const nextStep = useCallback(() => {
+    playSound('stepComplete');
     setState(prev => {
       const newCompletedSteps = prev.completedSteps.includes(prev.currentStep)
         ? prev.completedSteps
@@ -347,7 +350,14 @@ export const OnboardingProvider = ({ children }) => {
   const awardPoints = useCallback((points, reason) => {
     setState(prev => {
       const newPoints = prev.gamification.points + points;
-      const newLevel = Math.floor(newPoints / 200) + 1; // Level up every 200 points
+      const newLevel = Math.floor(newPoints / 200) + 1;
+      const prevLevel = prev.gamification.level || 1;
+
+      // Play sounds
+      playSound('points');
+      if (newLevel > prevLevel) {
+        setTimeout(() => playSound('levelUp'), 300);
+      }
 
       return {
         ...prev,
@@ -358,7 +368,7 @@ export const OnboardingProvider = ({ children }) => {
         },
       };
     });
-  }, []);
+  }, [playSound]);
 
   // Unlock achievement
   const unlockAchievement = useCallback((achievementId, name, icon, points = 0) => {
@@ -367,6 +377,7 @@ export const OnboardingProvider = ({ children }) => {
       if (prev.gamification.achievements.some(a => a.id === achievementId)) {
         return prev;
       }
+      playSound('achievement');
 
       return {
         ...prev,
@@ -395,6 +406,7 @@ export const OnboardingProvider = ({ children }) => {
 
   // Trigger celebration
   const triggerCelebration = useCallback((type = 'confetti') => {
+    playSound(type); // Play matching celebration sound
     setState(prev => ({
       ...prev,
       showCelebration: true,
