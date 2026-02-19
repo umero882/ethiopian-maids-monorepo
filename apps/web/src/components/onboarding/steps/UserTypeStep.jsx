@@ -69,7 +69,7 @@ const UserTypeStep = () => {
                     <div className="flex items-start gap-4">
                       {/* Icon */}
                       <div
-                        className={`flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br ${item.primary}`}
+                        className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-white"
                       >
                         <img
                           src={item.icon}
