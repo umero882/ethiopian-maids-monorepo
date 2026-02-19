@@ -28,11 +28,13 @@ const MaidBiometricDocStep = () => {
   const [shouldStartCamera, setShouldStartCamera] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingSide, setUploadingSide] = useState(null); // 'front' or 'back'
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
+  const backFileInputRef = useRef(null);
 
   // Phase 1: User clicks "Open Camera" - show video element first
   const startCamera = useCallback(() => {
@@ -150,35 +152,50 @@ const MaidBiometricDocStep = () => {
 
   // Capture photo
   const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current) return;
 
     setIsCapturing(true);
 
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    const ctx = canvas.getContext('2d');
+    try {
+      // Create canvas dynamically to avoid ref issues
+      const canvas = canvasRef.current || document.createElement('canvas');
+      const video = videoRef.current;
+      const ctx = canvas.getContext('2d');
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+      // Use actual video dimensions, fallback to defaults
+      const width = video.videoWidth || 640;
+      const height = video.videoHeight || 480;
 
-    // Mirror the image (selfie mode)
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0);
+      canvas.width = width;
+      canvas.height = height;
 
-    // Get image data URL
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      // Mirror the image (selfie mode)
+      ctx.save();
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, width, height);
+      ctx.restore();
 
-    // Update form data with captured photo
-    updateFormData({ facePhoto: imageData });
+      // Get image data URL
+      const imageData = canvas.toDataURL('image/jpeg', 0.85);
+
+      // Verify we got actual image data (not empty/blank)
+      if (imageData && imageData.length > 100) {
+        updateFormData({ facePhoto: imageData });
+        awardPoints(50, 'Face photo captured');
+        triggerCelebration('confetti-burst');
+      } else {
+        console.error('Captured image is empty');
+        setCameraError('Failed to capture photo. Please try again.');
+      }
+    } catch (err) {
+      console.error('Capture error:', err);
+      setCameraError('Failed to capture photo. Please try again.');
+    }
 
     // Stop camera
     stopCamera();
     setIsCapturing(false);
-
-    // Award points and celebrate
-    awardPoints(50, 'Face photo captured');
-    triggerCelebration('confetti-burst');
   }, [updateFormData, stopCamera, awardPoints, triggerCelebration]);
 
   // Retake photo
@@ -187,48 +204,55 @@ const MaidBiometricDocStep = () => {
     startCamera();
   };
 
-  // Handle document upload
-  const handleDocumentUpload = (e) => {
+  // Handle document upload (front or back)
+  const handleDocumentUpload = (e, side = 'front') => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       alert('Please upload a valid image or PDF file');
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('File size must be less than 10MB');
       return;
     }
 
     setIsUploading(true);
+    setUploadingSide(side);
 
-    // Read file as data URL
     const reader = new FileReader();
     reader.onload = (event) => {
-      updateFormData({
-        idDocument: {
-          data: event.target.result,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        },
-      });
+      const docData = {
+        data: event.target.result,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+
+      if (side === 'front') {
+        updateFormData({ idDocument: docData });
+        awardPoints(30, 'ID front uploaded');
+      } else {
+        updateFormData({ idDocumentBack: docData });
+        awardPoints(20, 'ID back uploaded');
+      }
       setIsUploading(false);
-      awardPoints(50, 'ID document uploaded');
+      setUploadingSide(null);
     };
     reader.readAsDataURL(file);
   };
 
   // Remove document
-  const removeDocument = () => {
-    updateFormData({ idDocument: null });
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const removeDocument = (side = 'front') => {
+    if (side === 'front') {
+      updateFormData({ idDocument: null });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } else {
+      updateFormData({ idDocumentBack: null });
+      if (backFileInputRef.current) backFileInputRef.current.value = '';
     }
   };
 
@@ -452,89 +476,105 @@ const MaidBiometricDocStep = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
               >
-                {formData.idDocument ? (
-                  /* Preview uploaded document */
-                  <div className="relative">
-                    <div className="bg-white/10 rounded-xl p-4 border border-green-500/50">
+                {/* Front Side */}
+                <div>
+                  <p className="text-white text-sm font-medium mb-2">📄 Front Side (Required)</p>
+                  {formData.idDocument ? (
+                    <div className="bg-white/10 rounded-xl p-3 border border-green-500/50">
                       <div className="flex items-center gap-3">
-                        {formData.idDocument.type.startsWith('image/') ? (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-800">
-                            <img
-                              src={formData.idDocument.data}
-                              alt="ID Document"
-                              className="w-full h-full object-cover"
-                            />
+                        {formData.idDocument.type?.startsWith('image/') ? (
+                          <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-800">
+                            <img src={formData.idDocument.data} alt="ID Front" className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center">
-                            <FileText className="w-8 h-8 text-gray-400" />
+                          <div className="w-14 h-14 rounded-lg bg-gray-800 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-gray-400" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium text-sm truncate">
-                            {formData.idDocument.name}
-                          </p>
-                          <p className="text-gray-400 text-xs">
-                            {(formData.idDocument.size / 1024).toFixed(1)} KB
-                          </p>
+                          <p className="text-white font-medium text-sm truncate">{formData.idDocument.name}</p>
                           <div className="flex items-center gap-1 text-green-400 text-xs mt-1">
-                            <CheckCircle className="w-3 h-3" />
-                            Uploaded successfully
+                            <CheckCircle className="w-3 h-3" /> Front uploaded
                           </div>
                         </div>
-                        <button
-                          onClick={removeDocument}
-                          className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-400 transition-colors"
-                        >
-                          <X className="w-5 h-5" />
+                        <button onClick={() => removeDocument('front')} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-400">
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  /* Upload prompt */
-                  <div className="space-y-4">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      onChange={handleDocumentUpload}
-                      className="hidden"
-                      id="document-upload"
-                    />
+                  ) : (
+                    <div>
+                      <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'front')} className="hidden" id="document-upload-front" />
+                      <label htmlFor="document-upload-front" className="block aspect-[3/2] max-w-[300px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all">
+                        {isUploading && uploadingSide === 'front' ? (
+                          <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-10 h-10 text-gray-500 mb-2" />
+                            <p className="text-gray-400 text-sm text-center px-4">Upload front of ID/Passport</p>
+                            <p className="text-gray-500 text-xs mt-1">JPG, PNG, or PDF (max 10MB)</p>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                </div>
 
-                    <label
-                      htmlFor="document-upload"
-                      className="block aspect-[3/2] max-w-[320px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all"
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-12 h-12 text-purple-400 animate-spin mb-3" />
-                      ) : (
-                        <>
-                          <Upload className="w-12 h-12 text-gray-500 mb-3" />
-                          <p className="text-gray-400 text-sm text-center px-4 mb-1">
-                            Upload your ID or Passport
-                          </p>
-                          <p className="text-gray-500 text-xs">
-                            JPG, PNG, or PDF (max 10MB)
-                          </p>
-                        </>
-                      )}
-                    </label>
-
-                    {/* Document type hints */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                        <Image className="w-4 h-4 text-gray-400" />
-                        <span className="text-xs text-gray-400">Passport</span>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-gray-400" />
-                        <span className="text-xs text-gray-400">National ID</span>
+                {/* Back Side */}
+                <div>
+                  <p className="text-white text-sm font-medium mb-2">📄 Back Side (Optional for Passport)</p>
+                  {formData.idDocumentBack ? (
+                    <div className="bg-white/10 rounded-xl p-3 border border-green-500/50">
+                      <div className="flex items-center gap-3">
+                        {formData.idDocumentBack.type?.startsWith('image/') ? (
+                          <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-800">
+                            <img src={formData.idDocumentBack.data} alt="ID Back" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-14 h-14 rounded-lg bg-gray-800 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium text-sm truncate">{formData.idDocumentBack.name}</p>
+                          <div className="flex items-center gap-1 text-green-400 text-xs mt-1">
+                            <CheckCircle className="w-3 h-3" /> Back uploaded
+                          </div>
+                        </div>
+                        <button onClick={() => removeDocument('back')} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-400">
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
+                  ) : (
+                    <div>
+                      <input ref={backFileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'back')} className="hidden" id="document-upload-back" />
+                      <label htmlFor="document-upload-back" className="block aspect-[3/2] max-w-[300px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all">
+                        {isUploading && uploadingSide === 'back' ? (
+                          <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-10 h-10 text-gray-500 mb-2" />
+                            <p className="text-gray-400 text-sm text-center px-4">Upload back of ID</p>
+                            <p className="text-gray-500 text-xs mt-1">Skip if using Passport</p>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Document type hints */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
+                    <Image className="w-4 h-4 text-gray-400" />
+                    <span className="text-xs text-gray-400">Passport</span>
                   </div>
-                )}
+                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-400" />
+                    <span className="text-xs text-gray-400">National ID (front + back)</span>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -544,14 +584,14 @@ const MaidBiometricDocStep = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">Verification Progress</span>
               <span className="text-sm text-white font-medium">
-                {(formData.facePhoto ? 1 : 0) + (formData.idDocument ? 1 : 0)}/2 complete
+                {(formData.facePhoto ? 1 : 0) + (formData.idDocument ? 1 : 0) + (formData.idDocumentBack ? 1 : 0)}/3 complete
               </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
               <div
                 className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
                 style={{
-                  width: `${((formData.facePhoto ? 1 : 0) + (formData.idDocument ? 1 : 0)) * 50}%`,
+                  width: `${((formData.facePhoto ? 1 : 0) + (formData.idDocument ? 1 : 0) + (formData.idDocumentBack ? 1 : 0)) * 33.3}%`,
                 }}
               />
             </div>
