@@ -154,16 +154,16 @@ const OnboardingFlow = () => {
   useEffect(() => {
     if (isComplete) {
       const dashboardPath = userType === 'maid'
-        ? '/maid/dashboard'
+        ? '/dashboard/maid'
         : userType === 'sponsor'
-        ? '/sponsor/dashboard'
+        ? '/dashboard/sponsor'
         : userType === 'agency'
-        ? '/agency/dashboard'
+        ? '/dashboard/agency'
         : '/dashboard';
 
       // Small delay to allow final celebration to play
       const timer = setTimeout(() => {
-        navigate(dashboardPath);
+        navigate(dashboardPath, { replace: true });
       }, 2000);
 
       return () => clearTimeout(timer);
