@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { setUserTypeClaim } from '@/lib/firebaseClient';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/components/ui/use-toast';
 import { useGameSounds } from '@/hooks/useGameSounds';
@@ -760,7 +761,16 @@ export const OnboardingProvider = ({ children }) => {
         }
       }
 
-      // 4. Update registration_complete flag for all user types
+      // 4. Set Firebase JWT custom claims with user type (for Hasura role)
+      try {
+        await setUserTypeClaim(state.userType);
+        console.log('✅ Firebase JWT claims updated with user type:', state.userType);
+      } catch (claimError) {
+        console.warn('⚠️ Could not set JWT claims (Cloud Function may not be deployed):', claimError.message);
+        // Non-blocking — the app can still work using DB user_type
+      }
+
+      // 5. Update registration_complete flag for all user types
       if (updateRegistrationStatus) {
         await updateRegistrationStatus(true);
         console.log('✅ Registration status set to complete');

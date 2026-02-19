@@ -872,6 +872,12 @@ const AuthProvider = ({ children, mockValue }) => {
                    registrationUserType ? 'registration' : 'default', ')');
       log.debug('AuthContext - Final detected userType:', detectedUserType);
 
+      // If JWT claims say 'user' but database has a specific type, prefer database
+      if (detectedUserType === 'user' && data?.user_type && data.user_type !== 'user') {
+        console.log('🔄 AuthContext - Overriding JWT "user" role with DB user_type:', data.user_type);
+        detectedUserType = data.user_type;
+      }
+
       const baseProfile = data
         ? {
             id: data.id,
@@ -880,6 +886,7 @@ const AuthProvider = ({ children, mockValue }) => {
             phone: data.phone || firebaseUser.phoneNumber || '',
             country: data.country || '',
             userType: detectedUserType,
+            user_type: data.user_type || detectedUserType, // Keep snake_case for dashboard checks
             registration_complete: data.registration_complete || false,
             is_active: data.is_active,
             email_confirmed_at: firebaseUser.emailVerified ? new Date().toISOString() : null,

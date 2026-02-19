@@ -213,7 +213,11 @@ const DashboardGateway = () => {
     });
 
     if (!loading && user && !hasNavigated) {
-      const userType = user.userType || user.user_type;
+      // Prefer specific role types over generic 'user' — DB user_type is more reliable
+      // JWT claims may default to 'user' if Cloud Functions haven't set the proper role
+      const jwtType = user.userType;
+      const dbType = user.user_type;
+      const userType = (jwtType && jwtType !== 'user') ? jwtType : (dbType || jwtType);
 
       console.log(
         '🎯 DashboardGateway - Checking user status:',
