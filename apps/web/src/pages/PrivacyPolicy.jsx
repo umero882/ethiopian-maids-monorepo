@@ -243,7 +243,7 @@ const PrivacyPolicy = () => {
 
               <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">3.3 Third-Party Sources</h3>
               <ul className="list-disc pl-6 text-gray-600 space-y-2 mb-4">
-                <li>Social media platforms (if you sign in via social login)</li>
+                <li>Third-party authentication providers (for account verification)</li>
                 <li>Background check providers (with your consent)</li>
                 <li>Verification services</li>
                 <li>Payment processors</li>
