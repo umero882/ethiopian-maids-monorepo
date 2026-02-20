@@ -526,6 +526,19 @@ export const OnboardingProvider = ({ children }) => {
     }
 
     try {
+      // STEP 0: Set Firebase JWT claims FIRST (before any GraphQL mutations)
+      // This ensures the JWT token has the correct Hasura role for database writes
+      try {
+        console.log('🔑 Setting Firebase JWT claims for role:', state.userType);
+        await setUserTypeClaim(state.userType);
+        // Wait a moment for token to propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('✅ JWT claims set, token refreshed');
+      } catch (claimError) {
+        console.warn('⚠️ Could not set JWT claims:', claimError.message);
+        // Continue anyway — anonymous permissions are set as fallback
+      }
+
       // Handle based on user type
       if (state.userType === 'maid') {
         // ==================== MAID PROFILE ====================
@@ -761,16 +774,7 @@ export const OnboardingProvider = ({ children }) => {
         }
       }
 
-      // 4. Set Firebase JWT custom claims with user type (for Hasura role)
-      try {
-        await setUserTypeClaim(state.userType);
-        console.log('✅ Firebase JWT claims updated with user type:', state.userType);
-      } catch (claimError) {
-        console.warn('⚠️ Could not set JWT claims (Cloud Function may not be deployed):', claimError.message);
-        // Non-blocking — the app can still work using DB user_type
-      }
-
-      // 5. Update registration_complete flag for all user types
+      // 4. Update registration_complete flag for all user types
       if (updateRegistrationStatus) {
         await updateRegistrationStatus(true);
         console.log('✅ Registration status set to complete');
