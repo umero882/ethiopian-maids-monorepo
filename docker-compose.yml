@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: builder
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm nx dev web
+    env_file:
+      - .env
+    depends_on:
+      - hasura
+
+  hasura:
+    image: hasura/graphql-engine:v2.38.0
+    ports:
+      - '8080:8080'
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: ${HASURA_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/ethiopian_maids}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_DEV_MODE: 'true'
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-myadminsecretkey}
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: ethiopian_maids
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  firebase-emulator:
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      - '9099:9099'
+      - '8085:8085'
+      - '9199:9199'
+      - '5001:5001'
+      - '4000:4000'
+    volumes:
+      - .:/app
+    command: sh -c 'npm install -g firebase-tools && firebase emulators:start --only auth,firestore,storage,functions'
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:

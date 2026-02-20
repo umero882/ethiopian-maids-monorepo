@@ -77,14 +77,6 @@ const initialState = {
     aboutAgency: '',
     supportHours: '',
     emergencyContact: '',
-
-    // Backward-compatibility aliases (snake_case) for draft recovery
-    date_of_birth: null,
-    marital_status: '',
-    family_size: '',
-    salary_budget: '',
-    agency_name: '',
-    license_number: '',
   },
 
   // Gamification
@@ -619,8 +611,6 @@ export const OnboardingProvider = ({ children }) => {
           // Address (from MaidAddressStep)
           // NOTE: maid_profiles uses current_location, not country
           current_location: [state.formData.city, state.formData.country].filter(Boolean).join(', '),
-          country: state.formData.country || '',
-          city: state.formData.city || '',
           stateProvince: state.formData.city || '',
           streetAddress: state.formData.address || '',
 
@@ -656,9 +646,6 @@ export const OnboardingProvider = ({ children }) => {
           // Status & Metadata
           profile_completion_percentage: calculateProfileCompletion(state.formData),
           availability: 'available',
-          consents_accepted: true,
-          terms_accepted_at: new Date().toISOString(),
-          privacy_accepted_at: new Date().toISOString(),
         };
 
         // 4. Store gallery photos and documents in maid_documents table (separate from profile)
@@ -731,9 +718,6 @@ export const OnboardingProvider = ({ children }) => {
           salary_budget_max: parseSalaryToNumber(state.formData.salaryBudgetMax),
           accommodation_type: state.formData.accommodationType || '',
           room_type: state.formData.roomType || '',
-          consents_accepted: true,
-          terms_accepted_at: new Date().toISOString(),
-          privacy_accepted_at: new Date().toISOString(),
         };
 
         if (updateProfile) {
@@ -777,14 +761,11 @@ export const OnboardingProvider = ({ children }) => {
           contact_phone: state.formData.contactPhone || state.account.phone,
           contact_email: state.formData.contactEmail || '',
           authorized_person_name: state.formData.authorizedPersonName || '',
-          authorized_person_position: state.formData.authorizedPersonTitle || '',
+          authorized_person_title: state.formData.authorizedPersonTitle || '',
           services_offered: state.formData.servicesOffered || [],
           about_agency: state.formData.aboutAgency || '',
           support_hours: state.formData.supportHours || '',
           emergency_contact: state.formData.emergencyContact || '',
-          consents_accepted: true,
-          terms_accepted_at: new Date().toISOString(),
-          privacy_accepted_at: new Date().toISOString(),
         };
 
         if (updateProfile) {

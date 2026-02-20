@@ -52,15 +52,15 @@ const AgencyBasicStep = () => {
   // Validation
   const validateField = (field, value) => {
     switch (field) {
-      case 'agencyName':
+      case 'agency_name':
         if (!value) return 'Agency name is required';
         if (value.length < 2) return 'Name is too short';
         return null;
-      case 'tradeLicenseNumber':
+      case 'license_number':
         if (!value) return 'License number is required';
         if (value.length < 3) return 'License number is too short';
         return null;
-      case 'agencyType':
+      case 'agency_type':
         if (!value) return 'Please select agency type';
         return null;
       default:
@@ -87,7 +87,7 @@ const AgencyBasicStep = () => {
 
   // Validate all
   const validateAll = () => {
-    const fields = ['agencyName', 'tradeLicenseNumber', 'agencyType'];
+    const fields = ['agency_name', 'license_number', 'agency_type'];
     const newErrors = {};
 
     fields.forEach((field) => {
@@ -111,11 +111,11 @@ const AgencyBasicStep = () => {
 
   // Check if form is valid
   const isFormValid =
-    formData.agencyName &&
-    formData.tradeLicenseNumber &&
-    formData.agencyType &&
-    !validateField('agencyName', formData.agencyName) &&
-    !validateField('tradeLicenseNumber', formData.tradeLicenseNumber);
+    formData.agency_name &&
+    formData.license_number &&
+    formData.agency_type &&
+    !validateField('agency_name', formData.agency_name) &&
+    !validateField('license_number', formData.license_number);
 
   return (
     <div className="space-y-4">
@@ -139,17 +139,17 @@ const AgencyBasicStep = () => {
               <Input
                 type="text"
                 placeholder="Enter your agency name"
-                value={formData.agencyName || ''}
-                onChange={(e) => handleChange('agencyName', e.target.value)}
-                onBlur={() => handleBlur('agencyName')}
+                value={formData.agency_name || ''}
+                onChange={(e) => handleChange('agency_name', e.target.value)}
+                onBlur={() => handleBlur('agency_name')}
                 className={cn(
                   'pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400',
-                  touched.agencyName && errors.agencyName && 'border-red-500'
+                  touched.agency_name && errors.agency_name && 'border-red-500'
                 )}
               />
             </div>
-            {touched.agencyName && errors.agencyName && (
-              <StepError message={errors.agencyName} />
+            {touched.agency_name && errors.agency_name && (
+              <StepError message={errors.agency_name} />
             )}
           </motion.div>
 
@@ -167,17 +167,17 @@ const AgencyBasicStep = () => {
               <Input
                 type="text"
                 placeholder="Enter trade license number"
-                value={formData.tradeLicenseNumber || ''}
-                onChange={(e) => handleChange('tradeLicenseNumber', e.target.value)}
-                onBlur={() => handleBlur('tradeLicenseNumber')}
+                value={formData.license_number || ''}
+                onChange={(e) => handleChange('license_number', e.target.value)}
+                onBlur={() => handleBlur('license_number')}
                 className={cn(
                   'pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400',
-                  touched.tradeLicenseNumber && errors.tradeLicenseNumber && 'border-red-500'
+                  touched.license_number && errors.license_number && 'border-red-500'
                 )}
               />
             </div>
-            {touched.tradeLicenseNumber && errors.tradeLicenseNumber && (
-              <StepError message={errors.tradeLicenseNumber} />
+            {touched.license_number && errors.license_number && (
+              <StepError message={errors.license_number} />
             )}
             <p className="text-xs text-gray-500 mt-1">
               This will be verified during approval.
@@ -194,16 +194,16 @@ const AgencyBasicStep = () => {
               Agency Type *
             </label>
             <Select
-              value={formData.agencyType || ''}
-              onValueChange={(value) => handleChange('agencyType', value)}
+              value={formData.agency_type || ''}
+              onValueChange={(value) => handleChange('agency_type', value)}
             >
               <SelectTrigger
                 className={cn(
                   'bg-white/10 border-white/20 text-white',
-                  touched.agencyType && errors.agencyType && 'border-red-500',
-                  !formData.agencyType && 'text-gray-400'
+                  touched.agency_type && errors.agency_type && 'border-red-500',
+                  !formData.agency_type && 'text-gray-400'
                 )}
-                onBlur={() => handleBlur('agencyType')}
+                onBlur={() => handleBlur('agency_type')}
               >
                 <SelectValue placeholder="Select agency type" />
               </SelectTrigger>
@@ -222,8 +222,8 @@ const AgencyBasicStep = () => {
                 ))}
               </SelectContent>
             </Select>
-            {touched.agencyType && errors.agencyType && (
-              <StepError message={errors.agencyType} />
+            {touched.agency_type && errors.agency_type && (
+              <StepError message={errors.agency_type} />
             )}
           </motion.div>
 
@@ -285,7 +285,7 @@ const AgencyBasicStep = () => {
           </motion.div>
 
           {/* Agency Summary */}
-          {formData.agencyName && formData.agencyType && (
+          {formData.agency_name && formData.agency_type && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -295,18 +295,18 @@ const AgencyBasicStep = () => {
               <div className="space-y-1.5 text-sm">
                 <div className="flex items-center gap-2 text-gray-300">
                   <Building2 className="w-4 h-4 text-purple-400" />
-                  <span>{formData.agencyName}</span>
+                  <span>{formData.agency_name}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <FileText className="w-4 h-4 text-blue-400" />
-                  <span>License: {formData.tradeLicenseNumber}</span>
+                  <span>License: {formData.license_number}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <span className="text-lg">
-                    {AGENCY_TYPES.find((t) => t.value === formData.agencyType)?.icon}
+                    {AGENCY_TYPES.find((t) => t.value === formData.agency_type)?.icon}
                   </span>
                   <span>
-                    {AGENCY_TYPES.find((t) => t.value === formData.agencyType)?.label}
+                    {AGENCY_TYPES.find((t) => t.value === formData.agency_type)?.label}
                   </span>
                 </div>
                 {formData.years_in_business && (

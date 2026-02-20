@@ -37,11 +37,13 @@ export default defineConfig(({ mode }) => {
   const monorepoRoot = path.resolve(__dirname, '../..');
   const env = loadEnv(mode, monorepoRoot, '');
 
-  // Log environment loading
-  console.log('[Vite Config] Loading environment variables from:', monorepoRoot);
-  console.log('[Vite Config] VITE_FIREBASE_API_KEY:', env.VITE_FIREBASE_API_KEY ? 'LOADED ✓' : 'NOT FOUND ✗');
-  console.log('[Vite Config] VITE_FIREBASE_PROJECT_ID:', env.VITE_FIREBASE_PROJECT_ID ? 'LOADED ✓' : 'NOT FOUND ✗');
-  console.log('[Vite Config] VITE_FIREBASE_STORAGE_BUCKET:', env.VITE_FIREBASE_STORAGE_BUCKET ? 'LOADED ✓' : 'NOT FOUND ✗');
+  // Log environment loading (only when DEBUG_BUILD is set)
+  if (process.env.DEBUG_BUILD) {
+    console.log('[Vite Config] Loading environment variables from:', monorepoRoot);
+    console.log('[Vite Config] VITE_FIREBASE_API_KEY:', env.VITE_FIREBASE_API_KEY ? 'LOADED ✓' : 'NOT FOUND ✗');
+    console.log('[Vite Config] VITE_FIREBASE_PROJECT_ID:', env.VITE_FIREBASE_PROJECT_ID ? 'LOADED ✓' : 'NOT FOUND ✗');
+    console.log('[Vite Config] VITE_FIREBASE_STORAGE_BUCKET:', env.VITE_FIREBASE_STORAGE_BUCKET ? 'LOADED ✓' : 'NOT FOUND ✗');
+  }
 
   const isProduction = mode === 'production';
 
@@ -212,7 +214,7 @@ export default defineConfig(({ mode }) => {
     drop: ['console', 'debugger'],
   } : {},
   build: {
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 250,
     minify: 'esbuild',
     target: 'es2020',
     sourcemap: false,

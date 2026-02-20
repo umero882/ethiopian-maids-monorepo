@@ -1,109 +1,158 @@
-# EthiopianMaidsMonorepo
+# Ethiopian Maids Platform — Monorepo
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A full-stack platform connecting Ethiopian domestic workers with families and agencies across the Middle East and beyond.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Generate a library
-
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
-```
-
-## Run tasks
-
-To build the library use:
-
-```sh
-npx nx build pkg1
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
+## Architecture
 
 ```
-npx nx release
+ethiopian-maids-monorepo/
+├── apps/
+│   ├── web/                    # React 18 + Vite SPA (main web app)
+│   └── mobile/                 # Expo React Native app
+├── packages/
+│   ├── api-client/             # Apollo Client + GraphQL codegen
+│   ├── domain/                 # Domain models (identity, profiles, jobs, payments)
+│   ├── app/                    # Application use-cases per domain
+│   └── infra/                  # Infrastructure adapters (web, mobile)
+├── tools/
+│   └── firebase-functions/     # Firebase Cloud Functions (TypeScript)
+├── .github/workflows/          # CI/CD pipelines
+├── docker-compose.yml          # Local development stack
+└── ecosystem.config.js         # PM2 VPS deployment config
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+**Stack:** React 18 · Vite · TypeScript · Firebase Auth · Firestore · Hasura GraphQL · PostgreSQL · Stripe · Nx Monorepo · pnpm
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Prerequisites
 
-## Keep TypeScript project references up to date
+- Node.js 20+
+- pnpm 9+ (`npm install -g pnpm@9`)
+- Docker & Docker Compose (for local stack)
+- Firebase CLI (`npm install -g firebase-tools`)
+- Nx CLI (`npm install -g nx`)
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+## Local Setup
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+### 1. Clone and install
 
-```sh
-npx nx sync
+```bash
+git clone https://github.com/umero882/ethiopian-maids-monorepo.git
+cd ethiopian-maids-monorepo
+pnpm install
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+### 2. Configure environment
 
-```sh
-npx nx sync:check
+```bash
+cp .env.example .env
+# Edit .env with your Firebase, Hasura, and Stripe credentials
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+### 3. Start local services
 
-## Set up CI!
+```bash
+# Start Postgres + Hasura + Firebase Emulator
+docker-compose up -d
 
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+# Start web app dev server
+pnpm nx dev web
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+The web app will be available at `http://localhost:5173`.
+Hasura Console: `http://localhost:8080`
+Firebase Emulator UI: `http://localhost:4000`
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Environment Variables
 
-### Step 2
+See `.env.example` for the full list. Key variables:
 
-Use the following command to configure a CI workflow for your workspace:
+| Variable | Description |
+|---|---|
+| `VITE_FIREBASE_API_KEY` | Firebase project API key |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_HASURA_GRAPHQL_ENDPOINT` | Hasura GraphQL HTTP endpoint |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (`pk_live_*` in production) |
+| `VITE_SENTRY_DSN` | Sentry DSN for error monitoring (optional) |
+| `VPS_HOST` | VPS IP for deployment |
 
-```sh
-npx nx g ci-workflow
+## Running Tests
+
+```bash
+# Run all tests
+pnpm nx run-many --target=test --all
+
+# Run web app tests with coverage
+pnpm nx test:coverage web
+
+# Run specific package tests
+pnpm nx test api-client
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Building
 
-## Install Nx Console
+```bash
+# Build web app for production
+pnpm nx build web --configuration=production
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+# Build Firebase Functions
+pnpm nx build firebase-functions
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Deployment
 
-## Useful links
+### Docker (recommended)
 
-Learn more:
+```bash
+docker build -f apps/web/Dockerfile \
+  --build-arg VITE_FIREBASE_API_KEY=... \
+  --build-arg VITE_STRIPE_PUBLISHABLE_KEY=... \
+  -t ethiopian-maids-web .
+docker run -p 80:80 ethiopian-maids-web
+```
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### VPS with PM2
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# On the VPS
+pnpm install
+pnpm nx build web --configuration=production
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+```
+
+### Firebase Functions
+
+```bash
+cd tools/firebase-functions
+firebase deploy --only functions
+```
+
+### CI/CD
+
+GitHub Actions automatically:
+- **Lint** -> **Test** -> **Build** on every push/PR to `main` or `develop`
+- **Deploy** to VPS on push to `main` (requires `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` secrets)
+
+Required GitHub Secrets: `VITE_FIREBASE_*`, `VITE_STRIPE_PUBLISHABLE_KEY`, `VITE_HASURA_ENDPOINT`, `VITE_SENTRY_DSN`, `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `CODECOV_TOKEN`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Make your changes following the code style
+4. Run tests: `pnpm nx run-many --target=test --all`
+5. Run lint: `pnpm nx run-many --target=lint --all`
+6. Commit using conventional commits: `feat:`, `fix:`, `chore:`, `docs:`
+7. Open a Pull Request against `develop`
+
+### Code Standards
+
+- TypeScript strict mode for all new code
+- 70% minimum test coverage (lines/functions/statements), 60% branches
+- ESLint + Prettier enforced via CI
+- All Firebase Functions must have error handling and logging
+
+## License
+
+Private — All rights reserved.

@@ -28,7 +28,7 @@ const MaidPersonalStep = () => {
         if (!value) return 'Full name is required';
         if (value.length < 2) return 'Name is too short';
         return null;
-      case 'dateOfBirth':
+      case 'date_of_birth':
         if (!value) return 'Date of birth is required';
         const age = calculateAge(value);
         if (age < 18) return 'You must be at least 18 years old';
@@ -40,7 +40,7 @@ const MaidPersonalStep = () => {
       case 'religion':
         if (!value) return 'Please select an option';
         return null;
-      case 'maritalStatus':
+      case 'marital_status':
         if (!value) return 'Marital status is required';
         return null;
       default:
@@ -81,7 +81,7 @@ const MaidPersonalStep = () => {
 
   // Validate all fields
   const validateAll = () => {
-    const fields = ['full_name', 'dateOfBirth', 'nationality', 'religion', 'maritalStatus'];
+    const fields = ['full_name', 'date_of_birth', 'nationality', 'religion', 'marital_status'];
     const newErrors = {};
 
     fields.forEach((field) => {
@@ -108,12 +108,12 @@ const MaidPersonalStep = () => {
   // Check if form is valid
   const isFormValid =
     formData.full_name &&
-    formData.dateOfBirth &&
+    formData.date_of_birth &&
     formData.nationality &&
     formData.religion &&
-    formData.maritalStatus &&
+    formData.marital_status &&
     !validateField('full_name', formData.full_name) &&
-    !validateField('dateOfBirth', formData.dateOfBirth);
+    !validateField('date_of_birth', formData.date_of_birth);
 
   // Get max date (must be at least 18)
   const maxDate = new Date();
@@ -170,23 +170,23 @@ const MaidPersonalStep = () => {
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 type="date"
-                value={formData.dateOfBirth || ''}
-                onChange={(e) => handleChange('dateOfBirth', e.target.value)}
-                onBlur={() => handleBlur('dateOfBirth')}
+                value={formData.date_of_birth || ''}
+                onChange={(e) => handleChange('date_of_birth', e.target.value)}
+                onBlur={() => handleBlur('date_of_birth')}
                 min={minDateString}
                 max={maxDateString}
                 className={cn(
                   'pl-10 bg-white/10 border-white/20 text-white',
-                  touched.dateOfBirth && errors.dateOfBirth && 'border-red-500'
+                  touched.date_of_birth && errors.date_of_birth && 'border-red-500'
                 )}
               />
             </div>
-            {touched.dateOfBirth && errors.dateOfBirth && (
-              <StepError message={errors.dateOfBirth} />
+            {touched.date_of_birth && errors.date_of_birth && (
+              <StepError message={errors.date_of_birth} />
             )}
-            {formData.dateOfBirth && !errors.dateOfBirth && (
+            {formData.date_of_birth && !errors.date_of_birth && (
               <p className="text-xs text-gray-400 mt-1">
-                Age: {calculateAge(formData.dateOfBirth)} years old
+                Age: {calculateAge(formData.date_of_birth)} years old
               </p>
             )}
           </motion.div>
@@ -283,16 +283,16 @@ const MaidPersonalStep = () => {
             <div className="relative">
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
               <Select
-                value={formData.maritalStatus || ''}
-                onValueChange={(value) => handleChange('maritalStatus', value)}
+                value={formData.marital_status || ''}
+                onValueChange={(value) => handleChange('marital_status', value)}
               >
                 <SelectTrigger
                   className={cn(
                     'pl-10 bg-white/10 border-white/20 text-white',
-                    touched.maritalStatus && errors.maritalStatus && 'border-red-500',
-                    !formData.maritalStatus && 'text-gray-400'
+                    touched.marital_status && errors.marital_status && 'border-red-500',
+                    !formData.marital_status && 'text-gray-400'
                   )}
-                  onBlur={() => handleBlur('maritalStatus')}
+                  onBlur={() => handleBlur('marital_status')}
                 >
                   <SelectValue placeholder="Select marital status" />
                 </SelectTrigger>
@@ -309,8 +309,8 @@ const MaidPersonalStep = () => {
                 </SelectContent>
               </Select>
             </div>
-            {touched.maritalStatus && errors.maritalStatus && (
-              <StepError message={errors.maritalStatus} />
+            {touched.marital_status && errors.marital_status && (
+              <StepError message={errors.marital_status} />
             )}
           </motion.div>
         </div>

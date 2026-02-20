@@ -77,9 +77,69 @@ export const scheduledCleanupIdempotency = functions.pubsub
 
 export const scheduledCheckExpiringSubscriptions = functions.pubsub
   .schedule('every 24 hours')
-  .onRun(async () => {
-    console.log('Checking for expiring subscriptions...');
-    return null;
+  .onRun(async (_context) => {
+    const now = admin.firestore.Timestamp.now();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + 3); // warn 3 days before expiry
+    const cutoffTs = admin.firestore.Timestamp.fromDate(cutoff);
+
+    try {
+      // Find subscriptions expiring within 3 days
+      const expiringSnap = await admin
+        .firestore()
+        .collection('subscriptions')
+        .where('status', '==', 'active')
+        .where('current_period_end', '<=', cutoffTs)
+        .get();
+
+      // Find subscriptions already past their end date
+      const expiredSnap = await admin
+        .firestore()
+        .collection('subscriptions')
+        .where('status', '==', 'active')
+        .where('current_period_end', '<', now)
+        .get();
+
+      // Mark expired subscriptions
+      const expiredBatch = admin.firestore().batch();
+      expiredSnap.forEach((doc) => {
+        expiredBatch.update(doc.ref, {
+          status: 'expired',
+          expired_at: now,
+          updated_at: now,
+        });
+      });
+      await expiredBatch.commit();
+
+      // Send expiry warning notifications
+      const notifyBatch = admin.firestore().batch();
+      const notifyPromises: Promise<FirebaseFirestore.DocumentReference>[] = [];
+      expiringSnap.forEach((doc) => {
+        const data = doc.data();
+        if (!data.expiry_warning_sent) {
+          notifyBatch.update(doc.ref, { expiry_warning_sent: true });
+          notifyPromises.push(
+            admin.firestore().collection('notifications').add({
+              user_id: data.user_id,
+              type: 'subscription_expiring',
+              message: 'Your subscription expires in 3 days. Renew now to keep access.',
+              created_at: now,
+              read: false,
+            })
+          );
+        }
+      });
+      await notifyBatch.commit();
+      await Promise.all(notifyPromises);
+
+      console.log(
+        `Processed: ${expiredSnap.size} expired, ${expiringSnap.size} expiring soon`
+      );
+      return null;
+    } catch (error) {
+      console.error('scheduledCheckExpiringSubscriptions error:', error);
+      throw error;
+    }
   });
 
 // =====================================================
@@ -135,3 +195,20 @@ export const authSetUserType = functions.https.onCall(setUserType);
  * Callable: Get current user type from claims (for debugging)
  */
 export const authGetUserType = functions.https.onCall(getUserType);
+
+// =====================================================
+// HEALTH CHECK
+// =====================================================
+
+/**
+ * HTTP endpoint: Health check for monitoring and load balancer probes.
+ * GET /healthCheck -> { status: 'ok', timestamp, version, environment }
+ */
+export const healthCheck = functions.https.onRequest((_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV || 'production',
+  });
+});

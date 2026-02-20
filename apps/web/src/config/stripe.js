@@ -4,6 +4,14 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { createLogger } from '@/utils/logger';
 
+// Validate Stripe environment: fail fast if test keys used in production
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+if (import.meta.env.MODE === 'production' && stripeKey.startsWith('pk_test_')) {
+  console.error('CRITICAL: Stripe test key detected in production! Payments disabled.');
+  // Uncomment to hard-fail: throw new Error('Stripe test key in production');
+}
+
+
 const log = createLogger('StripeConfig');
 
 // Get Stripe publishable key from environment

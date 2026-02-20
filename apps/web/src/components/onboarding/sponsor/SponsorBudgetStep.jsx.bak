@@ -39,19 +39,6 @@ const BENEFITS_OPTIONS = [
   { value: 'phone', label: 'Phone Allowance', icon: '📱' },
 ];
 
-
-// Parse salary range string into min/max numeric values
-// e.g. "1500-2000 AED" → { min: 1500, max: 2000 }
-// e.g. "3000+ AED" → { min: 3000, max: null }
-const parseSalaryRange = (rangeStr) => {
-  if (!rangeStr) return { min: null, max: null };
-  const numbers = rangeStr.match(/\d+/g);
-  if (!numbers || numbers.length === 0) return { min: null, max: null };
-  const min = parseInt(numbers[0], 10);
-  const max = numbers.length > 1 ? parseInt(numbers[1], 10) : null;
-  return { min, max };
-};
-
 const SponsorBudgetStep = () => {
   const { formData, updateFormData, nextStep, previousStep, awardPoints } = useOnboarding();
 
@@ -64,7 +51,7 @@ const SponsorBudgetStep = () => {
   // Validation
   const validateField = (field, value) => {
     switch (field) {
-      case 'salaryBudget':
+      case 'salary_budget':
         if (!value) return 'Please select your salary budget';
         return null;
       default:
@@ -89,20 +76,6 @@ const SponsorBudgetStep = () => {
     }
   };
 
-
-  // Handle salary budget change — saves display string + parsed min/max
-  const handleSalaryChange = (value) => {
-    const { min, max } = parseSalaryRange(value);
-    updateFormData({
-      salaryBudget: value,
-      salaryBudgetMin: min,
-      salaryBudgetMax: max,
-    });
-    if (errors.salaryBudget) {
-      setErrors((prev) => ({ ...prev, salaryBudget: null }));
-    }
-  };
-
   // Toggle benefit
   const toggleBenefit = (benefit) => {
     const current = selectedBenefits;
@@ -114,7 +87,7 @@ const SponsorBudgetStep = () => {
 
   // Validate all
   const validateAll = () => {
-    const fields = ['salaryBudget'];
+    const fields = ['salary_budget'];
     const newErrors = {};
 
     fields.forEach((field) => {
@@ -137,7 +110,7 @@ const SponsorBudgetStep = () => {
   };
 
   // Check if form is valid
-  const isFormValid = formData.salaryBudget;
+  const isFormValid = formData.salary_budget;
 
   // Get salary display
   const getSalaryInfo = (range) => {
@@ -148,7 +121,7 @@ const SponsorBudgetStep = () => {
     return { level: '', color: 'text-gray-400' };
   };
 
-  const salaryInfo = getSalaryInfo(formData.salaryBudget);
+  const salaryInfo = getSalaryInfo(formData.salary_budget);
 
   return (
     <div className="space-y-4">
@@ -170,16 +143,16 @@ const SponsorBudgetStep = () => {
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
               <Select
-                value={formData.salaryBudget || ''}
-                onValueChange={(value) => handleSalaryChange(value)}
+                value={formData.salary_budget || ''}
+                onValueChange={(value) => handleChange('salary_budget', value)}
               >
                 <SelectTrigger
                   className={cn(
                     'pl-10 bg-white/10 border-white/20 text-white',
-                    touched.salaryBudget && errors.salaryBudget && 'border-red-500',
-                    !formData.salaryBudget && 'text-gray-400'
+                    touched.salary_budget && errors.salary_budget && 'border-red-500',
+                    !formData.salary_budget && 'text-gray-400'
                   )}
-                  onBlur={() => handleBlur('salaryBudget')}
+                  onBlur={() => handleBlur('salary_budget')}
                 >
                   <SelectValue placeholder="Select salary range" />
                 </SelectTrigger>
@@ -199,10 +172,10 @@ const SponsorBudgetStep = () => {
                 </SelectContent>
               </Select>
             </div>
-            {touched.salaryBudget && errors.salaryBudget && (
-              <StepError message={errors.salaryBudget} />
+            {touched.salary_budget && errors.salary_budget && (
+              <StepError message={errors.salary_budget} />
             )}
-            {formData.salaryBudget && (
+            {formData.salary_budget && (
               <p className={cn('text-xs mt-1', salaryInfo.color)}>
                 {salaryInfo.level} level salary range
               </p>
@@ -321,7 +294,7 @@ const SponsorBudgetStep = () => {
           </motion.div>
 
           {/* Budget Summary */}
-          {formData.salaryBudget && (
+          {formData.salary_budget && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -331,7 +304,7 @@ const SponsorBudgetStep = () => {
               <div className="space-y-1.5 text-sm">
                 <div className="flex items-center gap-2 text-gray-300">
                   <DollarSign className="w-4 h-4 text-green-400" />
-                  <span>{formData.salaryBudget} / month</span>
+                  <span>{formData.salary_budget} / month</span>
                 </div>
                 {formData.payment_frequency && (
                   <div className="flex items-center gap-2 text-gray-300">
