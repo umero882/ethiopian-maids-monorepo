@@ -1389,14 +1389,6 @@ const AuthProvider = ({ children, mockValue }) => {
         'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
       }[error.code] || error.message || 'An error occurred';
       return { error: { message } };
-        return { error };
-      }
-
-      log.debug('Password reset successfully');
-      return { error: null };
-    } catch (error) {
-      log.error('Exception resetting password:', error);
-      return { error: { message: error.message || 'An error occurred' } };
     }
   }, []);
 
