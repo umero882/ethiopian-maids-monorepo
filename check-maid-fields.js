@@ -14,7 +14,7 @@ const query = `
 `;
 
 async function checkMaids() {
-  const response = await fetch('https://ethio-maids-01.hasura.app/v1/graphql', {
+  const response = await fetch('https://api.ethiopianmaids.com/v1/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

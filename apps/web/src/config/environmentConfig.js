@@ -293,9 +293,9 @@ class EnvironmentConfig {
     console.warn('Setting fallback configuration for development...');
     this.config = {
       VITE_HASURA_ENDPOINT:
-        import.meta.env.VITE_HASURA_ENDPOINT || 'https://ethio-maids-01.hasura.app/v1/graphql',
+        import.meta.env.VITE_HASURA_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql',
       VITE_HASURA_WS_ENDPOINT:
-        import.meta.env.VITE_HASURA_WS_ENDPOINT || 'wss://ethio-maids-01.hasura.app/v1/graphql',
+        import.meta.env.VITE_HASURA_WS_ENDPOINT || 'wss://api.ethiopianmaids.com/v1/graphql',
       VITE_APP_NAME: 'Ethiopian Maids Platform',
       VITE_APP_VERSION: '1.0.0',
       VITE_APP_ENVIRONMENT: 'development',

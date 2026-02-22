@@ -52,37 +52,37 @@ export const STRIPE_PRICE_IDS = {
 // =============================================
 
 export const STRIPE_PAYMENT_LINKS = {
-  // Agency Placement Fee Payment Links
+  // Agency Placement Fee Payment Links — env vars required, no test fallbacks
   placementFee: {
-    aed500: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_500 || 'https://buy.stripe.com/test_4gM3co2t4aI5apH0ZP8og0n',
-    aed1000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_1000 || 'https://buy.stripe.com/test_3cI5kwd7I7vT69r8sh8og0o',
-    aed2000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_2000 || 'https://buy.stripe.com/test_aFacMY2t47vT7dv8sh8og0p',
-    aed5000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_5000 || 'https://buy.stripe.com/test_6oU28kd7I4jHfK1cIx8og0q',
+    aed500: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_500 || '',
+    aed1000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_1000 || '',
+    aed2000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_2000 || '',
+    aed5000: import.meta.env.VITE_STRIPE_LINK_PLACEMENT_FEE_5000 || '',
   },
 
   sponsor: {
     weekly: {
-      monthly: 'https://buy.stripe.com/test_5kQ28kc3E17v7dvbEt8og0c',
-      yearly: 'https://buy.stripe.com/test_dRm4gs2t417v8hz23T8og0f',
+      monthly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_WEEKLY_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_WEEKLY_YEARLY || '',
     },
     monthly: {
-      monthly: 'https://buy.stripe.com/test_7sY28k8Rs5nLeFX37X8og0d',
-      yearly: 'https://buy.stripe.com/test_28E6oA0kW6rPbtL8sh8og0j',
+      monthly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_MONTHLY_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_MONTHLY_YEARLY || '',
     },
-    twoMonths: 'https://buy.stripe.com/test_5kQfZaebM6rP9lD5g58og0e',
+    twoMonths: import.meta.env.VITE_STRIPE_LINK_SPONSOR_2MONTHS || '',
     premium: {
-      monthly: 'https://buy.stripe.com/test_dRm4gs2t417v8hz23T8og0f',
-      yearly: 'https://buy.stripe.com/test_6oU7sE8Rs6rP7dv8sh8og0k',
+      monthly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_PREMIUM_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_LINK_SPONSOR_PREMIUM_YEARLY || '',
     },
   },
   agency: {
     pro: {
-      monthly: 'https://buy.stripe.com/test_00wcMY5Fg7vT0P70ZP8og0g',
-      yearly: 'https://buy.stripe.com/test_bJe7sEgjU03r41jgYN8og0l',
+      monthly: import.meta.env.VITE_STRIPE_LINK_AGENCY_PRO_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_LINK_AGENCY_PRO_YEARLY || '',
     },
     premium: {
-      monthly: 'https://buy.stripe.com/test_cNi3co8RseYl41j6k98og0h',
-      yearly: 'https://buy.stripe.com/test_fZu5kwgjUg2pgO537X8og0m',
+      monthly: import.meta.env.VITE_STRIPE_LINK_AGENCY_PREMIUM_MONTHLY || '',
+      yearly: import.meta.env.VITE_STRIPE_LINK_AGENCY_PREMIUM_YEARLY || '',
     },
   },
 };

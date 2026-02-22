@@ -22,8 +22,8 @@ import {
 const statsData = [
   {
     id: 'verified-workers',
-    number: 1247,
-    displayNumber: '1,247+',
+    number: null,
+    displayNumber: 'Growing',
     label: 'Verified Ethiopian Domestic Workers',
     icon: UserCheck,
     description:
@@ -37,8 +37,8 @@ const statsData = [
   },
   {
     id: 'successful-placements',
-    number: 2856,
-    displayNumber: '2,856+',
+    number: null,
+    displayNumber: 'Growing',
     label: 'Successful Job Placements',
     icon: Heart,
     description:
@@ -52,8 +52,8 @@ const statsData = [
   },
   {
     id: 'certified-agencies',
-    number: 127,
-    displayNumber: '127+',
+    number: null,
+    displayNumber: 'Growing',
     label: 'Certified Recruitment Agencies',
     icon: Building2,
     description:
@@ -263,14 +263,13 @@ const StatsSection = () => {
           <h2 className='text-4xl md:text-5xl font-bold text-gray-900 mb-6'>
             Trusted by{' '}
             <span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600'>
-              4,200+ Users
+              Growing Community
             </span>
           </h2>
           <p className='text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed'>
-            With 1,247+ verified Ethiopian domestic workers and 1,893+ active
-            sponsor families, our platform has successfully completed 2,856+ job
-            placements across all 6 GCC countries with an outstanding 97%
-            satisfaction rate.
+            Our growing community of verified Ethiopian domestic workers and active
+            sponsor families connects across all 6 GCC countries with outstanding
+            satisfaction rates.
           </p>
         </motion.div>
 

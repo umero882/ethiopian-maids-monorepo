@@ -130,7 +130,7 @@ let apiClientInstance = null;
  */
 export function getApiClient(config) {
   if (!apiClientInstance) {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+    const baseUrl = import.meta.env.VITE_API_URL || '/api/v1';
 
     apiClientInstance = new MockSDKClient({
       baseUrl,

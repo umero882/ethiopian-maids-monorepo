@@ -17,7 +17,7 @@ const HeroSection = () => {
       id: 'profiles',
       icon: CheckCircle,
       number: '1000+',
-      hoverNumber: '1,247',
+      hoverNumber: '1,000+',
       label: 'Verified Profiles',
       color: 'text-blue-400',
     },
@@ -33,7 +33,7 @@ const HeroSection = () => {
       id: 'time',
       icon: Clock,
       number: '7 days',
-      hoverNumber: '5.2 days',
+      hoverNumber: '~7 days',
       label: 'Avg. Time to Hire',
       color: 'text-green-400',
     },
@@ -60,7 +60,7 @@ const HeroSection = () => {
           >
             <div className='inline-block mb-4'>
               <Badge className='bg-white/20 text-white border-white/30 backdrop-blur-sm'>
-                Trusted by 2,000+ Families
+                Trusted by Families Across the GCC
               </Badge>
             </div>
             <div className='mb-6'>

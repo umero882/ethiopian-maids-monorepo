@@ -3,7 +3,7 @@ const fetch = require('cross-fetch');
 
 const client = new ApolloClient({
   link: new HttpLink({
-    uri: 'https://ethio-maids-01.hasura.app/v1/graphql',
+    uri: 'https://api.ethiopianmaids.com/v1/graphql',
     fetch,
     headers: {
       'x-hasura-admin-secret': 'GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F'

@@ -37,7 +37,7 @@ const primaryFeatures = [
     color: 'from-blue-500 to-cyan-500',
     bgColor: 'bg-blue-50',
     iconColor: 'text-blue-600',
-    stats: '1,247+ Verified',
+    stats: 'Verified Profiles',
     benefits: [
       'Background checks',
       'Skills verification',
@@ -50,11 +50,11 @@ const primaryFeatures = [
     icon: Shield,
     title: 'Licensed Recruitment Agencies',
     description:
-      'Partner with 127+ certified agencies operating legally in Ethiopia and GCC countries with full compliance and transparency.',
+      'Partner with certified agencies operating legally in Ethiopia and GCC countries with full compliance and transparency.',
     color: 'from-purple-500 to-pink-500',
     bgColor: 'bg-purple-50',
     iconColor: 'text-purple-600',
-    stats: '127+ Agencies',
+    stats: 'Licensed Agencies',
     benefits: [
       'Legal compliance',
       'Government licensed',
@@ -406,7 +406,7 @@ const FeaturesSection = () => {
                   Proven Results
                 </div>
                 <div className='text-sm text-gray-600'>
-                  2,856+ successful placements
+                  Proven track record of successful placements
                 </div>
               </div>
             </div>

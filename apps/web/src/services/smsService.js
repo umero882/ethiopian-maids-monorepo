@@ -6,7 +6,7 @@ const log = createLogger('SMSService');
 class SMSService {
   constructor() {
     // Use the backend server URL (port 3001) for API calls
-    this.baseUrl = 'http://localhost:3001/api/sms';
+    this.baseUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/sms` : '/api/sms';
   }
 
   /**

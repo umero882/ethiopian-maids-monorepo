@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const HASURA_ENDPOINT = process.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://ethio-maids-01.hasura.app/v1/graphql';
+const HASURA_ENDPOINT = process.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql';
 const HASURA_ADMIN_SECRET = process.env.HASURA_ADMIN_SECRET;
 
 // Derive the SQL endpoint from GraphQL endpoint

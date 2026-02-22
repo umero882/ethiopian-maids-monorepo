@@ -2,7 +2,7 @@
  * Check support_tickets table and add sample data if empty
  */
 
-const HASURA_ENDPOINT = 'https://ethio-maids-01.hasura.app/v1/graphql';
+const HASURA_ENDPOINT = 'https://api.ethiopianmaids.com/v1/graphql';
 const HASURA_ADMIN_SECRET = process.env.HASURA_ADMIN_SECRET || 'GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F';
 
 async function executeGraphQL(query, variables = {}) {

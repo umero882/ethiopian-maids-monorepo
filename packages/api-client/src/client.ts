@@ -48,7 +48,7 @@ const getEnvVar = (viteKey: string, expoKey: string, fallback: string): string =
 // API Configuration
 // =====================================================
 // NOTE: Default endpoints point to VPS Hasura (api.ethiopianmaids.com)
-// The OLD Hasura Cloud endpoint (ethio-maids-01.hasura.app) is deprecated
+// The OLD Hasura Cloud endpoint is deprecated — use api.ethiopianmaids.com
 // =====================================================
 
 const HASURA_GRAPHQL_ENDPOINT = getEnvVar(

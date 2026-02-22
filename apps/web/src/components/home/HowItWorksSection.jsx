@@ -46,7 +46,7 @@ const sponsorSteps = [
     step: '2',
     title: 'Browse & Filter Workers',
     description:
-      'Search through 1,247+ verified Ethiopian domestic workers using advanced filters',
+      'Search through verified Ethiopian domestic workers using advanced filters',
     detailedSteps: [
       'Use smart search filters',
       'View detailed profiles',

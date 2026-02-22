@@ -13,12 +13,12 @@ import { gql } from '@apollo/client';
 
 // Firebase Auth imports
 import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached, ensureProfileExistsViaFunction } from '@/lib/firebaseClient';
-import { onAuthStateChanged, sendEmailVerification, reload } from 'firebase/auth';
+import { onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, confirmPasswordReset, reload } from 'firebase/auth';
 
 const log = createLogger('AuthContext');
 
 // Direct GraphQL fetch function to bypass Apollo Client issues
-const HASURA_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://ethio-maids-01.hasura.app/v1/graphql';
+const HASURA_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql';
 // SECURITY: Admin secret removed from client - use JWT auth only
 
 async function fetchProfileDirect(userId) {
@@ -1333,71 +1333,62 @@ const AuthProvider = ({ children, mockValue }) => {
     }
   }, []);
 
-  // Password reset methods (using custom Identity Module API)
+  // Password reset methods (using Firebase Auth)
   const requestPasswordReset = useCallback(async (email) => {
     try {
       log.debug('Requesting password reset for:', email);
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
-
-      const response = await fetch(`${API_BASE_URL}/auth/password-reset/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const error = {
-          message: data.message || 'Failed to send password reset email'
-        };
-        log.error('Password reset request failed:', error);
-        return { error };
+      if (!auth) {
+        return { error: { message: 'Authentication service not initialized' } };
       }
 
-      log.debug('Password reset email sent successfully');
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/login`,
+      });
+
+      log.debug('Password reset email sent successfully via Firebase');
       return { error: null };
     } catch (error) {
       log.error('Exception requesting password reset:', error);
-      return { error: { message: error.message || 'An error occurred' } };
+      const message = {
+        'auth/user-not-found': 'No account found with this email address.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/too-many-requests': 'Too many requests. Please try again later.',
+      }[error.code] || error.message || 'An error occurred';
+      return { error: { message } };
     }
   }, []);
 
   const resetPassword = useCallback(async (newPassword) => {
     try {
-      log.debug('Resetting password with token...');
+      log.debug('Resetting password with Firebase oobCode...');
 
-      // Extract token from URL (added by ResetPassword page from URL params)
+      // Extract oobCode from URL (Firebase uses 'oobCode' param)
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
+      const oobCode = urlParams.get('oobCode') || urlParams.get('token');
 
-      if (!token) {
-        const error = { message: 'No reset token found. Please use the link from your email.' };
+      if (!oobCode) {
+        const error = { message: 'No reset code found. Please use the link from your email.' };
         log.error('Password reset failed:', error);
         return { error };
       }
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+      if (!auth) {
+        return { error: { message: 'Authentication service not initialized' } };
+      }
 
-      const response = await fetch(`${API_BASE_URL}/auth/password-reset/confirm`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, newPassword }),
-      });
+      await confirmPasswordReset(auth, oobCode, newPassword);
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const error = {
-          message: data.message || 'Failed to reset password',
-          error: data.error
-        };
-        log.error('Password reset failed:', error);
+      log.debug('Password reset successfully via Firebase');
+      return { error: null };
+    } catch (error) {
+      log.error('Exception resetting password:', error);
+      const message = {
+        'auth/expired-action-code': 'This reset link has expired. Please request a new one.',
+        'auth/invalid-action-code': 'This reset link is invalid or has already been used.',
+        'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+      }[error.code] || error.message || 'An error occurred';
+      return { error: { message } };
         return { error };
       }
 

@@ -4,7 +4,7 @@
 
 const fetch = require('node-fetch');
 
-const HASURA_ENDPOINT = 'https://ethio-maids-01.hasura.app/v1/graphql';
+const HASURA_ENDPOINT = 'https://api.ethiopianmaids.com/v1/graphql';
 const HASURA_ADMIN_SECRET = process.env.HASURA_ADMIN_SECRET || '';
 
 async function checkProfiles() {

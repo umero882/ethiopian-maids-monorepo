@@ -6,7 +6,7 @@ import * as functions from 'firebase-functions';
 import { GraphQLClient, gql } from 'graphql-request';
 
 const hasuraClient = new GraphQLClient(
-  process.env.HASURA_GRAPHQL_ENDPOINT || 'https://ethio-maids-01.hasura.app/v1/graphql',
+  process.env.HASURA_GRAPHQL_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql',
   {
     headers: {
       'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET || '',

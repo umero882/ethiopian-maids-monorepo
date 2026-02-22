@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - https://ethio-maids-01.hasura.app/v1beta1/relay:
+  - https://api.ethiopianmaids.com/v1beta1/relay:
       headers:
         x-hasura-admin-secret: GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F
 # Only include Relay connection queries (simplified version)

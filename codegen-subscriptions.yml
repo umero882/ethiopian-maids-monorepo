@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - https://ethio-maids-01.hasura.app/v1/graphql:
+  - https://api.ethiopianmaids.com/v1/graphql:
       headers:
         x-hasura-admin-secret: ${HASURA_ADMIN_SECRET}
 documents: 'packages/api-client/src/graphql/subscriptions/**/*.graphql'

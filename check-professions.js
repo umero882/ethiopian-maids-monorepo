@@ -1,7 +1,7 @@
 // Script to check primary_profession values in the database
 const fetch = require('node-fetch');
 
-const HASURA_ENDPOINT = 'https://ethio-maids-01.hasura.app/v1/graphql';
+const HASURA_ENDPOINT = 'https://api.ethiopianmaids.com/v1/graphql';
 
 async function checkProfessions() {
   const query = `

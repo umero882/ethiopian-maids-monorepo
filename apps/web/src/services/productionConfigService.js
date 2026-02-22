@@ -127,8 +127,8 @@ class ProductionConfigService {
    */
   getAppConfig() {
     return {
-      appUrl: import.meta.env.VITE_APP_URL || 'http://localhost:5174',
-      apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+      appUrl: import.meta.env.VITE_APP_URL || 'https://ethiopianmaids.com',
+      apiUrl: import.meta.env.VITE_API_URL || '',
       environment: this.environment,
       isProduction: this.isProduction,
       enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',

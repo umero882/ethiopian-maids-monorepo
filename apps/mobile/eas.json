@@ -13,8 +13,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ethio-maids-01.hasura.app/v1/graphql",
-        "EXPO_PUBLIC_WS_URL": "wss://ethio-maids-01.hasura.app/v1/graphql"
+        "EXPO_PUBLIC_API_URL": "https://api.ethiopianmaids.com/v1/graphql",
+        "EXPO_PUBLIC_WS_URL": "wss://api.ethiopianmaids.com/v1/graphql"
       }
     },
     "preview": {
@@ -26,8 +26,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ethio-maids-01.hasura.app/v1/graphql",
-        "EXPO_PUBLIC_WS_URL": "wss://ethio-maids-01.hasura.app/v1/graphql"
+        "EXPO_PUBLIC_API_URL": "https://api.ethiopianmaids.com/v1/graphql",
+        "EXPO_PUBLIC_WS_URL": "wss://api.ethiopianmaids.com/v1/graphql"
       }
     },
     "production": {
@@ -39,8 +39,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ethio-maids-01.hasura.app/v1/graphql",
-        "EXPO_PUBLIC_WS_URL": "wss://ethio-maids-01.hasura.app/v1/graphql"
+        "EXPO_PUBLIC_API_URL": "https://api.ethiopianmaids.com/v1/graphql",
+        "EXPO_PUBLIC_WS_URL": "wss://api.ethiopianmaids.com/v1/graphql"
       },
       "autoIncrement": true
     }

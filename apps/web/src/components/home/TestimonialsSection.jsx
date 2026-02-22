@@ -47,7 +47,7 @@ const TestimonialsSection = () => {
             What Our Users Say
           </h2>
           <p className='text-xl text-gray-600'>
-            Trusted by thousands across the GCC region
+            Example scenarios from families across the GCC region
           </p>
         </div>
 

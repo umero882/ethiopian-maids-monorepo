@@ -4,7 +4,7 @@
       "command": "node",
       "args": [
         "C:/Users/umera/OneDrive/Documents/ethiopian-maids-monorepo/tools/hasura-mcp/dist/index.js",
-        "https://ethio-maids-01.hasura.app/v1/graphql",
+        "https://api.ethiopianmaids.com/v1/graphql",
         "GtTmwvc6ycbRB491SQ7iQnqnMGlg1dHwMCEb0763ogB6Y0ADI0szWUSsbHhmt78F"
       ]
     },
