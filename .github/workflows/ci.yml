@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-build
-          path: apps/web/dist/
+          path: dist/apps/web/
           retention-days: 7
 
   deploy:
