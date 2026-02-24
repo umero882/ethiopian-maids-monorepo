@@ -534,10 +534,10 @@ const DashboardLayout = ({ children }) => {
                     </>
                   )}
                   {profileIncomplete && (
-                  aria-label='Complete profile'
                     <Button
                       variant='ghost'
                       size='icon'
+                      aria-label='Complete profile'
                       onClick={() => navigate('/complete-profile')}
                       title='Complete your profile'
                     >
