@@ -168,12 +168,30 @@ async function setHasuraClaimsForUser(uid: string, role: UserRole): Promise<void
   await setFullClaimsForUser(uid, role);
 }
 
+// GraphQL mutation for creating profiles row (admin secret)
+const UPSERT_PROFILE_ROW = gql`
+  mutation UpsertProfileRow($data: profiles_insert_input!) {
+    insert_profiles_one(
+      object: $data
+      on_conflict: {
+        constraint: profiles_pkey
+        update_columns: [updated_at]
+      }
+    ) {
+      id
+    }
+  }
+`;
+
 /**
  * Firebase Auth trigger: Set default Hasura claims when a new user is created
  *
  * This runs automatically when a new user signs up via Firebase Auth.
  * Sets default 'user' role initially - call syncHasuraClaims after profile creation
  * to update with the actual role.
+ *
+ * Also creates a profiles row in Hasura using admin secret to ensure
+ * the row exists from signup (guards against permission issues).
  */
 export async function onUserCreated(user: admin.auth.UserRecord): Promise<void> {
   console.log(`[HasuraClaims] New user created: ${user.uid} (${user.email})`);
@@ -183,6 +201,34 @@ export async function onUserCreated(user: admin.auth.UserRecord): Promise<void> 
   await setHasuraClaimsForUser(user.uid, 'user');
 
   console.log(`[HasuraClaims] Default claims set for new user ${user.uid}`);
+
+  // Create profiles row using admin secret (bypasses permission issues)
+  if (HASURA_ENDPOINT && HASURA_ADMIN_SECRET) {
+    try {
+      const client = new GraphQLClient(HASURA_ENDPOINT, {
+        headers: { 'x-hasura-admin-secret': HASURA_ADMIN_SECRET },
+      });
+
+      const profileData = {
+        id: user.uid,
+        email: user.email || '',
+        full_name: user.displayName || '',
+        phone: user.phoneNumber || '',
+        user_type: 'user',
+        registration_complete: false,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      await client.request(UPSERT_PROFILE_ROW, { data: profileData });
+      console.log(`[HasuraClaims] Profiles row created for user ${user.uid}`);
+    } catch (profileError) {
+      // Non-fatal: profile row will be created during onboarding if this fails
+      console.warn(`[HasuraClaims] Could not create profiles row for ${user.uid}:`, profileError);
+    }
+  } else {
+    console.warn('[HasuraClaims] Hasura config not set, skipping profiles row creation');
+  }
 }
 
 /**

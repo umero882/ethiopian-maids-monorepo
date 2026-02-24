@@ -230,16 +230,21 @@ const SponsorDashboardOverview = () => {
   };
 
   const calculateProfileCompletion = (profile) => {
+    // Fields collected during onboarding that determine profile completeness
+    // Note: sponsor_profiles uses household_size in DB, mapped to family_size by sponsorService
     const fields = [
       'full_name', 'city', 'country', 'family_size', 'accommodation_type',
-      'preferred_nationality', 'salary_budget_min', 'salary_budget_max',
-      'live_in_required', 'working_hours_per_day', 'avatar_url'
+      'preferred_languages', 'salary_budget_min',
+      'live_in_required', 'working_hours_per_day',
     ];
 
     const completed = fields.filter(field => {
       const value = profile[field];
-      return value !== null && value !== undefined && value !== '' &&
-             (Array.isArray(value) ? value.length > 0 : true);
+      if (value === null || value === undefined) return false;
+      if (typeof value === 'boolean') return true; // booleans are always "filled"
+      if (typeof value === 'number') return true; // numbers (including 0) are "filled"
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== '';
     }).length;
 
     return Math.round((completed / fields.length) * 100);

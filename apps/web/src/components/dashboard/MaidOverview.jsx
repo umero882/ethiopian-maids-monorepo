@@ -37,7 +37,9 @@ const GET_MAID_OVERVIEW_DATA = gql`
       full_name
       date_of_birth
       nationality
+      country
       religion
+      marital_status
       languages
       education_level
       profile_photo_url
@@ -245,6 +247,7 @@ const MaidOverview = () => {
   };
 
   // Calculate profile completeness with weighted sections (synced with MaidProfilePage.jsx)
+  // NOTE: Uses the TRANSFORMED field names from the profileData mapping above (lines 123-157)
   const getProfileCompleteness = () => {
     if (!profile) return 0;
 
@@ -252,7 +255,7 @@ const MaidOverview = () => {
       personal: {
         weight: 25,
         fields: [
-          profile.full_name && profile.full_name !== 'New Maid',
+          profile.name && profile.name !== 'New Maid',
           profile.age && profile.age !== 'Not specified',
           profile.country && profile.country !== 'Not specified',
         ],

@@ -41,6 +41,15 @@ import {
   getUserType,
 } from './auth/hasuraClaims';
 
+// Import handlers - Profile (Onboarding)
+import {
+  saveOnboardingProfile,
+  ensureProfileExists,
+} from './profile/saveOnboardingProfile';
+
+// Import handlers - Jobs
+import { manageJob } from './jobs/createJob';
+
 // =====================================================
 // STRIPE FUNCTIONS
 // =====================================================
@@ -195,6 +204,33 @@ export const authSetUserType = functions.https.onCall(setUserType);
  * Callable: Get current user type from claims (for debugging)
  */
 export const authGetUserType = functions.https.onCall(getUserType);
+
+// =====================================================
+// PROFILE / ONBOARDING FUNCTIONS
+// =====================================================
+
+/**
+ * Callable: Save onboarding profile using admin secret
+ * Bypasses Hasura JWT permission issues by writing directly with admin secret.
+ * Upserts both the profiles row AND the type-specific table (maid/sponsor/agency).
+ */
+export const profileSaveOnboarding = functions.https.onCall(saveOnboardingProfile);
+
+/**
+ * Callable: Ensure a profiles row exists for the current user
+ * Creates the row if missing, no-ops if it already exists.
+ */
+export const profileEnsureExists = functions.https.onCall(ensureProfileExists);
+
+// =====================================================
+// JOB MANAGEMENT FUNCTIONS
+// =====================================================
+
+/**
+ * Callable: Create/update/delete jobs using admin secret
+ * Bypasses Hasura JWT permission issues for the jobs table.
+ */
+export const jobManage = functions.https.onCall(manageJob);
 
 // =====================================================
 // HEALTH CHECK

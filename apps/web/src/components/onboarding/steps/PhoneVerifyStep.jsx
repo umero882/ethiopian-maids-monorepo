@@ -6,7 +6,7 @@ import StepNavigation from '../shared/StepNavigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useFirebasePhoneAuth, PHONE_VERIFICATION_STATES } from '@/hooks/useFirebasePhoneAuth';
-import { Phone, Shield, CheckCircle, RefreshCw, Edit2, Loader2 } from 'lucide-react';
+import { Phone, Shield, CheckCircle, RefreshCw, Edit2, Loader2, SkipForward } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Country codes for GCC and East Africa
@@ -35,6 +35,8 @@ const PhoneVerifyStep = () => {
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [sendAttempted, setSendAttempted] = useState(false);
+  const [sendTimedOut, setSendTimedOut] = useState(false);
 
   const {
     state,
@@ -59,8 +61,40 @@ const PhoneVerifyStep = () => {
     },
     onError: (err) => {
       console.error('Phone verification error:', err);
+      setSendAttempted(true);
     },
   });
+
+  // If sending takes more than 15 seconds, it's hung — show skip option
+  useEffect(() => {
+    let timer;
+    if (isSending) {
+      timer = setTimeout(() => {
+        setSendTimedOut(true);
+        setSendAttempted(true);
+      }, 15000);
+    } else {
+      setSendTimedOut(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isSending]);
+
+  // When error occurs, mark as attempted
+  useEffect(() => {
+    if (hasError) {
+      setSendAttempted(true);
+    }
+  }, [hasError]);
+
+  // Can skip = user tried sending and it failed/timed out, or they just want to skip
+  const canSkip = sendAttempted || hasError || sendTimedOut;
+
+  // Handle skip verification
+  const handleSkip = () => {
+    const fullPhone = `${selectedCountry.code}${localPhone}`;
+    updateAccount({ phone: fullPhone || '', phoneVerified: false });
+    nextStep();
+  };
 
   // Resend timer countdown
   useEffect(() => {
@@ -79,6 +113,7 @@ const PhoneVerifyStep = () => {
       return;
     }
 
+    setSendAttempted(true);
     const success = await sendVerificationCode(fullPhoneNumber);
     if (success) {
       setResendTimer(60);
@@ -148,7 +183,24 @@ const PhoneVerifyStep = () => {
   const handleContinue = () => {
     if (isVerified) {
       nextStep();
+    } else if (canSkip) {
+      handleSkip();
     }
+  };
+
+  // Get friendly error message
+  const getFriendlyError = (err) => {
+    if (!err) return '';
+    if (err.includes('SHA-1') || err.includes('Phone provider') || err.includes('fingerprint')) {
+      return 'Phone verification is temporarily unavailable. You can skip this step and verify later.';
+    }
+    if (err.includes('operation-not-allowed') || err.includes('not enabled')) {
+      return 'Phone verification is not enabled yet. Please skip and verify later from your profile.';
+    }
+    if (err.includes('too-many-requests')) {
+      return 'Too many attempts. Please wait a few minutes before trying again, or skip for now.';
+    }
+    return err;
   };
 
   // Render phone input
@@ -214,10 +266,10 @@ const PhoneVerifyStep = () => {
       <Button
         id="phone-verify-button"
         onClick={handleSendCode}
-        disabled={!localPhone || localPhone.length < 6 || isSending}
+        disabled={!localPhone || localPhone.length < 6 || (isSending && !sendTimedOut)}
         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
       >
-        {isSending ? (
+        {isSending && !sendTimedOut ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Sending Code...
@@ -349,13 +401,41 @@ const PhoneVerifyStep = () => {
           )}
 
           {/* Error display */}
-          {hasError && error && (
+          {(hasError || sendTimedOut) && !isVerified && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4"
             >
-              <StepError message={error} />
+              <StepError message={
+                sendTimedOut
+                  ? 'Phone verification timed out. You can try again or skip this step.'
+                  : getFriendlyError(error)
+              } />
+            </motion.div>
+          )}
+
+          {/* Skip option - always visible after first attempt or on error */}
+          {canSkip && !isVerified && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 text-center"
+            >
+              <div className="border border-white/10 rounded-lg p-4 bg-white/5">
+                <p className="text-sm text-gray-300 mb-3">
+                  Having trouble? You can skip and verify your phone later from your profile settings.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSkip}
+                  className="border-white/20 text-white hover:bg-white/10 gap-2"
+                >
+                  <SkipForward className="w-4 h-4" />
+                  Skip for Now
+                </Button>
+              </div>
             </motion.div>
           )}
         </div>
@@ -368,8 +448,8 @@ const PhoneVerifyStep = () => {
       <StepNavigation
         onNext={handleContinue}
         onPrevious={previousStep}
-        isDisabled={!isVerified}
-        nextLabel={isVerified ? 'Continue' : 'Verify to Continue'}
+        isDisabled={!isVerified && !canSkip}
+        nextLabel={isVerified ? 'Continue' : canSkip ? 'Skip & Continue' : 'Verify to Continue'}
       />
     </div>
   );

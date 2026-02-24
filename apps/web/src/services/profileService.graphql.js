@@ -180,9 +180,8 @@ export async function uploadProfilePicture(userId, file) {
  * NOTE: Pure computation, no GraphQL needed
  */
 export function getProfileCompletion(profileData, userType) {
-  // This is pure computation - same logic as Supabase version
+  // Returns { completed, total } to match what callers expect
   let requiredFields = [];
-  let filledFields = 0;
 
   switch (userType) {
     case 'maid':
@@ -199,14 +198,17 @@ export function getProfileCompletion(profileData, userType) {
       ];
       break;
     case 'sponsor':
+      // Fields that exist in sponsor_profiles and are collected during onboarding
       requiredFields = [
         'full_name',
-        'phone_number',
         'city',
         'country',
         'household_size',
-        'required_skills',
+        'accommodation_type',
+        'preferred_languages',
         'salary_budget_min',
+        'live_in_required',
+        'working_hours_per_day',
       ];
       break;
     case 'agency':
@@ -220,19 +222,23 @@ export function getProfileCompletion(profileData, userType) {
       ];
       break;
     default:
-      return 0;
+      return { completed: 0, total: 1 };
   }
 
+  let filledFields = 0;
   requiredFields.forEach(field => {
     const value = profileData[field];
-    if (value !== null && value !== undefined && value !== '') {
-      if (Array.isArray(value) && value.length > 0) filledFields++;
-      else if (!Array.isArray(value)) filledFields++;
-    }
+    if (value === null || value === undefined) return;
+    if (typeof value === 'boolean') { filledFields++; return; }
+    if (typeof value === 'number') { filledFields++; return; }
+    if (Array.isArray(value) && value.length > 0) { filledFields++; return; }
+    if (typeof value === 'string' && value !== '') { filledFields++; return; }
   });
 
-  const completion = Math.round((filledFields / requiredFields.length) * 100);
-  return completion;
+  const percentage = requiredFields.length > 0
+    ? Math.round((filledFields / requiredFields.length) * 100)
+    : 0;
+  return { completed: filledFields, total: requiredFields.length, percentage };
 }
 
 // ============================================

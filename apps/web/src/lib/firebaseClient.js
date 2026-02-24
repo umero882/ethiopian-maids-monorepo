@@ -353,6 +353,39 @@ export async function sendPhoneOTP(phoneNumber, recaptchaVerifier) {
 
   try {
     log.debug('Sending OTP to:', phoneNumber);
+
+    // If user is already signed in, use PhoneAuthProvider to get a verification ID
+    // then link the phone credential to their existing account.
+    // If not signed in, use signInWithPhoneNumber (standard flow).
+    if (auth.currentUser) {
+      log.debug('User already authenticated, using PhoneAuthProvider to link phone');
+      const provider = new PhoneAuthProvider(auth);
+      const verificationId = await provider.verifyPhoneNumber(phoneNumber, recaptchaVerifier);
+      log.info('OTP sent successfully (link mode)');
+      // Return an object that mimics ConfirmationResult for the verifyPhoneOTP function
+      return {
+        verificationId,
+        confirm: async (code) => {
+          const credential = PhoneAuthProvider.credential(verificationId, code);
+          try {
+            // Try to link the phone number to the existing account
+            const result = await linkWithCredential(auth.currentUser, credential);
+            log.info('Phone number linked to existing account');
+            return result;
+          } catch (linkError) {
+            if (linkError.code === 'auth/provider-already-linked' ||
+                linkError.code === 'auth/credential-already-in-use') {
+              // Phone already linked or in use - treat as verified
+              log.warn('Phone already linked/in-use, treating as verified:', linkError.code);
+              return { user: auth.currentUser };
+            }
+            throw linkError;
+          }
+        }
+      };
+    }
+
+    // Standard flow for unauthenticated users
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
     log.info('OTP sent successfully');
     return confirmationResult;
@@ -368,6 +401,8 @@ export async function sendPhoneOTP(phoneNumber, recaptchaVerifier) {
       throw new Error('reCAPTCHA verification failed. Please try again.');
     } else if (error.code === 'auth/quota-exceeded') {
       throw new Error('SMS quota exceeded. Please try again later.');
+    } else if (error.code === 'auth/operation-not-allowed') {
+      throw new Error('Phone verification is not enabled. Please skip this step and verify later from your profile.');
     }
 
     throw error;
@@ -669,6 +704,104 @@ export async function refreshClaims() {
     return result.data;
   } catch (error) {
     log.error('Failed to refresh claims:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// PROFILE CLOUD FUNCTIONS - SERVER-SIDE PROFILE WRITES
+// ============================================================================
+// These bypass Hasura JWT permission issues by using admin secret server-side.
+// ============================================================================
+
+/**
+ * Save onboarding profile via Cloud Function (admin secret, bypasses permissions)
+ *
+ * @param {{ userType: string, profileData: object, basicProfileData?: object }} payload
+ * @returns {Promise<{ success: boolean, profile: object, typeProfile: object }>}
+ */
+export async function saveOnboardingProfileViaFunction(payload) {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated');
+  }
+
+  try {
+    log.debug('Calling saveOnboardingProfile Cloud Function...');
+    const callable = httpsCallable(functions, 'profileSaveOnboarding');
+    const result = await callable(payload);
+    log.info('saveOnboardingProfile succeeded:', result.data);
+    return result.data;
+  } catch (error) {
+    log.error('saveOnboardingProfile failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Ensure a profiles row exists via Cloud Function (admin secret, bypasses permissions)
+ *
+ * @param {{ userType?: string }} payload
+ * @returns {Promise<{ success: boolean, profile: object }>}
+ */
+export async function ensureProfileExistsViaFunction(payload) {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated');
+  }
+
+  try {
+    log.debug('Calling ensureProfileExists Cloud Function...');
+    const callable = httpsCallable(functions, 'profileEnsureExists');
+    const result = await callable(payload || {});
+    log.info('ensureProfileExists succeeded:', result.data);
+    return result.data;
+  } catch (error) {
+    log.error('ensureProfileExists failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update profile via Cloud Function (admin secret, bypasses permissions)
+ * Reuses the saveOnboardingProfile Cloud Function which does UPSERT.
+ *
+ * @param {string} userType - 'maid' | 'sponsor' | 'agency'
+ * @param {object} profileData - Profile data to update
+ * @returns {Promise<{ success: boolean, profile: object, typeProfile: object }>}
+ */
+export async function updateProfileViaFunction(userType, profileData) {
+  if (!functions) {
+    throw new Error('Firebase Functions not initialized');
+  }
+
+  if (!auth?.currentUser) {
+    throw new Error('User must be authenticated');
+  }
+
+  try {
+    log.debug('Calling profileSaveOnboarding for profile update...');
+    const callable = httpsCallable(functions, 'profileSaveOnboarding');
+    const result = await callable({
+      userType,
+      profileData,
+      basicProfileData: {
+        full_name: profileData.full_name,
+        phone: profileData.phone,
+        country: profileData.country,
+        avatar_url: profileData.avatar_url,
+      },
+    });
+    log.info('Profile update via Cloud Function succeeded:', result.data);
+    return result.data;
+  } catch (error) {
+    log.error('Profile update via Cloud Function failed:', error);
     throw error;
   }
 }

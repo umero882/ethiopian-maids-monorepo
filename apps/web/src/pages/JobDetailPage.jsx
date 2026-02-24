@@ -267,15 +267,15 @@ const JobDetailPage = () => {
                       <div className="flex items-center gap-3 text-gray-600 mb-2">
                         <Avatar className="h-10 w-10 border-2 border-gray-200">
                           <AvatarImage
-                            src={job.sponsor?.avatar_url}
-                            alt={job.sponsor?.name || 'Sponsor'}
+                            src={job.sponsor_profile?.avatar_url}
+                            alt={job.sponsor_profile?.full_name || 'Sponsor'}
                           />
                           <AvatarFallback className="bg-purple-100 text-purple-600">
                             <User className="h-5 w-5" />
                           </AvatarFallback>
                         </Avatar>
                         <span className="font-medium text-lg">
-                          {job.sponsor?.name || 'Private Employer'}
+                          {job.sponsor_profile?.full_name || 'Private Employer'}
                         </span>
                       </div>
                       <div className="flex items-center text-gray-500 mb-2">
@@ -579,7 +579,7 @@ const JobDetailPage = () => {
               </Card>
 
               {/* Employer Info */}
-              {job.sponsor && (
+              {job.sponsor_profile && (
                 <Card>
                   <CardHeader>
                     <CardTitle>About the Employer</CardTitle>
@@ -588,17 +588,17 @@ const JobDetailPage = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage
-                          src={job.sponsor.avatar_url}
-                          alt={job.sponsor.name}
+                          src={job.sponsor_profile.avatar_url}
+                          alt={job.sponsor_profile.full_name}
                         />
                         <AvatarFallback>
-                          {job.sponsor.name?.charAt(0) || 'E'}
+                          {job.sponsor_profile.full_name?.charAt(0) || 'E'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold">{job.sponsor.name}</p>
-                          {job.sponsor.verification_status === 'verified' && (
+                          <p className="font-semibold">{job.sponsor_profile.full_name}</p>
+                          {job.sponsor_profile.verification_status === 'verified' && (
                             <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
                               <CheckCircle className="w-3 h-3" />
                               Verified
@@ -606,9 +606,7 @@ const JobDetailPage = () => {
                           )}
                         </div>
                         <p className="text-sm text-gray-500">
-                          {job.sponsor.verification_status === 'verified'
-                            ? 'Verified Employer'
-                            : 'Employer'}
+                          {job.sponsor_profile.country || 'Employer'}
                         </p>
                       </div>
                     </div>

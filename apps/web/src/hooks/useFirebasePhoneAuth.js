@@ -120,7 +120,16 @@ export function useFirebasePhoneAuth(options = {}) {
 
     try {
       const recaptchaVerifier = initializeRecaptcha();
-      const confirmationResult = await sendPhoneOTP(formattedPhone, recaptchaVerifier);
+
+      // Add timeout to prevent infinite hanging if Firebase doesn't respond
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Phone verification timed out. Please try again or skip this step.')), 20000)
+      );
+
+      const confirmationResult = await Promise.race([
+        sendPhoneOTP(formattedPhone, recaptchaVerifier),
+        timeoutPromise,
+      ]);
       confirmationResultRef.current = confirmationResult;
 
       setState(PHONE_VERIFICATION_STATES.CODE_SENT);
@@ -129,7 +138,7 @@ export function useFirebasePhoneAuth(options = {}) {
     } catch (err) {
       log.error('Failed to send verification code:', err);
       setState(PHONE_VERIFICATION_STATES.ERROR);
-      setError(err.message);
+      setError(err.message || 'Failed to send verification code. Please try again or skip this step.');
       onError?.(err);
 
       // Reset reCAPTCHA on error

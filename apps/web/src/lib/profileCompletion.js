@@ -82,8 +82,9 @@ export const calculateProfileCompletion = (profile) => {
         completedWeight += config.weight;
       }
     } else if (typeof value === 'number') {
-      // For numbers, check if > 0
-      if (value > 0) {
+      // For numbers, 0 is valid (e.g., "No Experience" = 0 years)
+      // Only null/undefined/NaN means missing
+      if (!isNaN(value)) {
         completedWeight += config.weight;
       }
     } else if (typeof value === 'boolean') {
@@ -154,7 +155,8 @@ export const getMissingRequiredFields = (profile) => {
     if (config.isArray) {
       isMissing = !Array.isArray(value) || value.length === 0;
     } else if (typeof value === 'number') {
-      isMissing = value <= 0;
+      // 0 is valid (e.g., "No Experience" = 0 years), only NaN means missing
+      isMissing = isNaN(value);
     } else if (typeof value === 'boolean') {
       isMissing = false; // Booleans are always "filled"
     } else {

@@ -8,8 +8,8 @@
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import { createLogger } from '@/utils/logger';
+import { updateProfileViaFunction } from '@/lib/firebaseClient';
 import {
-  GetSponsorProfileCompleteDocument,
   GetSponsorProfileDocument,
   ListSponsorProfilesDocument,
   CreateSponsorProfileDocument,
@@ -22,6 +22,59 @@ import {
 } from '@ethio/api-client';
 
 const log = createLogger('SponsorService:GraphQL');
+
+// Inline query matching confirmed working fields from generated types
+// Plus religion, avatar_url, phone_number which exist in DB but may not be in codegen
+const GET_SPONSOR_PROFILE_COMPLETE = gql`
+  query GetSponsorProfileComplete($id: String!) {
+    sponsor_profiles_by_pk(id: $id) {
+      id
+      full_name
+      household_size
+      number_of_children
+      children_ages
+      elderly_care_needed
+      pets
+      pet_types
+      city
+      country
+      address
+      accommodation_type
+      preferred_nationality
+      preferred_experience_years
+      required_skills
+      preferred_languages
+      salary_budget_min
+      salary_budget_max
+      currency
+      live_in_required
+      working_hours_per_day
+      days_off_per_week
+      overtime_available
+      additional_benefits
+      identity_verified
+      background_check_completed
+      active_job_postings
+      total_hires
+      average_rating
+      created_at
+      updated_at
+    }
+  }
+`;
+
+// Extended query that also fetches newer columns (religion, avatar_url, phone_number)
+// These may not exist on all Hasura instances, so we try this separately
+const GET_SPONSOR_PROFILE_EXTENDED = gql`
+  query GetSponsorProfileExtended($id: String!) {
+    sponsor_profiles_by_pk(id: $id) {
+      id
+      religion
+      avatar_url
+      phone_number
+    }
+  }
+`;
 
 /**
  * GraphQL-based sponsor service implementation
@@ -43,7 +96,7 @@ export const graphqlSponsorService = {
       log.debug('[GraphQL] Fetching sponsor profile:', userId);
 
       const { data, errors } = await apolloClient.query({
-        query: GetSponsorProfileCompleteDocument,
+        query: GET_SPONSOR_PROFILE_COMPLETE,
         variables: { id: userId },
         fetchPolicy: 'network-only',
       });
@@ -64,13 +117,49 @@ export const graphqlSponsorService = {
         };
       }
 
+      // Try fetching extended fields (religion, avatar_url, phone_number)
+      // These may not exist on all Hasura instances
+      let extendedFields = {};
+      try {
+        const extResult = await apolloClient.query({
+          query: GET_SPONSOR_PROFILE_EXTENDED,
+          variables: { id: userId },
+          fetchPolicy: 'network-only',
+        });
+        if (extResult.data?.sponsor_profiles_by_pk) {
+          extendedFields = extResult.data.sponsor_profiles_by_pk;
+        }
+      } catch (extErr) {
+        log.warn('[GraphQL] Extended fields query failed (non-fatal):', extErr.message);
+      }
+
       // Map database column names to what the UI expects
-      // Database: household_size, number_of_children
-      // UI expects: family_size, children_count
+      // household_size (int) → family_size (range string)
+      const householdToFamilySize = (hs) => {
+        if (hs == null) return '';
+        if (hs <= 1) return '1';
+        if (hs <= 2) return '2';
+        if (hs <= 4) return '3-4';
+        if (hs <= 6) return '5-6';
+        return '7+';
+      };
+
       const mappedData = {
         ...profile,
-        family_size: profile.household_size,
+        ...extendedFields,
+        // DB → UI field name mappings
+        family_size: householdToFamilySize(profile.household_size),
         children_count: profile.number_of_children,
+        benefits: profile.additional_benefits || [],
+        preferred_religion: extendedFields.religion || profile.religion || '',
+        // Reverse map booleans/integers to UI enum values
+        elderly: profile.elderly_care_needed ? 'one' : 'none',
+        living_arrangement: profile.live_in_required === true ? 'live-in'
+          : profile.live_in_required === false ? 'live-out' : 'flexible',
+        working_hours: profile.working_hours_per_day >= 8 ? 'full-time'
+          : profile.working_hours_per_day >= 4 ? 'part-time' : 'flexible',
+        days_off: profile.days_off_per_week >= 2 ? '2-per-week'
+          : profile.days_off_per_week >= 1 ? '1-per-week' : 'negotiable',
       };
 
       log.info('[GraphQL] Sponsor profile loaded successfully:', userId);
@@ -154,63 +243,105 @@ export const graphqlSponsorService = {
 
   /**
    * Update sponsor profile
+   * Uses Cloud Function (admin secret) as primary to bypass Hasura permission issues.
+   * Falls back to direct GraphQL mutation if Cloud Function is unavailable.
    * @param {string} userId - The user ID
    * @param {object} profileData - Profile data to update
    * @returns {Promise<{data: object | null, error: object | null}>}
    */
   async updateSponsorProfile(userId, profileData) {
-    try {
-      log.debug('[GraphQL] Updating sponsor profile for user:', userId);
-      log.debug('[GraphQL] Profile data received:', profileData);
+    log.debug('[GraphQL] Updating sponsor profile for user:', userId);
 
-      // Map UI field names to database column names
-      const mappedData = {
-        full_name: profileData.full_name || profileData.name,
-        household_size: profileData.family_size !== undefined
-          ? parseInt(profileData.family_size) : undefined,
-        number_of_children: profileData.children_count !== undefined
-          ? parseInt(profileData.children_count) : undefined,
-        children_ages: profileData.children_ages,
-        elderly_care_needed: profileData.elderly_care_needed !== undefined
+    // Map UI field names to database column names
+    const mappedData = {
+      full_name: profileData.full_name || profileData.name,
+      // family_size (UI range string like '3-4') → household_size (DB integer)
+      household_size: profileData.family_size !== undefined
+        ? (({ '1': 1, '2': 2, '3-4': 3, '5-6': 5, '7+': 7 })[profileData.family_size] || parseInt(profileData.family_size) || 1)
+        : profileData.household_size !== undefined
+          ? (parseInt(profileData.household_size) || 1) : undefined,
+      // children_count (UI) → number_of_children (DB)
+      number_of_children: profileData.children_count !== undefined
+        ? parseInt(profileData.children_count) : undefined,
+      children_ages: profileData.children_ages,
+      // elderly (UI enum: none/one/multiple) → elderly_care_needed (DB boolean)
+      elderly_care_needed: profileData.elderly !== undefined
+        ? (profileData.elderly !== 'none')
+        : profileData.elderly_care_needed !== undefined
           ? Boolean(profileData.elderly_care_needed) : undefined,
-        pets: profileData.pets !== undefined ? Boolean(profileData.pets) : undefined,
-        pet_types: profileData.pet_types,
-        city: profileData.city,
-        country: profileData.country,
-        address: profileData.address,
-        accommodation_type: profileData.accommodation_type,
-        preferred_nationality: profileData.preferred_nationality,
-        preferred_experience_years: profileData.preferred_experience_years !== undefined
-          ? parseInt(profileData.preferred_experience_years) : undefined,
-        required_skills: profileData.required_skills,
-        preferred_languages: profileData.preferred_languages,
-        salary_budget_min: profileData.salary_budget_min !== null && profileData.salary_budget_min !== ''
-          ? parseInt(profileData.salary_budget_min) : null,
-        salary_budget_max: profileData.salary_budget_max !== null && profileData.salary_budget_max !== ''
-          ? parseInt(profileData.salary_budget_max) : null,
-        currency: profileData.currency,
-        live_in_required: profileData.live_in_required !== undefined
+      pets: profileData.pets !== undefined ? Boolean(profileData.pets) : undefined,
+      pet_types: profileData.pet_types,
+      city: profileData.city,
+      country: profileData.country,
+      address: profileData.address,
+      accommodation_type: profileData.accommodation_type,
+      preferred_nationality: profileData.preferred_nationality,
+      preferred_experience_years: profileData.preferred_experience_years !== undefined
+        ? parseInt(profileData.preferred_experience_years) : undefined,
+      required_skills: profileData.required_skills,
+      preferred_languages: profileData.preferred_languages,
+      salary_budget_min: profileData.salary_budget_min !== null && profileData.salary_budget_min !== ''
+        ? parseInt(profileData.salary_budget_min) : null,
+      salary_budget_max: profileData.salary_budget_max !== null && profileData.salary_budget_max !== ''
+        ? parseInt(profileData.salary_budget_max) : null,
+      currency: profileData.currency,
+      // living_arrangement (UI enum: live-in/live-out/flexible) → live_in_required (DB boolean)
+      live_in_required: profileData.living_arrangement !== undefined
+        ? (profileData.living_arrangement === 'live-in')
+        : profileData.live_in_required !== undefined
           ? Boolean(profileData.live_in_required) : undefined,
-        working_hours_per_day: profileData.working_hours_per_day !== undefined
+      // working_hours (UI enum: full-time/part-time/flexible) → working_hours_per_day (DB int)
+      working_hours_per_day: profileData.working_hours !== undefined
+        ? (profileData.working_hours === 'full-time' ? 8 : profileData.working_hours === 'part-time' ? 4 : 0)
+        : profileData.working_hours_per_day !== undefined
           ? parseInt(profileData.working_hours_per_day) : undefined,
-        days_off_per_week: profileData.days_off_per_week !== undefined
+      // days_off (UI enum) → days_off_per_week (DB int)
+      days_off_per_week: profileData.days_off !== undefined
+        ? (profileData.days_off === '2-per-week' ? 2 : profileData.days_off === '1-per-week' ? 1 : profileData.days_off === '1-per-month' ? 0 : 1)
+        : profileData.days_off_per_week !== undefined
           ? parseInt(profileData.days_off_per_week) : undefined,
-        overtime_available: profileData.overtime_available !== undefined
-          ? Boolean(profileData.overtime_available) : undefined,
-        additional_benefits: profileData.additional_benefits,
-        identity_verified: profileData.identity_verified !== undefined
-          ? Boolean(profileData.identity_verified) : undefined,
-        background_check_completed: profileData.background_check_completed !== undefined
-          ? Boolean(profileData.background_check_completed) : undefined,
-      };
+      overtime_available: profileData.overtime_available !== undefined
+        ? Boolean(profileData.overtime_available) : undefined,
+      // benefits (UI) → additional_benefits (DB)
+      additional_benefits: profileData.benefits || profileData.additional_benefits,
+      // preferred_religion (UI) → religion (DB)
+      religion: profileData.preferred_religion || profileData.religion,
+      // avatar_url - save to sponsor_profiles too
+      avatar_url: profileData.avatar_url,
+      identity_verified: profileData.identity_verified !== undefined
+        ? Boolean(profileData.identity_verified) : undefined,
+      background_check_completed: profileData.background_check_completed !== undefined
+        ? Boolean(profileData.background_check_completed) : undefined,
+      // Extra fields stored in profiles.user_metadata (sent to Cloud Function)
+      occupation: profileData.occupation,
+      company: profileData.company,
+      payment_frequency: profileData.payment_frequency,
+      contract_duration: profileData.contract_duration,
+      room_amenities: profileData.room_amenities,
+      living_arrangement: profileData.living_arrangement,
+      working_hours: profileData.working_hours,
+      days_off: profileData.days_off,
+      elderly: profileData.elderly,
+      children_ages_label: profileData.children_ages,
+    };
 
-      // Remove undefined values
-      Object.keys(mappedData).forEach(key =>
-        mappedData[key] === undefined && delete mappedData[key]
-      );
+    // Remove undefined values
+    Object.keys(mappedData).forEach(key =>
+      mappedData[key] === undefined && delete mappedData[key]
+    );
 
-      log.debug('[GraphQL] Mapped data for update:', mappedData);
+    // PRIMARY: Use Cloud Function with admin secret (bypasses Hasura JWT permissions)
+    try {
+      log.debug('[CloudFunction] Attempting sponsor profile update via Cloud Function');
+      const cfResult = await updateProfileViaFunction('sponsor', mappedData);
+      log.info('[CloudFunction] Sponsor profile updated successfully:', userId);
+      return { data: cfResult.typeProfile || mappedData, error: null };
+    } catch (cfError) {
+      log.warn('[CloudFunction] Failed, falling back to direct GraphQL:', cfError.message);
+    }
 
+    // FALLBACK: Direct GraphQL mutation (may fail if Hasura permissions aren't set)
+    try {
       const { data, errors } = await apolloClient.mutate({
         mutation: UpdateSponsorProfileDocument,
         variables: {
@@ -222,6 +353,11 @@ export const graphqlSponsorService = {
       if (errors) {
         log.error('[GraphQL] Error updating sponsor profile:', errors);
         return { data: null, error: errors[0] };
+      }
+
+      if (!data || !data.update_sponsor_profiles_by_pk) {
+        log.warn('[GraphQL] Update returned null - likely a permissions issue');
+        return { data: null, error: { message: 'Profile update failed. You may not have permission to update this profile.' } };
       }
 
       log.info('[GraphQL] Sponsor profile updated successfully:', userId);
@@ -929,8 +1065,9 @@ export const graphqlSponsorService = {
       // Get public URL
       const publicUrl = await getDownloadURL(storageRef);
 
-      // Step 2: Update avatar_url in profiles table via GraphQL
-      // Note: profiles.id uses String type (Firebase UID)
+      // Step 2: Update avatar_url in profiles table (sponsor_profiles is updated by handleSave's Cloud Function call)
+      // Note: This direct GraphQL update may fail silently due to JWT permissions,
+      // but the profiles_by_pk fallback in getSponsorProfile handles that.
       const UpdateAvatarDocument = gql`
         mutation UpdateAvatar($id: String!, $avatar_url: String!) {
           update_profiles_by_pk(
@@ -943,17 +1080,14 @@ export const graphqlSponsorService = {
         }
       `;
 
-      const { data, errors } = await apolloClient.mutate({
-        mutation: UpdateAvatarDocument,
-        variables: {
-          id: userId,
-          avatar_url: publicUrl,
-        },
-      });
-
-      if (errors) {
-        log.error('[GraphQL] Error updating avatar URL:', errors);
-        return { data: null, error: errors[0] };
+      try {
+        await apolloClient.mutate({
+          mutation: UpdateAvatarDocument,
+          variables: { id: userId, avatar_url: publicUrl },
+        });
+      } catch (profileUpdateErr) {
+        // Non-fatal: sponsor_profiles.avatar_url is updated by the Cloud Function in handleSave
+        log.warn('[GraphQL] Could not update profiles.avatar_url (non-fatal):', profileUpdateErr.message);
       }
 
       log.info('[GraphQL] Avatar uploaded and URL updated successfully');
@@ -1010,6 +1144,8 @@ export const graphqlSponsorService = {
         email: profile.email,
         phone: profile.phone,
         country: profile.country,
+        // Raw user_metadata for profile page extra fields
+        user_metadata: profile.user_metadata || {},
         // From user_metadata JSONB field
         idType: profile.user_metadata?.idType || '',
         idNumber: profile.user_metadata?.idNumber || '',

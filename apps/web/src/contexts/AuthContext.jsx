@@ -12,7 +12,7 @@ import { apolloClient, GetProfileDocument } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 
 // Firebase Auth imports
-import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached } from '@/lib/firebaseClient';
+import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached, ensureProfileExistsViaFunction } from '@/lib/firebaseClient';
 import { onAuthStateChanged, sendEmailVerification, reload } from 'firebase/auth';
 
 const log = createLogger('AuthContext');
@@ -280,6 +280,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
 
     const maidData = {
       id: userId,
+      user_id: userId,
       full_name: finalFullName,
       first_name: firstName || null,
       middle_name: middleName || null,
@@ -349,6 +350,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
       alternative_phone: profileData.alternativePhoneNumber || null,
       street_address: profileData.streetAddress || null,
       state_province: profileData.stateProvince || null,
+      country: profileData.country || null,
       religion: normalizeReligion(profileData.religion),
       religion_other: profileData.religionOther || null,
       primary_profession: normalizePrimaryProfession(profileData.primaryProfession),
@@ -396,7 +398,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: maid_profiles_pkey,
-            update_columns: [full_name, first_name, middle_name, last_name, date_of_birth, nationality, current_location, marital_status, children_count, experience_years, previous_countries, skills, languages, education_level, preferred_salary_min, preferred_salary_max, preferred_currency, available_from, availability_status, contract_duration_preference, live_in_preference, passport_number, passport_expiry, visa_status, medical_certificate_valid, police_clearance_valid, profile_completion_percentage, verification_status, profile_photo_url, phone_country_code, phone_number, alternative_phone, street_address, state_province, religion, religion_other, primary_profession, current_visa_status, current_visa_status_other, primary_profession_other, introduction_video_url, primary_image_processed, primary_image_original_url, primary_image_processed_url, image_processing_metadata, is_agency_managed, agency_id, about_me, key_responsibilities, work_history, work_preferences, additional_notes, updated_at]
+            update_columns: [user_id, full_name, first_name, middle_name, last_name, date_of_birth, nationality, current_location, marital_status, children_count, experience_years, previous_countries, skills, languages, education_level, preferred_salary_min, preferred_salary_max, preferred_currency, available_from, availability_status, contract_duration_preference, live_in_preference, passport_number, passport_expiry, visa_status, medical_certificate_valid, police_clearance_valid, profile_completion_percentage, verification_status, profile_photo_url, phone_country_code, phone_number, alternative_phone, street_address, state_province, country, religion, religion_other, primary_profession, current_visa_status, current_visa_status_other, primary_profession_other, introduction_video_url, primary_image_processed, primary_image_original_url, primary_image_processed_url, image_processing_metadata, is_agency_managed, agency_id, about_me, key_responsibilities, work_history, work_preferences, additional_notes, updated_at]
           }
         ) {
           id
@@ -555,19 +557,26 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
     log.debug('Profile data received:', profileData);
 
     // Transform the profile completion data to match sponsor_profiles schema
+    // FIX: Use correct DB column names: household_size (not family_size), number_of_children (not children_count)
     const sponsorData = {
       id: userId,
       full_name: profileData.full_name || profileData.fullName || '',
-      family_size:
-        profileData.family_size !== undefined
-          ? typeof profileData.family_size === 'string'
-            ? parseInt(profileData.family_size.replace(/[^\d]/g, '')) || 1
-            : parseInt(profileData.family_size) || 1
-          : 1,
-      children_count:
-        profileData.children_count !== undefined
-          ? parseInt(profileData.children_count) || 0
-          : 0,
+      household_size:
+        profileData.household_size !== undefined
+          ? typeof profileData.household_size === 'string'
+            ? parseInt(profileData.household_size.replace(/[^\d]/g, '')) || 1
+            : parseInt(profileData.household_size) || 1
+          : profileData.family_size !== undefined
+            ? typeof profileData.family_size === 'string'
+              ? parseInt(profileData.family_size.replace(/[^\d]/g, '')) || 1
+              : parseInt(profileData.family_size) || 1
+            : 1,
+      number_of_children:
+        profileData.number_of_children !== undefined
+          ? parseInt(profileData.number_of_children) || 0
+          : profileData.children_count !== undefined
+            ? parseInt(profileData.children_count) || 0
+            : 0,
       children_ages: Array.isArray(profileData.children_ages)
         ? profileData.children_ages
         : [],
@@ -626,13 +635,14 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
     log.debug('Transformed sponsor data:', sponsorData);
 
     // Use GraphQL mutation for sponsor profile upsert
+    // FIX: Use correct DB column names: household_size, number_of_children
     const UPSERT_SPONSOR_PROFILE = gql`
       mutation UpsertSponsorProfile($data: sponsor_profiles_insert_input!) {
         insert_sponsor_profiles_one(
           object: $data,
           on_conflict: {
             constraint: sponsor_profiles_pkey,
-            update_columns: [full_name, family_size, children_count, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, updated_at]
+            update_columns: [full_name, household_size, number_of_children, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, updated_at]
           }
         ) {
           id
@@ -757,67 +767,74 @@ const AuthProvider = ({ children, mockValue }) => {
       }
 
       if (!data) {
-        // Profile not found - create it now via GraphQL
-        log.debug('Profile not found, creating new profile via GraphQL...');
+        // Profile not found - create it now
+        log.debug('Profile not found, creating new profile...');
 
+        const userTypeValue = effectiveUserType || 'sponsor';
+
+        console.log('🔍 fetchUserProfile - Creating profile with userType:', userTypeValue,
+          '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
+
+        // PRIMARY: Try Cloud Function (uses admin secret, bypasses permission issues)
+        let profileCreated = false;
         try {
-          // User type is already resolved from claims/registration at the top
-          // effectiveUserType = claimsUserType || registrationUserType
-          // Only fall back to 'sponsor' if absolutely nothing is available
-          const userTypeValue = effectiveUserType || 'sponsor';
+          console.log('☁️ fetchUserProfile - Attempting profile creation via Cloud Function...');
+          await ensureProfileExistsViaFunction({ userType: userTypeValue });
+          console.log('✅ fetchUserProfile - Profile created via Cloud Function');
 
-          console.log('🔍 fetchUserProfile - Creating profile with userType:', userTypeValue,
-            '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
+          // Re-fetch the profile that was just created
+          try {
+            const refetchResult = await apolloClient.query({
+              query: GetProfileDocument,
+              variables: { id: firebaseUser.uid },
+              fetchPolicy: 'network-only',
+            });
+            data = refetchResult?.data?.profiles_by_pk;
+            if (data) {
+              profileCreated = true;
+              console.log('✅ fetchUserProfile - Re-fetched profile after CF creation');
+            }
+          } catch (refetchError) {
+            console.warn('⚠️ fetchUserProfile - Re-fetch after CF creation failed:', refetchError.message);
+          }
+        } catch (cfError) {
+          console.warn('⚠️ fetchUserProfile - Cloud Function profile creation failed:', cfError.message);
+        }
 
-          log.debug('Creating profile with user type:', {
-            userTypeFromClaims: claimsUserType,
-            registrationUserType: registrationUserType,
-            finalUserType: userTypeValue,
-          });
-
-          const profileInput = {
-            id: firebaseUser.uid,
-            email: firebaseUser.email,
-            user_type: userTypeValue,
-            full_name: firebaseUser.displayName || '',
-            phone: firebaseUser.phoneNumber || '',
-            country: '',
-            registration_complete: false,
-            is_active: true,
-          };
-
-          const { data: mutationResult, errors: mutationErrors } = await apolloClient.mutate({
-            mutation: CREATE_PROFILE_MUTATION,
-            variables: { data: profileInput },
-          });
-
-          if (mutationErrors && mutationErrors.length > 0) {
-            log.warn(
-              'Profile creation failed:',
-              mutationErrors[0]?.message || '(no error message)'
-            );
-
-            // Return basic profile from Firebase user - allow registration to proceed
-            return {
+        // FALLBACK: Try direct GraphQL mutation if Cloud Function failed
+        if (!profileCreated) {
+          try {
+            const profileInput = {
               id: firebaseUser.uid,
               email: firebaseUser.email,
-              userType: userTypeValue,
+              user_type: userTypeValue,
               full_name: firebaseUser.displayName || '',
-              registration_complete: false,
-              country: '',
               phone: firebaseUser.phoneNumber || '',
+              country: '',
+              registration_complete: false,
+              is_active: true,
             };
-          } else {
-            log.debug('Profile created successfully via GraphQL');
-            data = mutationResult?.insert_profiles_one;
+
+            const { data: mutationResult, errors: mutationErrors } = await apolloClient.mutate({
+              mutation: CREATE_PROFILE_MUTATION,
+              variables: { data: profileInput },
+            });
+
+            if (!mutationErrors || mutationErrors.length === 0) {
+              log.debug('Profile created successfully via direct GraphQL');
+              data = mutationResult?.insert_profiles_one;
+            } else {
+              log.warn('Direct GraphQL profile creation failed:', mutationErrors[0]?.message);
+            }
+          } catch (createException) {
+            log.warn('Profile creation exception:', createException.message);
           }
-        } catch (createException) {
-          log.warn('Profile creation exception:', createException.message);
-          // Return basic profile from Firebase user
-          // effectiveUserType is already prioritized from claims -> registration param
+        }
+
+        // If still no data, return a basic profile from Firebase user
+        if (!data) {
           const fallbackUserType = effectiveUserType || 'sponsor';
-          console.log('🔍 fetchUserProfile - Using fallback userType:', fallbackUserType,
-            '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
+          console.log('🔍 fetchUserProfile - Using in-memory fallback userType:', fallbackUserType);
           return {
             id: firebaseUser.uid,
             email: firebaseUser.email,
@@ -996,6 +1013,79 @@ const AuthProvider = ({ children, mockValue }) => {
           }
         } catch (agencyFetchError) {
           log.error('Exception fetching agency profile:', agencyFetchError);
+        }
+      }
+
+      // FIX: If user is a sponsor and registration is complete, fetch sponsor profile data
+      if (detectedUserType === 'sponsor' && baseProfile.registration_complete) {
+        try {
+          log.debug('Fetching sponsor profile data for:', firebaseUser.uid);
+
+          const FETCH_SPONSOR_PROFILE = gql`
+            query GetSponsorProfile($id: String!) {
+              sponsor_profiles_by_pk(id: $id) {
+                id
+                full_name
+                household_size
+                number_of_children
+                children_ages
+                elderly_care_needed
+                pets
+                pet_types
+                city
+                country
+                address
+                accommodation_type
+                preferred_nationality
+                preferred_experience_years
+                required_skills
+                preferred_languages
+                salary_budget_min
+                salary_budget_max
+                currency
+                live_in_required
+                working_hours_per_day
+                days_off_per_week
+                overtime_available
+                additional_benefits
+                identity_verified
+                background_check_completed
+                created_at
+                updated_at
+              }
+            }
+          `;
+
+          const { data: sponsorQueryResult, errors: sponsorErrors } = await apolloClient.query({
+            query: FETCH_SPONSOR_PROFILE,
+            variables: { id: firebaseUser.uid },
+            fetchPolicy: 'network-only',
+          });
+
+          const sponsorData = sponsorQueryResult?.sponsor_profiles_by_pk;
+
+          if (!sponsorErrors && sponsorData) {
+            log.debug('Sponsor profile data fetched:', sponsorData);
+            const enrichedProfile = {
+              ...baseProfile,
+              // Spread ALL sponsor data into user object
+              ...sponsorData,
+              // Keep base profile values where sponsor data is missing
+              full_name: sponsorData.full_name || baseProfile.full_name,
+              country: sponsorData.country || baseProfile.country,
+              // Also provide UI-mapped aliases for backward compatibility
+              family_size: sponsorData.household_size,
+              children_count: sponsorData.number_of_children,
+              // Store the raw sponsor profile object too
+              sponsorProfile: sponsorData,
+            };
+            log.debug('Enriched profile with sponsor data:', enrichedProfile);
+            return enrichedProfile;
+          } else if (sponsorErrors) {
+            log.warn('Error fetching sponsor profile:', sponsorErrors);
+          }
+        } catch (sponsorFetchError) {
+          log.error('Exception fetching sponsor profile:', sponsorFetchError);
         }
       }
 
@@ -1509,23 +1599,36 @@ const AuthProvider = ({ children, mockValue }) => {
             });
           }
         } else if (user.userType === 'maid') {
-          log.debug('Creating/updating maid profile...');
-          try {
-            await createOrUpdateMaidProfile(user.id, newData);
-            log.debug('Maid profile created/updated successfully');
-          } catch (maidError) {
-            log.error('Error with maid profile:', maidError);
+          // SAFETY CHECK: Only cascade to createOrUpdateMaidProfile if the data
+          // contains maid-specific fields. If it's just a basic profile update
+          // (full_name, phone, country, user_type), skip the cascade to avoid
+          // overwriting rich maid profile data with nulls/empty values.
+          const hasMaidSpecificFields = newData.dateOfBirth || newData.nationality ||
+            newData.primaryProfession || newData.skills || newData.languagesSpoken ||
+            newData.aboutMe || newData.salaryExpectations || newData.totalExperienceYears ||
+            newData.profilePictureUrl || newData.educationLevel || newData.maritalStatus;
 
-            let errorMessage = 'Main profile saved, but maid details may need attention.';
-            if (maidError.message?.includes('constraint')) {
-              errorMessage = 'Profile saved, but some maid information doesn\'t meet requirements.';
+          if (hasMaidSpecificFields) {
+            log.debug('Creating/updating maid profile (has maid-specific fields)...');
+            try {
+              await createOrUpdateMaidProfile(user.id, newData);
+              log.debug('Maid profile created/updated successfully');
+            } catch (maidError) {
+              log.error('Error with maid profile:', maidError);
+
+              let errorMessage = 'Main profile saved, but maid details may need attention.';
+              if (maidError.message?.includes('constraint')) {
+                errorMessage = 'Profile saved, but some maid information doesn\'t meet requirements.';
+              }
+
+              toast({
+                title: 'Profile Saved with Warning',
+                description: errorMessage,
+                variant: 'default',
+              });
             }
-
-            toast({
-              title: 'Profile Saved with Warning',
-              description: errorMessage,
-              variant: 'default',
-            });
+          } else {
+            log.debug('Skipping maid profile cascade - no maid-specific fields in update data');
           }
         } else if (user.userType === 'agency') {
           log.debug('Creating/updating agency profile...');
@@ -1658,17 +1761,25 @@ const AuthProvider = ({ children, mockValue }) => {
                 });
               }
             } else if (user.userType === 'maid') {
-              try {
-                await createOrUpdateMaidProfile(user.id, newData);
-                log.debug('Maid profile created successfully');
-              } catch (maidError) {
-                log.error('Error creating maid profile:', maidError);
-                toast({
-                  title: 'Profile Created with Warning',
-                  description:
-                    'Main profile created, but maid details may need attention.',
-                  variant: 'default',
-                });
+              // Same safety check: only cascade if data has maid-specific fields
+              const hasMaidFields = newData.dateOfBirth || newData.nationality ||
+                newData.primaryProfession || newData.skills || newData.languagesSpoken ||
+                newData.aboutMe || newData.salaryExpectations || newData.totalExperienceYears;
+              if (hasMaidFields) {
+                try {
+                  await createOrUpdateMaidProfile(user.id, newData);
+                  log.debug('Maid profile created successfully');
+                } catch (maidError) {
+                  log.error('Error creating maid profile:', maidError);
+                  toast({
+                    title: 'Profile Created with Warning',
+                    description:
+                      'Main profile created, but maid details may need attention.',
+                    variant: 'default',
+                  });
+                }
+              } else {
+                log.debug('Skipping maid profile creation - no maid-specific fields in data');
               }
             } else if (user.userType === 'agency') {
               try {
@@ -1862,6 +1973,8 @@ const AuthProvider = ({ children, mockValue }) => {
     updateUser,
     updateProfile: updateUserProfileData, // Alias for backward compatibility
     createOrUpdateMaidProfile, // Export for onboarding flow
+    createOrUpdateSponsorProfile, // Export for onboarding flow
+    createOrUpdateAgencyProfile, // Export for onboarding flow
     fixUserType,
     refreshUserProfile,
     resendVerificationEmail,
