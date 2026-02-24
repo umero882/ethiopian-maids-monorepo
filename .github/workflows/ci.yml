@@ -100,18 +100,16 @@ jobs:
         with:
           name: web-build
           path: dist/
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Deploy build to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd /var/www/ethiopian-maids
-            git pull origin main
-            pnpm install --frozen-lockfile
-            pnpm nx build web --configuration=production
-            pm2 restart ethiopian-maids-web || pm2 start ecosystem.config.js
+          source: "dist/*"
+          target: "/var/www/ethiopian-maids"
+          strip_components: 1
+          overwrite: true
       - name: Notify deployment
         if: always()
         run: echo "Deployment to production ${{ job.status }}"
