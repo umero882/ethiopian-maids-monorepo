@@ -732,7 +732,7 @@ const AgencyProfilePage = () => {
 
               <FieldRow
                 label="Years in Business"
-                value={YEARS_IN_BUSINESS.find((y) => y.value === String(profileData.established_year))?.label || (profileData.established_year ? `${profileData.established_year} years` : null)}
+                value={YEARS_IN_BUSINESS.find((y) => y.value === String(profileData.established_year))?.label || (profileData.established_year ? `Since ${profileData.established_year}` : null)}
                 isEditing={isEditing}
               >
                 <Select
@@ -1108,6 +1108,20 @@ const AgencyProfilePage = () => {
                 />
               )}
             </div>
+
+            {/* Other Specializations (items not matching WORKER_TYPES or SERVICE_CATEGORIES) */}
+            {(() => {
+              const others = (profileData.specialization || []).filter(
+                (s) => !WORKER_TYPES.includes(s) && !SERVICE_CATEGORIES.includes(s)
+              );
+              if (others.length === 0 && !isEditing) return null;
+              return (
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">Other Specializations</Label>
+                  <TagList items={others} emptyText="None" />
+                </div>
+              );
+            })()}
 
             {/* Fee & Guarantee */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
