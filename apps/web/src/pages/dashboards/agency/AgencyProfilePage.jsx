@@ -6,7 +6,7 @@
  * Each section corresponds to one onboarding step.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { agencyService } from '@/services/agencyService';
@@ -213,7 +213,9 @@ const VerificationBadge = ({ status }) => {
 };
 
 const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) => {
+  const fileInputRef = useRef(null);
   const hasDoc = !!url;
+  const triggerUpload = () => fileInputRef.current?.click();
   return (
     <div className={cn(
       'border rounded-lg p-4 space-y-2',
@@ -225,6 +227,7 @@ const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) =
           <VerificationBadge status={verificationStatus} />
         )}
       </div>
+      <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={onUpload} className="hidden" />
       {hasDoc ? (
         <div className="flex items-center gap-2">
           <div className="w-16 h-16 rounded-md overflow-hidden border bg-gray-50 flex items-center justify-center">
@@ -236,21 +239,23 @@ const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) =
           </div>
           <div className="flex-1 text-xs text-gray-500">Document uploaded</div>
           {isEditing && (
-            <label className="cursor-pointer">
-              <Button variant="outline" size="sm" asChild>
-                <span><Upload className="h-3 w-3 mr-1" /> Replace</span>
-              </Button>
-              <input type="file" accept="image/*,.pdf" onChange={onUpload} className="hidden" />
-            </label>
+            <Button variant="outline" size="sm" onClick={triggerUpload}>
+              <Upload className="h-3 w-3 mr-1" /> Replace
+            </Button>
           )}
         </div>
       ) : (
         isEditing ? (
-          <label className="flex flex-col items-center justify-center py-4 cursor-pointer text-gray-400 hover:text-gray-500 transition-colors">
+          <div
+            onClick={triggerUpload}
+            className="flex flex-col items-center justify-center py-4 cursor-pointer text-gray-400 hover:text-gray-500 transition-colors"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerUpload(); }}
+          >
             <Upload className="h-8 w-8 mb-1" />
             <span className="text-xs">Click to upload</span>
-            <input type="file" accept="image/*,.pdf" onChange={onUpload} className="hidden" />
-          </label>
+          </div>
         ) : (
           <p className="text-xs text-gray-400 italic py-2">No document uploaded</p>
         )
