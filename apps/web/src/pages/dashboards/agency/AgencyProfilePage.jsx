@@ -267,6 +267,10 @@ const AgencyProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [tradeLicenseFile, setTradeLicenseFile] = useState(null);
+  const [tradeLicensePreview, setTradeLicensePreview] = useState(null);
+  const [repIdFile, setRepIdFile] = useState(null);
+  const [repIdPreview, setRepIdPreview] = useState(null);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showIdNumber, setShowIdNumber] = useState(false);
   const [errors, setErrors] = useState({});
@@ -467,18 +471,45 @@ const AgencyProfilePage = () => {
 
     const result = await updateProfile(profileData, async (data) => {
       let logoUrl = data.logo_url;
+      let tradeLicenseUrl = data.trade_license_document;
+      let repIdUrl = data.authorized_person_id_document;
+
+      // Lazy-load Firebase Storage helpers once
+      const uploadToStorage = async (file, path) => {
+        const { storage } = await import('@/lib/firebaseClient');
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
+      };
 
       // Upload logo if changed
       if (logoFile) {
         try {
-          const { storage } = await import('@/lib/firebaseClient');
-          const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-          const storageRef = ref(storage, `agencies/${user.id}/logo.${logoFile.name.split('.').pop()}`);
-          await uploadBytes(storageRef, logoFile);
-          logoUrl = await getDownloadURL(storageRef);
+          logoUrl = await uploadToStorage(logoFile, `agencies/${user.id}/logo.${logoFile.name.split('.').pop()}`);
           setLogoPreview(logoUrl);
         } catch (e) {
           console.warn('Failed to upload logo:', e);
+        }
+      }
+
+      // Upload trade license if changed
+      if (tradeLicenseFile) {
+        try {
+          tradeLicenseUrl = await uploadToStorage(tradeLicenseFile, `agencies/${user.id}/trade_license.${tradeLicenseFile.name.split('.').pop()}`);
+          setTradeLicensePreview(tradeLicenseUrl);
+        } catch (e) {
+          console.warn('Failed to upload trade license:', e);
+        }
+      }
+
+      // Upload representative ID if changed
+      if (repIdFile) {
+        try {
+          repIdUrl = await uploadToStorage(repIdFile, `agencies/${user.id}/rep_id.${repIdFile.name.split('.').pop()}`);
+          setRepIdPreview(repIdUrl);
+        } catch (e) {
+          console.warn('Failed to upload representative ID:', e);
         }
       }
 
@@ -499,10 +530,10 @@ const AgencyProfilePage = () => {
         authorized_person_phone: data.authorized_person_phone,
         authorized_person_email: data.authorized_person_email,
         authorized_person_id_number: data.authorized_person_id_number,
-        authorized_person_id_document: data.authorized_person_id_document,
+        authorized_person_id_document: repIdUrl,
         service_countries: data.service_countries,
         specialization: data.specialization,
-        trade_license_document: data.trade_license_document,
+        trade_license_document: tradeLicenseUrl,
         logo_url: logoUrl,
       };
 
@@ -528,6 +559,8 @@ const AgencyProfilePage = () => {
       toast({ title: 'Saved', description: 'Profile updated successfully' });
       setIsEditing(false);
       setLogoFile(null);
+      setTradeLicenseFile(null);
+      setRepIdFile(null);
     } else {
       toast({ title: 'Error', description: result.error?.message || 'Save failed', variant: 'destructive' });
     }
@@ -539,6 +572,10 @@ const AgencyProfilePage = () => {
     setIsEditing(false);
     setLogoFile(null);
     setLogoPreview(profileData.logo_url);
+    setTradeLicenseFile(null);
+    setTradeLicensePreview(null);
+    setRepIdFile(null);
+    setRepIdPreview(null);
     setShowDiscardDialog(false);
     setErrors({});
     loadProfile();
@@ -574,7 +611,15 @@ const AgencyProfilePage = () => {
       return;
     }
     const reader = new FileReader();
-    reader.onloadend = () => handleChange(field, reader.result);
+    reader.onloadend = () => {
+      if (field === 'trade_license_document') {
+        setTradeLicenseFile(file);
+        setTradeLicensePreview(reader.result);
+      } else if (field === 'authorized_person_id_document') {
+        setRepIdFile(file);
+        setRepIdPreview(reader.result);
+      }
+    };
     reader.readAsDataURL(file);
   };
 
@@ -783,14 +828,14 @@ const AgencyProfilePage = () => {
               />
               <DocumentCard
                 label="Trade License"
-                url={profileData.trade_license_document}
+                url={tradeLicensePreview || profileData.trade_license_document}
                 verificationStatus={profileData.trade_license_verification_status}
                 isEditing={isEditing}
                 onUpload={handleDocUpload('trade_license_document')}
               />
               <DocumentCard
                 label="Representative ID"
-                url={profileData.authorized_person_id_document}
+                url={repIdPreview || profileData.authorized_person_id_document}
                 verificationStatus={profileData.authorized_person_id_verification_status}
                 isEditing={isEditing}
                 onUpload={handleDocUpload('authorized_person_id_document')}
