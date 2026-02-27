@@ -721,6 +721,206 @@ export const OnboardingProvider = ({ children }) => {
               }
             }
           }
+          console.log(`✅ Uploaded ${galleryPhotoUrls.length} gallery photos`);
+        }
+
+        // 3. Prepare complete maid profile data with proper field mapping
+        // NOTE: createOrUpdateMaidProfile expects camelCase field names
+        // It internally converts them to snake_case for the database
+        const maidProfileData = {
+          // Personal Info (from MaidPersonalStep)
+          full_name: state.formData.full_name || '',
+          dateOfBirth: state.formData.dateOfBirth || null,
+          nationality: state.formData.nationality || '',
+          religion: state.formData.religion || '',
+          maritalStatus: state.formData.maritalStatus || '',
+
+          // Address (from MaidAddressStep)
+          // NOTE: maid_profiles uses current_location, not country
+          current_location: [state.formData.city, state.formData.country].filter(Boolean).join(', '),
+          country: state.formData.country || '',
+          city: state.formData.city || '',
+          stateProvince: state.formData.city || '',
+          streetAddress: state.formData.address || '',
+
+          // Professional (from MaidProfessionStep)
+          primaryProfession: state.formData.primaryProfession || '',
+          currentVisaStatus: state.formData.visaStatus || '',
+          educationLevel: state.formData.educationLevel || '',
+
+          // Skills & Languages (from MaidSkillsStep)
+          skills: state.formData.skills || [],
+          languagesSpoken: state.formData.languages || [],
+
+          // Experience (from MaidExperienceStep)
+          totalExperienceYears: parseExperienceToYears(state.formData.experience_level),
+          previousCountries: state.formData.countries_worked_in || [],
+
+          // Preferences (from MaidPreferencesStep)
+          salaryExpectations: parseSalaryToNumber(state.formData.expected_salary),
+          workPreferences: state.formData.work_preferences || [],
+          contractDuration: state.formData.contract_type || null,
+          livingArrangement: state.formData.accommodation_preference === 'Live-in' ||
+                             state.formData.accommodation_preference === 'Employer-provided accommodation'
+                             ? 'live-in' : 'live-out',
+
+          // Content (from MaidAboutStep & MaidVideoCVStep)
+          aboutMe: state.formData.about_me || '',
+          profilePictureUrl: profilePhotoUrl,
+          introduction_video_url: videoUrl,
+
+          // Phone number
+          phone_number: state.account.phone || '',
+
+          // Status & Metadata
+          profile_completion_percentage: calculateProfileCompletion(state.formData),
+          availability: 'available',
+          consents_accepted: true,
+          profile_completed: true,
+          profile_completed_at: new Date().toISOString(),
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          terms_accepted_at: new Date().toISOString(),
+          privacy_accepted_at: new Date().toISOString(),
+        };
+
+        // 4. Store gallery photos and documents in maid_documents table (separate from profile)
+        // This will be handled by the document service if needed
+        console.log('📸 Gallery photos to be stored:', galleryPhotoUrls.length);
+        console.log('📄 ID Document URL:', idDocumentUrl);
+        console.log('📄 CV Document URL:', cvDocumentUrl);
+
+        console.log('📝 Complete maid profile data:', maidProfileData);
+
+        // 3. Save to maid_profiles via AuthContext
+        if (createOrUpdateMaidProfile) {
+          await createOrUpdateMaidProfile(user.id, maidProfileData);
+          console.log('✅ Maid profile saved via createOrUpdateMaidProfile');
+
+          // FIX: ALSO update the basic profiles table to ensure login works correctly
+          // The profiles table is queried on login - it must have the core data
+          if (updateProfile) {
+            await updateProfile({
+              full_name: state.formData.full_name || '',
+              phone: state.account.phone || '',
+              country: state.formData.country || '',
+              avatar_url: profilePhotoUrl,
+              user_type: 'maid', // Ensure user type is correctly set
+            });
+            console.log('✅ Basic profile also updated for login compatibility');
+          }
+        } else {
+          console.warn('⚠️ createOrUpdateMaidProfile not available, falling back to updateProfile');
+          // Fallback: at least update the basic profile
+          if (updateProfile) {
+            await updateProfile({
+              full_name: state.formData.full_name,
+              phone: state.account.phone,
+              country: state.formData.country,
+              avatar_url: profilePhotoUrl,
+              user_type: 'maid',
+            });
+          }
+        }
+
+      } else if (state.userType === 'sponsor') {
+        // ==================== SPONSOR PROFILE ====================
+        console.log('📝 Processing sponsor profile data...');
+
+        // Upload sponsor files
+        let sponsorPhotoUrl = null;
+        let sponsorIdDocUrl = null;
+
+        if (state.formData.facePhoto) {
+          sponsorPhotoUrl = await uploadFileToStorage(state.formData.facePhoto, 'profile-photos');
+        }
+
+        if (state.formData.idDocument) {
+          sponsorIdDocUrl = await uploadFileToStorage(state.formData.idDocument, 'id-documents');
+        }
+
+        const sponsorProfileData = {
+          full_name: state.formData.full_name,
+          phone: state.account.phone,
+          country: state.formData.country,
+          avatar_url: sponsorPhotoUrl,
+          // Sponsor-specific fields
+          family_size: parseInt(state.formData.familySize) || null,
+          children_ages: state.formData.childrenAges || [],
+          has_elderly: state.formData.hasElderly || false,
+          preferred_nationality: state.formData.preferredNationality || [],
+          preferred_languages: state.formData.preferredLanguages || [],
+          salary_budget_min: parseSalaryToNumber(state.formData.salaryBudgetMin),
+          salary_budget_max: parseSalaryToNumber(state.formData.salaryBudgetMax),
+          accommodation_type: state.formData.accommodationType || '',
+          room_type: state.formData.roomType || '',
+          consents_accepted: true,
+          profile_completed: true,
+          profile_completed_at: new Date().toISOString(),
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          terms_accepted_at: new Date().toISOString(),
+          privacy_accepted_at: new Date().toISOString(),
+        };
+
+        if (updateProfile) {
+          await updateProfile(sponsorProfileData);
+          console.log('✅ Sponsor profile saved via updateProfile');
+        }
+
+      } else if (state.userType === 'agency') {
+        // ==================== AGENCY PROFILE ====================
+        console.log('📝 Processing agency profile data...');
+
+        // Upload agency files
+        let agencyRepPhotoUrl = null;
+        let tradeLicenseUrl = null;
+        let investorIdUrl = null;
+
+        if (state.formData.facePhoto) {
+          agencyRepPhotoUrl = await uploadFileToStorage(state.formData.facePhoto, 'profile-photos');
+        }
+
+        if (state.formData.tradeLicense) {
+          tradeLicenseUrl = await uploadFileToStorage(state.formData.tradeLicense, 'trade-licenses');
+        }
+
+        if (state.formData.investorId) {
+          investorIdUrl = await uploadFileToStorage(state.formData.investorId, 'investor-ids');
+        }
+
+        const agencyProfileData = {
+          full_name: state.formData.authorizedPersonName || state.formData.full_name,
+          phone: state.account.phone,
+          country: state.formData.countriesOfOperation?.[0] || '',
+          avatar_url: agencyRepPhotoUrl,
+          // Agency-specific fields
+          agency_name: state.formData.agencyName || '',
+          trade_license_number: state.formData.tradeLicenseNumber || '',
+          trade_license_url: tradeLicenseUrl,
+          investor_id_url: investorIdUrl,
+          countries_of_operation: state.formData.countriesOfOperation || [],
+          cities_of_operation: state.formData.citiesOfOperation || [],
+          contact_phone: state.formData.contactPhone || state.account.phone,
+          contact_email: state.formData.contactEmail || '',
+          authorized_person_name: state.formData.authorizedPersonName || '',
+          authorized_person_position: state.formData.authorizedPersonTitle || '',
+          services_offered: state.formData.servicesOffered || [],
+          about_agency: state.formData.aboutAgency || '',
+          support_hours: state.formData.supportHours || '',
+          emergency_contact: state.formData.emergencyContact || '',
+          consents_accepted: true,
+          profile_completed: true,
+          profile_completed_at: new Date().toISOString(),
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          terms_accepted_at: new Date().toISOString(),
+          privacy_accepted_at: new Date().toISOString(),
+        };
+
+        if (updateProfile) {
+          await updateProfile(agencyProfileData);
+          console.log('✅ Agency profile saved via updateProfile');
         }
       }
 

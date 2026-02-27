@@ -310,6 +310,12 @@ export const graphqlSponsorService = {
       avatar_url: profileData.avatar_url,
       identity_verified: profileData.identity_verified !== undefined
         ? Boolean(profileData.identity_verified) : undefined,
+      profile_completed: profileData.profile_completed !== undefined
+        ? Boolean(profileData.profile_completed) : undefined,
+      profile_completed_at: profileData.profile_completed_at,
+      onboarding_completed: profileData.onboarding_completed !== undefined
+        ? Boolean(profileData.onboarding_completed) : undefined,
+      onboarding_completed_at: profileData.onboarding_completed_at,
       background_check_completed: profileData.background_check_completed !== undefined
         ? Boolean(profileData.background_check_completed) : undefined,
       // Extra fields stored in profiles.user_metadata (sent to Cloud Function)

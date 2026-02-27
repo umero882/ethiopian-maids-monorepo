@@ -57,6 +57,10 @@ mutation UpdateSponsorProfile(
     additional_benefits
     identity_verified
     background_check_completed
+    profile_completed
+    profile_completed_at
+    onboarding_completed
+    onboarding_completed_at
     active_job_postings
     total_hires
     average_rating
@@ -78,6 +82,10 @@ mutation IncrementActiveJobPostings($id: String!) {
     _inc: {active_job_postings: 1}
   ) {
     id
+    profile_completed
+    profile_completed_at
+    onboarding_completed
+    onboarding_completed_at
     active_job_postings
   }
 }
@@ -89,6 +97,10 @@ mutation DecrementActiveJobPostings($id: String!) {
     _inc: {active_job_postings: -1}
   ) {
     id
+    profile_completed
+    profile_completed_at
+    onboarding_completed
+    onboarding_completed_at
     active_job_postings
   }
 }
