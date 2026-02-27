@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { apolloClient } from '@ethio/api-client';
+import { gql } from '@apollo/client';
 import { Bell, Search, Menu, ChevronDown, User, Settings, LogOut, Crown, Zap, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,21 @@ export const Header = () => {
   const [searchParams] = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [agencyDbName, setAgencyDbName] = useState(null);
+  const [agencyDbLogo, setAgencyDbLogo] = useState(null);
+
+  // Fetch agency name and logo from DB
+  useEffect(() => {
+    if (!user?.id) return;
+    apolloClient.query({
+      query: gql`query AgencyHeaderInfo($id: String!) { agency_profiles_by_pk(id: $id) { full_name, logo_url } }`,
+      variables: { id: user.id },
+      fetchPolicy: 'network-only',
+    }).then(({ data }) => {
+      if (data?.agency_profiles_by_pk?.full_name) setAgencyDbName(data.agency_profiles_by_pk.full_name);
+      if (data?.agency_profiles_by_pk?.logo_url) setAgencyDbLogo(data.agency_profiles_by_pk.logo_url);
+    }).catch(() => {});
+  }, [user?.id]);
 
   // Refresh subscription status when returning from Stripe checkout
   useEffect(() => {
@@ -182,14 +199,14 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.logoFilePreview || user?.logo || user?.avatar} />
+                  <AvatarImage src={agencyDbLogo || user?.logoFilePreview || user?.logo || user?.avatar} />
                   <AvatarFallback>
-                    {user?.agencyName ? user.agencyName.charAt(0).toUpperCase() :
+                    {(agencyDbName || user?.agencyName) ? (agencyDbName || user.agencyName).charAt(0).toUpperCase() :
                      user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">{user?.agencyName || user?.name || 'Agency Admin'}</p>
+                  <p className="text-sm font-medium">{agencyDbName || user?.agencyName || user?.name || 'Agency Admin'}</p>
                   <p className="text-xs text-gray-500">Agency Account</p>
                 </div>
                 <ChevronDown className="h-4 w-4" />

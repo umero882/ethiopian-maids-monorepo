@@ -10,6 +10,7 @@ export const useAgencyDashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState({});
+  const [agencyProfile, setAgencyProfile] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [pipelineFunnel, setPipelineFunnel] = useState({});
   const [timeToHireTrend, setTimeToHireTrend] = useState({});
@@ -42,6 +43,7 @@ export const useAgencyDashboard = () => {
 
       // Calculate KPIs from real data
       const profile = profileResult?.data || {};
+      setAgencyProfile(profile);
       const maids = maidsResult?.data || [];
       const jobs = jobsResult?.data || [];
       const applications = applicationsResult?.data || [];
@@ -241,6 +243,7 @@ export const useAgencyDashboard = () => {
   return {
     // Data
     kpis,
+    agencyProfile,
     alerts,
     pipelineFunnel,
     timeToHireTrend,

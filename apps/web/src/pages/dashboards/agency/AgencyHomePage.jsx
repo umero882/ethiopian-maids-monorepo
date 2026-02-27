@@ -48,6 +48,7 @@ const AgencyHomePage = () => {
   usePageTitle('Agency Dashboard');
   const {
     kpis,
+    agencyProfile,
     alerts,
     pipelineFunnel,
     timeToHireTrend,
@@ -67,22 +68,36 @@ const AgencyHomePage = () => {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState('30');
   const [refreshing, setRefreshing] = useState(false);
-  const [profileProgress, setProfileProgress] = useState(null);
   const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     logAuditEvent('dashboard_view', 'dashboard', 'agency_home', { timestamp: Date.now() });
-
-    // Load profile progress from localStorage
-    try {
-      const savedProgress = localStorage.getItem('agencyProfileProgress');
-      if (savedProgress) {
-        setProfileProgress(JSON.parse(savedProgress));
-      }
-    } catch (error) {
-      // Silently fail - profile progress is not critical
-    }
   }, []);
+
+  // Calculate profile completion from actual DB data
+  const completionFields = [
+    { key: 'full_name', check: (v) => !!v?.trim() },
+    { key: 'license_number', check: (v) => !!v?.trim() },
+    { key: 'logo_url', check: (v) => !!v },
+    { key: 'trade_license_document', check: (v) => !!v },
+    { key: 'authorized_person_id_document', check: (v) => !!v },
+    { key: 'country', check: (v) => !!v?.trim() },
+    { key: 'city', check: (v) => !!v?.trim() },
+    { key: 'phone', check: (v) => !!v?.trim() },
+    { key: 'email', check: (v) => !!v?.trim() },
+    { key: 'authorized_person_name', check: (v) => !!v?.trim() },
+    { key: 'authorized_person_position', check: (v) => !!v?.trim() },
+    { key: 'authorized_person_phone', check: (v) => !!v?.trim() },
+    { key: 'authorized_person_email', check: (v) => !!v?.trim() },
+    { key: 'specialization', check: (v) => Array.isArray(v) && v.length > 0 },
+    { key: 'agency_description', check: (v) => !!v?.trim() && v.trim().length >= 100 },
+  ];
+  const filledCount = agencyProfile ? completionFields.filter((f) => f.check(agencyProfile[f.key])).length : 0;
+  const completionPct = agencyProfile ? Math.round((filledCount / completionFields.length) * 100) : 0;
+
+  // Get logo from DB profile (not from AuthContext)
+  const agencyLogo = agencyProfile?.logo_url;
+  const agencyName = agencyProfile?.full_name || user?.agencyName;
 
   // Check for subscription success parameter
   useEffect(() => {
@@ -241,10 +256,10 @@ const AgencyHomePage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           {/* Agency Logo */}
-          {!logoError && (user?.logo || user?.logoFilePreview) ? (
+          {!logoError && agencyLogo ? (
             <div className="flex-shrink-0">
               <img
-                src={user.logoFilePreview || user.logo}
+                src={agencyLogo}
                 alt="Agency Logo"
                 className="w-16 h-16 object-cover rounded-full border-4 border-white shadow-lg"
                 onError={() => setLogoError(true)}
@@ -258,7 +273,7 @@ const AgencyHomePage = () => {
 
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {user?.agencyName ? `${user.agencyName} Dashboard` : 'Agency Dashboard'}
+              {agencyName ? `${agencyName} Dashboard` : 'Agency Dashboard'}
             </h1>
             <p className="text-gray-600 mt-1">
               Manage maids, jobs, applicants, matches, sponsors, billing, compliance, and disputes
@@ -289,8 +304,8 @@ const AgencyHomePage = () => {
         </div>
       </div>
 
-      {/* Profile Completion Status */}
-      {(!user?.registration_complete || (profileProgress && profileProgress.progressPercentage < 100)) && (
+      {/* Profile Completion Status — only show when profile is NOT 100% complete */}
+      {agencyProfile && completionPct < 100 && (
         <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -303,15 +318,13 @@ const AgencyHomePage = () => {
                     Complete Your Agency Profile
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    {profileProgress && profileProgress.progressPercentage < 100
-                      ? `${profileProgress.completedFields} of ${profileProgress.totalRequiredFields} required fields completed`
-                      : 'Complete your profile to unlock all agency features'}
+                    {filledCount} of {completionFields.length} required fields completed
                   </CardDescription>
                 </div>
               </div>
               <Button asChild className="bg-blue-600 hover:bg-blue-700 flex items-center">
-                <Link to="/complete-profile?force=1" aria-label="Continue setup to complete profile">
-                  <span>Continue Setup</span>
+                <Link to="/dashboard/agency/profile" aria-label="Go to profile to complete it">
+                  <span>Complete Profile</span>
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -323,12 +336,10 @@ const AgencyHomePage = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium text-gray-700">Profile Completion</span>
-                  <span className="text-blue-600 font-semibold">
-                    {profileProgress ? `${profileProgress.progressPercentage}%` : '0%'}
-                  </span>
+                  <span className="text-blue-600 font-semibold">{completionPct}%</span>
                 </div>
                 <Progress
-                  value={profileProgress ? profileProgress.progressPercentage : 0}
+                  value={completionPct}
                   className="h-3 [&>*]:bg-gradient-to-r [&>*]:from-blue-500 [&>*]:to-indigo-600"
                 />
               </div>
@@ -336,33 +347,33 @@ const AgencyHomePage = () => {
               {/* Missing Requirements */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div className="flex items-center space-x-2 text-sm">
-                  {profileProgress?.progressPercentage >= 100 ? (
+                  {completionPct >= 100 ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className={profileProgress?.progressPercentage >= 100 ? 'text-green-700' : 'text-gray-600'}>
+                  <span className={completionPct >= 100 ? 'text-green-700' : 'text-gray-600'}>
                     All required fields
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
-                  {user?.contactPhoneVerified || user?.phone ? (
+                  {agencyProfile.phone || agencyProfile.business_phone ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className={user?.contactPhoneVerified || user?.phone ? 'text-green-700' : 'text-gray-600'}>
+                  <span className={agencyProfile.phone || agencyProfile.business_phone ? 'text-green-700' : 'text-gray-600'}>
                     Phone verification
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
-                  {user?.registration_complete ? (
+                  {agencyProfile.email || agencyProfile.business_email ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className={user?.registration_complete ? 'text-green-700' : 'text-gray-600'}>
-                    Profile activation
+                  <span className={agencyProfile.email || agencyProfile.business_email ? 'text-green-700' : 'text-gray-600'}>
+                    Email verification
                   </span>
                 </div>
               </div>
@@ -619,43 +630,18 @@ const AgencyHomePage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              {user?.registration_complete ? (
-                <>
-                  <Button className="h-12 flex flex-col items-center justify-center space-y-1" asChild>
-                    <Link to="/dashboard/agency/maids/add">
-                      <UserPlus className="h-5 w-5" />
-                      <span className="text-xs">Add Maid</span>
-                    </Link>
-                  </Button>
-                  <Button variant="outline" className="h-12 flex flex-col items-center justify-center space-y-1" asChild>
-                    <Link to="/dashboard/agency/jobs/create">
-                      <Briefcase className="h-5 w-5" />
-                      <span className="text-xs">Create Job</span>
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    className="h-12 flex flex-col items-center justify-center space-y-1"
-                    variant="outline"
-                    disabled
-                    title="Complete your profile to add maids"
-                  >
-                    <UserPlus className="h-5 w-5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Add Maid</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-12 flex flex-col items-center justify-center space-y-1"
-                    disabled
-                    title="Complete your profile to create jobs"
-                  >
-                    <Briefcase className="h-5 w-5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Create Job</span>
-                  </Button>
-                </>
-              )}
+              <Button className="h-12 flex flex-col items-center justify-center space-y-1" asChild>
+                <Link to="/dashboard/agency/maids/add">
+                  <UserPlus className="h-5 w-5" />
+                  <span className="text-xs">Add Maid</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-12 flex flex-col items-center justify-center space-y-1" asChild>
+                <Link to="/dashboard/agency/jobs/create">
+                  <Briefcase className="h-5 w-5" />
+                  <span className="text-xs">Create Job</span>
+                </Link>
+              </Button>
               <Button variant="outline" className="h-12 flex flex-col items-center justify-center space-y-1" asChild>
                 <Link to="/dashboard/agency/messaging">
                   <Bell className="h-5 w-5" />

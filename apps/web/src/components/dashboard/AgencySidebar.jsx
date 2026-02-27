@@ -40,6 +40,8 @@ export const Sidebar = ({ className }) => {
 
   // Check if user is on free plan
   const isFreePlan = !subscriptionLoading && (!subscriptionPlan || subscriptionPlan.toLowerCase() === 'free');
+  const [agencyDbName, setAgencyDbName] = useState(null);
+  const [agencyDbLogo, setAgencyDbLogo] = useState(null);
   const [dashboardStats, setDashboardStats] = useState({
     totalMaids: 0,
     activeMaids: 0,
@@ -62,6 +64,8 @@ export const Sidebar = ({ className }) => {
       }
       agency_profiles_by_pk(id: $agencyId) {
         id
+        full_name
+        logo_url
         active_listings
         active_maids
         total_maids
@@ -98,6 +102,10 @@ export const Sidebar = ({ className }) => {
       const maidsData = data?.maid_profiles || [];
       const agencyProfile = data?.agency_profiles_by_pk;
       const unreadCount = data?.notifications_aggregate?.aggregate?.count || 0;
+
+      // Store agency name and logo from DB
+      if (agencyProfile?.full_name) setAgencyDbName(agencyProfile.full_name);
+      if (agencyProfile?.logo_url) setAgencyDbLogo(agencyProfile.logo_url);
 
       // Use maid_profiles for accurate counts
       const totalMaids = maidsData.length || agencyProfile?.total_maids || 0;
@@ -174,9 +182,9 @@ export const Sidebar = ({ className }) => {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            {user?.logo || user?.logoFilePreview ? (
+            {agencyDbLogo ? (
               <img
-                src={user.logoFilePreview || user.logo}
+                src={agencyDbLogo}
                 alt="Agency Logo"
                 className="w-12 h-12 object-cover rounded-full border-2 border-gray-200 shadow-sm"
               />
@@ -187,7 +195,7 @@ export const Sidebar = ({ className }) => {
             )}
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                {user?.agencyName ? user.agencyName : 'Agency Dashboard'}
+                {agencyDbName || user?.agencyName || 'Agency Dashboard'}
               </h2>
               <p className="text-xs text-gray-500">Ethio Maids Platform</p>
             </div>
