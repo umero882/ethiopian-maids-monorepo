@@ -382,6 +382,10 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
         ? profileData.workPreferences
         : [],
       additional_notes: profileData.additionalNotes || null,
+      profile_completed: profileData.profile_completed !== undefined ? Boolean(profileData.profile_completed) : false,
+      profile_completed_at: profileData.profile_completed_at || null,
+      onboarding_completed: profileData.onboarding_completed !== undefined ? Boolean(profileData.onboarding_completed) : false,
+      onboarding_completed_at: profileData.onboarding_completed_at || null,
     };
 
     // Remove undefined to avoid overwriting with null unintentionally
@@ -398,7 +402,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: maid_profiles_pkey,
-            update_columns: [user_id, full_name, first_name, middle_name, last_name, date_of_birth, nationality, current_location, marital_status, children_count, experience_years, previous_countries, skills, languages, education_level, preferred_salary_min, preferred_salary_max, preferred_currency, available_from, availability_status, contract_duration_preference, live_in_preference, passport_number, passport_expiry, visa_status, medical_certificate_valid, police_clearance_valid, profile_completion_percentage, verification_status, profile_photo_url, phone_country_code, phone_number, alternative_phone, street_address, state_province, country, religion, religion_other, primary_profession, current_visa_status, current_visa_status_other, primary_profession_other, introduction_video_url, primary_image_processed, primary_image_original_url, primary_image_processed_url, image_processing_metadata, is_agency_managed, agency_id, about_me, key_responsibilities, work_history, work_preferences, additional_notes, updated_at]
+            update_columns: [user_id, full_name, first_name, middle_name, last_name, date_of_birth, nationality, current_location, marital_status, children_count, experience_years, previous_countries, skills, languages, education_level, preferred_salary_min, preferred_salary_max, preferred_currency, available_from, availability_status, contract_duration_preference, live_in_preference, passport_number, passport_expiry, visa_status, medical_certificate_valid, police_clearance_valid, profile_completion_percentage, verification_status, profile_photo_url, phone_country_code, phone_number, alternative_phone, street_address, state_province, country, religion, religion_other, primary_profession, current_visa_status, current_visa_status_other, primary_profession_other, introduction_video_url, primary_image_processed, primary_image_original_url, primary_image_processed_url, image_processing_metadata, is_agency_managed, agency_id, about_me, key_responsibilities, work_history, work_preferences, additional_notes, profile_completed, profile_completed_at, onboarding_completed, onboarding_completed_at, updated_at]
           }
         ) {
           id
@@ -494,7 +498,10 @@ const createOrUpdateAgencyProfile = async (userId, profileData) => {
       authorized_person_phone_verified: Boolean(profileData.authorizedPersonPhoneVerified),
       authorized_person_email_verified: Boolean(profileData.authorizedPersonEmailVerified),
       license_verified: false,
-      profile_completed_at: profileData.registration_complete ? new Date().toISOString() : null,
+      profile_completed: profileData.profile_completed !== undefined ? Boolean(profileData.profile_completed) : Boolean(profileData.registration_complete),
+      profile_completed_at: profileData.profile_completed_at || (profileData.registration_complete ? new Date().toISOString() : null),
+      onboarding_completed: profileData.onboarding_completed !== undefined ? Boolean(profileData.onboarding_completed) : false,
+      onboarding_completed_at: profileData.onboarding_completed_at || null,
       subscription_tier: 'basic',
       guarantee_period_months: 3,
       total_maids_managed: 0,
@@ -516,7 +523,7 @@ const createOrUpdateAgencyProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: agency_profiles_pkey,
-            update_columns: [full_name, license_number, country, business_phone, business_email, website_url, head_office_address, service_countries, specialization, placement_fee_percentage, agency_description, support_hours_start, support_hours_end, emergency_contact_phone, authorized_person_name, authorized_person_position, authorized_person_phone, authorized_person_email, authorized_person_id_number, contact_phone_verified, official_email_verified, authorized_person_phone_verified, authorized_person_email_verified, license_verified, profile_completed_at, logo_url, logo_file_preview, license_expiry_date, updated_at]
+            update_columns: [full_name, license_number, country, business_phone, business_email, website_url, head_office_address, service_countries, specialization, placement_fee_percentage, agency_description, support_hours_start, support_hours_end, emergency_contact_phone, authorized_person_name, authorized_person_position, authorized_person_phone, authorized_person_email, authorized_person_id_number, contact_phone_verified, official_email_verified, authorized_person_phone_verified, authorized_person_email_verified, license_verified, profile_completed, profile_completed_at, onboarding_completed, onboarding_completed_at, logo_url, logo_file_preview, license_expiry_date, updated_at]
           }
         ) {
           id
