@@ -204,6 +204,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
     const normalizePrimaryProfession = (value) => {
       const v = (value || '').toString().trim();
       const map = {
+        Housemaid: 'Housemaid',
         Cook: 'Cook',
         Cleaner: 'Cleaner',
         Nanny: 'Baby Care',
@@ -224,7 +225,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
     const normalizeMaritalStatus = (value) => {
       if (!value) return null;
       const v = value.toString().trim().toLowerCase();
-      const allowed = new Set(['single', 'married', 'divorced', 'widowed']);
+      const allowed = new Set(['single', 'married', 'divorced', 'widowed', 'separated']);
       return allowed.has(v) ? v : null;
     };
 
@@ -715,6 +716,13 @@ const AuthProvider = ({ children, mockValue }) => {
         const idTokenResult = await firebaseUser.getIdTokenResult(true);
         claimsUserType = idTokenResult.claims.user_type;
         console.log('🔍 fetchUserProfile - userType from Firebase claims:', claimsUserType);
+        // CRITICAL: Update localStorage with the force-refreshed token so that
+        // Apollo Client and all Hasura queries use the latest claims (role, user_id).
+        // Without this, localStorage keeps a stale token from the initial getIdToken()
+        // call, which may lack the correct x-hasura-default-role claim.
+        if (idTokenResult.token) {
+          localStorage.setItem(FIREBASE_TOKEN_KEY, idTokenResult.token);
+        }
       } catch (claimsError) {
         console.warn('🔍 fetchUserProfile - Could not read claims:', claimsError.message);
       }

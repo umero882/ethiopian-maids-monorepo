@@ -744,9 +744,10 @@ export const OnboardingProvider = ({ children }) => {
           streetAddress: state.formData.address || '',
 
           // Professional (from MaidProfessionStep)
-          primaryProfession: state.formData.primaryProfession || '',
-          currentVisaStatus: state.formData.visaStatus || '',
-          educationLevel: state.formData.educationLevel || '',
+          // Keys: steps use profession, visa_status, education_level
+          primaryProfession: state.formData.profession || state.formData.primaryProfession || '',
+          currentVisaStatus: state.formData.visa_status || state.formData.visaStatus || '',
+          educationLevel: state.formData.education_level || state.formData.educationLevel || '',
 
           // Skills & Languages (from MaidSkillsStep)
           skills: state.formData.skills || [],
@@ -794,7 +795,7 @@ export const OnboardingProvider = ({ children }) => {
 
         // 3. Save to maid_profiles via AuthContext
         if (createOrUpdateMaidProfile) {
-          await createOrUpdateMaidProfile(user.id, maidProfileData);
+          await createOrUpdateMaidProfile(userId, maidProfileData);
           console.log('✅ Maid profile saved via createOrUpdateMaidProfile');
 
           // FIX: ALSO update the basic profiles table to ensure login works correctly
@@ -941,9 +942,9 @@ export const OnboardingProvider = ({ children }) => {
           country: state.formData.country || '',
           state_province: state.formData.city || '',
           street_address: state.formData.address || '',
-          primary_profession: state.formData.primaryProfession || '',
-          current_visa_status: state.formData.visaStatus || '',
-          education_level: state.formData.educationLevel || '',
+          primary_profession: state.formData.profession || state.formData.primaryProfession || '',
+          current_visa_status: state.formData.visa_status || state.formData.visaStatus || '',
+          education_level: state.formData.education_level || state.formData.educationLevel || '',
           skills: state.formData.skills || [],
           languages: state.formData.languages || [],
           experience_years: parseExperienceToYears(state.formData.experience_level),
@@ -1065,9 +1066,9 @@ export const OnboardingProvider = ({ children }) => {
               country: state.formData.country || '',
               stateProvince: state.formData.city || '',
               streetAddress: state.formData.address || '',
-              primaryProfession: state.formData.primaryProfession || '',
-              currentVisaStatus: state.formData.visaStatus || '',
-              educationLevel: state.formData.educationLevel || '',
+              primaryProfession: state.formData.profession || state.formData.primaryProfession || '',
+              currentVisaStatus: state.formData.visa_status || state.formData.visaStatus || '',
+              educationLevel: state.formData.education_level || state.formData.educationLevel || '',
               skills: state.formData.skills || [],
               languagesSpoken: state.formData.languages || [],
               totalExperienceYears: parseExperienceToYears(state.formData.experience_level),
@@ -1084,6 +1085,11 @@ export const OnboardingProvider = ({ children }) => {
               phone_number: state.account.phone || '',
               profile_completion_percentage: calculateProfileCompletion(state.formData),
               availability: 'available',
+              consents_accepted: true,
+              profile_completed: true,
+              profile_completed_at: new Date().toISOString(),
+              onboarding_completed: true,
+              onboarding_completed_at: new Date().toISOString(),
             };
             await createOrUpdateMaidProfile(userId, maidProfileData);
             console.log('✅ Maid profile saved via direct mutation');
