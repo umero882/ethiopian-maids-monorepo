@@ -24,6 +24,10 @@ const GET_MAID_DOCUMENTS = gql`
       document_type
       document_name
       document_url
+      file_url
+      type
+      file_name
+      uploaded_at
       expiry_date
       verified
       created_at
@@ -40,6 +44,8 @@ const INSERT_MAID_DOCUMENT = gql`
       document_type
       document_name
       document_url
+      file_url
+      type
       verified
       created_at
     }
@@ -73,6 +79,26 @@ const GET_MAID_PROFILE_BY_USER_ID = gql`
     }
   }
 `;
+
+/**
+ * Extract a readable filename from a Firebase Storage URL.
+ * Falls back to 'document' if parsing fails.
+ */
+function extractFilenameFromUrl(url) {
+  if (!url) return null;
+  try {
+    const urlObj = new URL(url);
+    const pathMatch = urlObj.pathname.match(/\/o\/(.+?)(\?|$)/);
+    if (pathMatch) {
+      const decoded = decodeURIComponent(pathMatch[1]);
+      // Return only the filename portion (after last /)
+      return decoded.split('/').pop() || 'document';
+    }
+  } catch {
+    // not a valid URL
+  }
+  return null;
+}
 
 export const maidDocumentsService = {
   /**
@@ -119,20 +145,24 @@ export const maidDocumentsService = {
         return { data: [], error: errors[0] };
       }
 
-      // Transform to expected format
-      const documents = (data?.maid_documents || []).map((doc) => ({
-        id: doc.id,
-        maid_id: doc.maid_id,
-        type: doc.document_type,
-        title: doc.document_name,
-        file_url: doc.document_url,
-        file_name: doc.document_name,
-        verified: doc.verified || false,
-        expiry_date: doc.expiry_date,
-        uploaded_at: doc.created_at,
-        created_at: doc.created_at,
-        updated_at: doc.updated_at,
-      }));
+      // Transform to expected format — use fallbacks for dual-column compat
+      // Profile page writes to file_url/type; documents service writes to document_url/document_type
+      const documents = (data?.maid_documents || []).map((doc) => {
+        const url = doc.document_url || doc.file_url;
+        return {
+          id: doc.id,
+          maid_id: doc.maid_id,
+          type: doc.document_type || doc.type,
+          title: doc.document_name || doc.file_name || extractFilenameFromUrl(url),
+          file_url: url,
+          file_name: doc.document_name || doc.file_name || extractFilenameFromUrl(url),
+          verified: doc.verified || false,
+          expiry_date: doc.expiry_date,
+          uploaded_at: doc.uploaded_at || doc.created_at,
+          created_at: doc.created_at,
+          updated_at: doc.updated_at,
+        };
+      });
 
       log.info('[GraphQL] Documents loaded:', documents.length);
       return { data: documents, error: null };
@@ -171,7 +201,7 @@ export const maidDocumentsService = {
       log.info('[Firebase] File uploaded successfully:', publicUrl);
 
       // Save document record to database via GraphQL
-      // Only include fields that exist in the schema
+      // Write both column sets for compat with profile page (file_url/type) and documents page (document_url/document_type)
       const { data, errors } = await apolloClient.mutate({
         mutation: INSERT_MAID_DOCUMENT,
         variables: {
@@ -180,6 +210,9 @@ export const maidDocumentsService = {
             document_type: type,
             document_name: title || file.name,
             document_url: publicUrl,
+            file_url: publicUrl,
+            type: type,
+            file_name: file.name,
             verified: false,
           },
         },

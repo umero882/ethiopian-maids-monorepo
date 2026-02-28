@@ -3,7 +3,7 @@
  * Provides offline functionality, caching, and background sync
  */
 
-const CACHE_VERSION = 'ethio-maids-v1.0.0';
+const CACHE_VERSION = 'ethio-maids-v1.1.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -23,9 +23,9 @@ const CACHE_DURATION = {
 };
 
 // Static assets to cache immediately
+// NOTE: Do NOT include / or /index.html here — SPA navigation must be network-first
+// so deploys are picked up immediately. Vite PWA (sw.js) handles precaching of JS/CSS bundles.
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/offline.html',
   '/manifest.json',
   '/images/logo/ethiopian-maids-logo.png',
@@ -99,6 +99,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Navigation requests (SPA routes) must always be network-first so deploys are picked up
+  if (request.mode === 'navigate') {
+    event.respondWith(handleDynamicRequest(request));
     return;
   }
 
@@ -427,7 +433,9 @@ function isApiRequest(url) {
 }
 
 function isStaticAsset(url) {
-  return /\.(js|css|woff|woff2|ttf|eot)$/i.test(url.pathname) ||
+  // Exclude .js and .css — Vite PWA (sw.js) handles those via precaching with content hashes.
+  // Only cache fonts and explicitly listed static assets here.
+  return /\.(woff|woff2|ttf|eot)$/i.test(url.pathname) ||
          STATIC_ASSETS.includes(url.pathname);
 }
 
