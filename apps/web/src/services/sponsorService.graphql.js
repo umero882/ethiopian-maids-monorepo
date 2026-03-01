@@ -52,6 +52,11 @@ const GET_SPONSOR_PROFILE_COMPLETE = gql`
       days_off_per_week
       overtime_available
       additional_benefits
+      occupation
+      company
+      payment_frequency
+      contract_duration
+      room_amenities
       identity_verified
       background_check_completed
       active_job_postings
@@ -338,7 +343,7 @@ export const graphqlSponsorService = {
       onboarding_completed_at: profileData.onboarding_completed_at,
       background_check_completed: profileData.background_check_completed !== undefined
         ? Boolean(profileData.background_check_completed) : undefined,
-      // Extra fields stored in profiles.user_metadata (sent to Cloud Function)
+      // DB columns for sponsor-specific fields
       occupation: profileData.occupation,
       company: profileData.company,
       payment_frequency: profileData.payment_frequency,

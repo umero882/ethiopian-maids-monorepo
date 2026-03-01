@@ -361,12 +361,12 @@ const SponsorProfilePage = () => {
           salary_budget_max: data.salary_budget_max ?? '',
           address: data.address ?? '',
           accommodation_type: data.accommodation_type ?? '',
-          // Extra fields from localStorage (no dedicated DB columns)
-          occupation: extra.occupation ?? '',
-          company: extra.company ?? '',
-          payment_frequency: extra.payment_frequency ?? '',
-          contract_duration: extra.contract_duration ?? '',
-          room_amenities: extra.room_amenities ?? [],
+          // DB columns for sponsor-specific fields
+          occupation: data.occupation ?? '',
+          company: data.company ?? '',
+          payment_frequency: data.payment_frequency ?? '',
+          contract_duration: data.contract_duration ?? '',
+          room_amenities: data.room_amenities ?? [],
           // Fields with DB↔UI mapping (reverse-mapped in getSponsorProfile)
           preferred_religion: data.preferred_religion ?? '',
           living_arrangement: extra.living_arrangement ?? data.living_arrangement ?? '',
@@ -487,13 +487,8 @@ const SponsorProfilePage = () => {
       const { error } = await sponsorService.updateSponsorProfile(user.id, saveData);
       if (error) throw new Error(error.message || 'Failed to save');
 
-      // Save extra fields (no DB columns) to localStorage
+      // Save extra fields (without dedicated DB columns) to localStorage
       const extraFields = {
-        occupation: data.occupation || '',
-        company: data.company || '',
-        payment_frequency: data.payment_frequency || '',
-        contract_duration: data.contract_duration || '',
-        room_amenities: data.room_amenities || [],
         living_arrangement: data.living_arrangement || '',
         working_hours: data.working_hours || '',
         days_off: data.days_off || '',

@@ -639,6 +639,11 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
         profileData.background_check_completed
       ),
       religion: profileData.religion || profileData.preferred_religion || null,
+      occupation: profileData.occupation || null,
+      company: profileData.company || null,
+      payment_frequency: profileData.payment_frequency || null,
+      contract_duration: profileData.contract_duration || null,
+      room_amenities: Array.isArray(profileData.room_amenities) ? profileData.room_amenities : [],
       onboarding_completed: profileData.onboarding_completed !== undefined
         ? Boolean(profileData.onboarding_completed) : undefined,
       onboarding_completed_at: profileData.onboarding_completed_at || undefined,
@@ -662,7 +667,7 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: sponsor_profiles_pkey,
-            update_columns: [full_name, household_size, number_of_children, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, religion, onboarding_completed, onboarding_completed_at, profile_completed, profile_completed_at, updated_at]
+            update_columns: [full_name, household_size, number_of_children, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, religion, occupation, company, payment_frequency, contract_duration, room_amenities, onboarding_completed, onboarding_completed_at, profile_completed, profile_completed_at, updated_at]
           }
         ) {
           id

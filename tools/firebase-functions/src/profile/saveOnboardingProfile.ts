@@ -159,6 +159,11 @@ const UPSERT_SPONSOR_PROFILE = gql`
           days_off_per_week
           overtime_available
           additional_benefits
+          occupation
+          company
+          payment_frequency
+          contract_duration
+          room_amenities
           religion
           avatar_url
           identity_verified
@@ -295,6 +300,11 @@ function normalizeSponsorData(userId: string, data: ProfileData): Record<string,
       : Array.isArray(data.benefits)
         ? data.benefits
         : [],
+    occupation: (data.occupation as string) || null,
+    company: (data.company as string) || null,
+    payment_frequency: (data.payment_frequency as string) || null,
+    contract_duration: (data.contract_duration as string) || null,
+    room_amenities: Array.isArray(data.room_amenities) ? data.room_amenities : [],
     religion: data.religion || data.preferred_religion || null,
     avatar_url: data.avatar_url || null,
     identity_verified: Boolean(data.identity_verified),
