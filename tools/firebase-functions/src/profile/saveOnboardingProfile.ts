@@ -163,6 +163,10 @@ const UPSERT_SPONSOR_PROFILE = gql`
           avatar_url
           identity_verified
           background_check_completed
+          onboarding_completed
+          onboarding_completed_at
+          profile_completed
+          profile_completed_at
           updated_at
         ]
       }
@@ -248,7 +252,20 @@ function normalizeSponsorData(userId: string, data: ProfileData): Record<string,
         : data.children_count !== undefined
           ? parseInt(String(data.children_count)) || 0
           : 0,
-    children_ages: Array.isArray(data.children_ages) ? data.children_ages : [],
+    children_ages: Array.isArray(data.children_ages)
+      ? data.children_ages.map((age: any) => {
+          if (typeof age === 'number') return age;
+          // Convert string labels to representative integer ages
+          const labelMap: Record<string, number[]> = {
+            'none': [], 'infants': [1], 'toddlers': [3],
+            'children': [8], 'teenagers': [14], 'mixed': [3, 8, 14],
+          };
+          const key = String(age).toLowerCase().trim();
+          if (labelMap[key]) return labelMap[key];
+          const parsed = parseInt(key);
+          return isNaN(parsed) ? null : parsed;
+        }).flat().filter((v: any) => v !== null && v !== undefined)
+      : [],
     elderly_care_needed: Boolean(data.elderly_care_needed),
     pets: Boolean(data.pets),
     pet_types: Array.isArray(data.pet_types) ? data.pet_types : [],
@@ -282,6 +299,12 @@ function normalizeSponsorData(userId: string, data: ProfileData): Record<string,
     avatar_url: data.avatar_url || null,
     identity_verified: Boolean(data.identity_verified),
     background_check_completed: Boolean(data.background_check_completed),
+    onboarding_completed: data.onboarding_completed !== undefined
+      ? Boolean(data.onboarding_completed) : true,
+    onboarding_completed_at: data.onboarding_completed_at || new Date().toISOString(),
+    profile_completed: data.profile_completed !== undefined
+      ? Boolean(data.profile_completed) : true,
+    profile_completed_at: data.profile_completed_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 }

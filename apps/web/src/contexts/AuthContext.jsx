@@ -586,8 +586,8 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
             ? parseInt(profileData.children_count) || 0
             : 0,
       children_ages: Array.isArray(profileData.children_ages)
-        ? profileData.children_ages
-        : [],
+        ? profileData.children_ages.map(a => typeof a === 'number' ? a : parseInt(a)).filter(a => !isNaN(a))
+        : profileData.children_ages ? [parseInt(profileData.children_ages)].filter(a => !isNaN(a)) : [],
       elderly_care_needed: Boolean(profileData.elderly_care_needed),
       pets: Boolean(profileData.pets),
       pet_types: Array.isArray(profileData.pet_types)
@@ -638,7 +638,19 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
       background_check_completed: Boolean(
         profileData.background_check_completed
       ),
+      religion: profileData.religion || profileData.preferred_religion || null,
+      onboarding_completed: profileData.onboarding_completed !== undefined
+        ? Boolean(profileData.onboarding_completed) : undefined,
+      onboarding_completed_at: profileData.onboarding_completed_at || undefined,
+      profile_completed: profileData.profile_completed !== undefined
+        ? Boolean(profileData.profile_completed) : undefined,
+      profile_completed_at: profileData.profile_completed_at || undefined,
     };
+
+    // Remove undefined values so they don't override existing data
+    Object.keys(sponsorData).forEach(key => {
+      if (sponsorData[key] === undefined) delete sponsorData[key];
+    });
 
     log.debug('Transformed sponsor data:', sponsorData);
 
@@ -650,7 +662,7 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: sponsor_profiles_pkey,
-            update_columns: [full_name, household_size, number_of_children, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, updated_at]
+            update_columns: [full_name, household_size, number_of_children, children_ages, elderly_care_needed, pets, pet_types, city, country, address, accommodation_type, preferred_nationality, preferred_experience_years, required_skills, preferred_languages, salary_budget_min, salary_budget_max, currency, live_in_required, working_hours_per_day, days_off_per_week, overtime_available, additional_benefits, identity_verified, background_check_completed, religion, onboarding_completed, onboarding_completed_at, profile_completed, profile_completed_at, updated_at]
           }
         ) {
           id
@@ -661,23 +673,46 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
       }
     `;
 
+    // Log auth state for debugging
+    const currentToken = typeof window !== 'undefined' && window.localStorage
+      ? window.localStorage.getItem('firebase_auth_token')
+      : null;
+    log.debug('Auth token present for mutation:', !!currentToken, 'Token length:', currentToken?.length || 0);
+
+    const mutationVariables = {
+      data: {
+        ...sponsorData,
+        updated_at: new Date().toISOString(),
+      },
+    };
+    log.debug('Mutation variables (key fields):', {
+      id: sponsorData.id,
+      full_name: sponsorData.full_name,
+      household_size: sponsorData.household_size,
+      salary_budget_min: sponsorData.salary_budget_min,
+      salary_budget_max: sponsorData.salary_budget_max,
+      onboarding_completed: sponsorData.onboarding_completed,
+    });
+
     const { data, errors } = await apolloClient.mutate({
       mutation: UPSERT_SPONSOR_PROFILE,
-      variables: {
-        data: {
-          ...sponsorData,
-          updated_at: new Date().toISOString(),
-        },
-      },
+      variables: mutationVariables,
     });
 
     if (errors && errors.length > 0) {
-      log.error('Error in sponsor profile upsert:', errors[0]);
+      log.error('GraphQL errors in sponsor profile upsert:', JSON.stringify(errors));
       throw new Error(errors[0].message);
     }
 
-    log.debug('Sponsor profile upserted:', data?.insert_sponsor_profiles_one);
-    return data?.insert_sponsor_profiles_one;
+    const result = data?.insert_sponsor_profiles_one;
+    if (!result) {
+      log.error('Sponsor profile upsert returned null data. This usually means permission denied at Hasura level.');
+      log.error('Full mutation response:', JSON.stringify({ data, errors }));
+    } else {
+      log.debug('Sponsor profile upserted successfully:', result);
+    }
+
+    return result;
   } catch (error) {
     log.error('Error in createOrUpdateSponsorProfile:', error);
     throw error;

@@ -144,11 +144,21 @@ export const graphqlSponsorService = {
         return '7+';
       };
 
+      // children_ages (int[]) → UI enum string
+      // Reverse of convertChildrenAgesToIntegers in OnboardingContext
+      const childrenAgesToLabel = (ages) => {
+        if (!Array.isArray(ages) || ages.length === 0) return 'none';
+        const ageToLabel = { 1: 'infants', 3: 'toddlers', 8: 'children', 14: 'teenagers' };
+        if (ages.length === 1) return ageToLabel[ages[0]] || 'children';
+        return 'mixed';
+      };
+
       const mappedData = {
         ...profile,
         ...extendedFields,
         // DB → UI field name mappings
         family_size: householdToFamilySize(profile.household_size),
+        children_ages: childrenAgesToLabel(profile.children_ages),
         children_count: profile.number_of_children,
         benefits: profile.additional_benefits || [],
         preferred_religion: extendedFields.religion || profile.religion || '',
@@ -261,9 +271,19 @@ export const graphqlSponsorService = {
         : profileData.household_size !== undefined
           ? (parseInt(profileData.household_size) || 1) : undefined,
       // children_count (UI) → number_of_children (DB)
+      // Also derive from children_ages enum if children_count not explicitly set
       number_of_children: profileData.children_count !== undefined
-        ? parseInt(profileData.children_count) : undefined,
-      children_ages: profileData.children_ages,
+        ? parseInt(profileData.children_count)
+        : profileData.children_ages !== undefined
+          ? ({ 'none': 0, 'infants': 1, 'toddlers': 1, 'children': 1, 'teenagers': 1, 'mixed': 3 }[profileData.children_ages] ?? undefined)
+          : undefined,
+      // children_ages (UI enum string) → children_ages (DB int[])
+      children_ages: (() => {
+        const val = profileData.children_ages;
+        if (Array.isArray(val)) return val; // already int array
+        const labelToAges = { 'none': [], 'infants': [1], 'toddlers': [3], 'children': [8], 'teenagers': [14], 'mixed': [3, 8, 14] };
+        return labelToAges[val] || [];
+      })(),
       // elderly (UI enum: none/one/multiple) → elderly_care_needed (DB boolean)
       elderly_care_needed: profileData.elderly !== undefined
         ? (profileData.elderly !== 'none')

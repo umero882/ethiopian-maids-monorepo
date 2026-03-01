@@ -520,6 +520,37 @@ export const OnboardingProvider = ({ children }) => {
     return match ? parseInt(match[0], 10) : null;
   }, []);
 
+  // Helper: Convert children age labels to integer array
+  // DB column children_ages is integer[] so we must convert string labels to representative ages
+  const convertChildrenAgesToIntegers = useCallback((childrenAgesRaw) => {
+    if (!childrenAgesRaw) return [];
+    const items = Array.isArray(childrenAgesRaw) ? childrenAgesRaw : [childrenAgesRaw];
+    // Map string labels to representative integer ages
+    const labelToAges = {
+      'none': [],
+      'infants': [1],
+      'toddlers': [3],
+      'children': [8],
+      'teenagers': [14],
+      'mixed': [3, 8, 14],
+    };
+    const ages = [];
+    for (const item of items) {
+      if (typeof item === 'number') {
+        ages.push(item);
+      } else if (typeof item === 'string') {
+        const key = item.toLowerCase().trim();
+        if (labelToAges[key]) {
+          ages.push(...labelToAges[key]);
+        } else {
+          const parsed = parseInt(key);
+          if (!isNaN(parsed)) ages.push(parsed);
+        }
+      }
+    }
+    return ages;
+  }, []);
+
   // Helper: Parse experience level to years (number)
   const parseExperienceToYears = useCallback((experienceLevel) => {
     if (!experienceLevel) return 0;
@@ -648,8 +679,18 @@ export const OnboardingProvider = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 500));
         console.log('✅ JWT claims set, token refreshed');
       } catch (claimError) {
-        console.warn('⚠️ Could not set JWT claims:', claimError.message);
-        // Continue anyway — anonymous permissions are set as fallback
+        console.warn('⚠️ Could not set JWT claims via Cloud Function:', claimError.message);
+        // FALLBACK: Force refresh the token to pick up any claims set by authOnUserCreated
+        // The authOnUserCreated trigger sets default 'user' claims which still allows writes
+        try {
+          if (auth.currentUser) {
+            const refreshedToken = await auth.currentUser.getIdToken(true);
+            localStorage.setItem(FIREBASE_TOKEN_KEY, refreshedToken);
+            console.log('✅ Token force-refreshed (using existing claims from authOnUserCreated)');
+          }
+        } catch (tokenRefreshError) {
+          console.warn('⚠️ Could not refresh token:', tokenRefreshError.message);
+        }
       }
 
       // ================================================================
@@ -840,28 +881,14 @@ export const OnboardingProvider = ({ children }) => {
           sponsorIdDocUrl = await uploadFileToStorage(state.formData.idDocument, 'id-documents');
         }
 
+        // FIX: Only include columns that exist in the profiles table
+        // sponsor-specific fields go via Cloud Function / fallback save below
         const sponsorProfileData = {
           full_name: state.formData.full_name,
           phone: state.account.phone,
           country: state.formData.country,
           avatar_url: sponsorPhotoUrl,
-          // Sponsor-specific fields
-          family_size: parseInt(state.formData.familySize) || null,
-          children_ages: state.formData.childrenAges || [],
-          has_elderly: state.formData.hasElderly || false,
-          preferred_nationality: state.formData.preferredNationality || [],
-          preferred_languages: state.formData.preferredLanguages || [],
-          salary_budget_min: parseSalaryToNumber(state.formData.salaryBudgetMin),
-          salary_budget_max: parseSalaryToNumber(state.formData.salaryBudgetMax),
-          accommodation_type: state.formData.accommodationType || '',
-          room_type: state.formData.roomType || '',
-          consents_accepted: true,
-          profile_completed: true,
-          profile_completed_at: new Date().toISOString(),
-          onboarding_completed: true,
-          onboarding_completed_at: new Date().toISOString(),
-          terms_accepted_at: new Date().toISOString(),
-          privacy_accepted_at: new Date().toISOString(),
+          registration_complete: true,
         };
 
         if (updateProfile) {
@@ -968,31 +995,54 @@ export const OnboardingProvider = ({ children }) => {
           avatar_url: profilePhotoUrl,
         };
       } else if (state.userType === 'sponsor') {
-        // Use correct DB column names: household_size, number_of_children
+        // FIX: Map form keys (from step components) to correct DB column names
+        // Form keys: familySize, childrenAges (string), elderly (string), propertyType,
+        //   preferred_nationalities (array), preferred_languages (array), benefits (array),
+        //   living_arrangement (string), working_hours (string), days_off (string)
+        const childrenAgesInt = convertChildrenAgesToIntegers(state.formData.childrenAges);
+        const elderlyVal = state.formData.elderly || state.formData.hasElderly;
+        const elderlyNeeded = elderlyVal === 'none' || elderlyVal === false || !elderlyVal ? false : true;
+        const workingHoursRaw = state.formData.working_hours || state.formData.workingHoursPerDay;
+        const workingHours = workingHoursRaw === 'full-time' ? 8
+          : workingHoursRaw === 'part-time' ? 4
+          : parseInt(workingHoursRaw) || 8;
+        const daysOffRaw = state.formData.days_off || state.formData.daysOffPerWeek;
+        const daysOff = typeof daysOffRaw === 'string'
+          ? parseInt(daysOffRaw.replace(/[^\d]/g, '')) || 1
+          : parseInt(daysOffRaw) || 1;
+        const livingArrangement = state.formData.living_arrangement || state.formData.roomType || '';
+        const liveInRequired = livingArrangement === 'live-in' || livingArrangement === 'Live-in'
+          || state.formData.liveInRequired === true;
+
         profileData = {
           full_name: state.formData.full_name || '',
           household_size: parseInt(state.formData.familySize) || 1,
-          number_of_children: Array.isArray(state.formData.childrenAges) ? state.formData.childrenAges.length : 0,
-          children_ages: state.formData.childrenAges || [],
-          elderly_care_needed: state.formData.hasElderly || false,
+          number_of_children: childrenAgesInt.length || (state.formData.childrenAges && state.formData.childrenAges !== 'none' ? 1 : 0),
+          children_ages: childrenAgesInt,
+          elderly_care_needed: elderlyNeeded,
           pets: state.formData.hasPets || false,
           pet_types: state.formData.petTypes || [],
           city: state.formData.city || '',
           country: state.formData.country || '',
           address: state.formData.address || '',
-          accommodation_type: state.formData.accommodationType || '',
-          preferred_nationality: state.formData.preferredNationality || [],
+          accommodation_type: state.formData.propertyType || state.formData.accommodationType || '',
+          preferred_nationality: state.formData.preferred_nationalities || state.formData.preferredNationality || [],
           preferred_experience_years: parseExperienceToYears(state.formData.preferredExperience) || 0,
           required_skills: state.formData.requiredSkills || [],
-          preferred_languages: state.formData.preferredLanguages || [],
+          preferred_languages: state.formData.preferred_languages || state.formData.preferredLanguages || [],
           salary_budget_min: parseSalaryToNumber(state.formData.salaryBudgetMin),
           salary_budget_max: parseSalaryToNumber(state.formData.salaryBudgetMax),
-          currency: state.formData.currency || 'USD',
-          live_in_required: state.formData.roomType === 'Live-in' || state.formData.liveInRequired !== false,
-          working_hours_per_day: parseInt(state.formData.workingHoursPerDay) || 8,
-          days_off_per_week: parseInt(state.formData.daysOffPerWeek) || 1,
+          currency: state.formData.currency || 'AED',
+          live_in_required: liveInRequired,
+          working_hours_per_day: workingHours,
+          days_off_per_week: daysOff,
           overtime_available: state.formData.overtimeAvailable || false,
-          additional_benefits: state.formData.additionalBenefits || [],
+          additional_benefits: state.formData.benefits || state.formData.additionalBenefits || [],
+          religion: state.formData.preferred_religion || state.formData.religion || null,
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          profile_completed: true,
+          profile_completed_at: new Date().toISOString(),
         };
         basicProfileData = {
           full_name: state.formData.full_name || '',
@@ -1096,35 +1146,73 @@ export const OnboardingProvider = ({ children }) => {
           }
         } else if (state.userType === 'sponsor') {
           if (createOrUpdateSponsorProfile) {
-            // Use correct column names for sponsor
+            // FIX: Map form keys to correct DB column names (same logic as Cloud Function path)
+            const childrenAgesInt = convertChildrenAgesToIntegers(state.formData.childrenAges);
+            const elderlyVal = state.formData.elderly || state.formData.hasElderly;
+            const elderlyNeeded = elderlyVal === 'none' || elderlyVal === false || !elderlyVal ? false : true;
+            const workHoursRaw = state.formData.working_hours || state.formData.workingHoursPerDay;
+            const workHours = workHoursRaw === 'full-time' ? 8
+              : workHoursRaw === 'part-time' ? 4
+              : parseInt(workHoursRaw) || 8;
+            const daysOffRaw = state.formData.days_off || state.formData.daysOffPerWeek;
+            const daysOff = typeof daysOffRaw === 'string'
+              ? parseInt(daysOffRaw.replace(/[^\d]/g, '')) || 1
+              : parseInt(daysOffRaw) || 1;
+            const livingArr = state.formData.living_arrangement || state.formData.roomType || '';
+            const liveIn = livingArr === 'live-in' || livingArr === 'Live-in'
+              || state.formData.liveInRequired === true;
+
             const sponsorProfileData = {
               full_name: state.formData.full_name || '',
-              // FIX: Use correct DB column names
               household_size: parseInt(state.formData.familySize) || 1,
-              number_of_children: Array.isArray(state.formData.childrenAges) ? state.formData.childrenAges.length : 0,
-              children_ages: state.formData.childrenAges || [],
-              elderly_care_needed: state.formData.hasElderly || false,
+              number_of_children: childrenAgesInt.length || (state.formData.childrenAges && state.formData.childrenAges !== 'none' ? 1 : 0),
+              children_ages: childrenAgesInt,
+              elderly_care_needed: elderlyNeeded,
               pets: state.formData.hasPets || false,
               pet_types: state.formData.petTypes || [],
               city: state.formData.city || '',
               country: state.formData.country || '',
               address: state.formData.address || '',
-              accommodation_type: state.formData.accommodationType || '',
-              preferred_nationality: state.formData.preferredNationality || [],
+              accommodation_type: state.formData.propertyType || state.formData.accommodationType || '',
+              preferred_nationality: state.formData.preferred_nationalities || state.formData.preferredNationality || [],
               preferred_experience_years: parseExperienceToYears(state.formData.preferredExperience) || 0,
               required_skills: state.formData.requiredSkills || [],
-              preferred_languages: state.formData.preferredLanguages || [],
+              preferred_languages: state.formData.preferred_languages || state.formData.preferredLanguages || [],
               salary_budget_min: parseSalaryToNumber(state.formData.salaryBudgetMin),
               salary_budget_max: parseSalaryToNumber(state.formData.salaryBudgetMax),
-              currency: state.formData.currency || 'USD',
-              live_in_required: state.formData.roomType === 'Live-in' || state.formData.liveInRequired !== false,
-              working_hours_per_day: parseInt(state.formData.workingHoursPerDay) || 8,
-              days_off_per_week: parseInt(state.formData.daysOffPerWeek) || 1,
+              currency: state.formData.currency || 'AED',
+              live_in_required: liveIn,
+              working_hours_per_day: workHours,
+              days_off_per_week: daysOff,
               overtime_available: state.formData.overtimeAvailable || false,
-              additional_benefits: state.formData.additionalBenefits || [],
+              additional_benefits: state.formData.benefits || state.formData.additionalBenefits || [],
+              religion: state.formData.preferred_religion || state.formData.religion || null,
+              onboarding_completed: true,
+              onboarding_completed_at: new Date().toISOString(),
+              profile_completed: true,
+              profile_completed_at: new Date().toISOString(),
             };
-            await createOrUpdateSponsorProfile(userId, sponsorProfileData);
-            console.log('✅ Sponsor profile saved via direct mutation');
+
+            // DEBUG: Log the exact data being sent to mutation
+            console.log('📊 Sponsor profile data for fallback save:', JSON.stringify({
+              full_name: sponsorProfileData.full_name,
+              household_size: sponsorProfileData.household_size,
+              salary_budget_min: sponsorProfileData.salary_budget_min,
+              salary_budget_max: sponsorProfileData.salary_budget_max,
+              preferred_nationality: sponsorProfileData.preferred_nationality,
+              onboarding_completed: sponsorProfileData.onboarding_completed,
+              live_in_required: sponsorProfileData.live_in_required,
+            }));
+
+            const mutationResult = await createOrUpdateSponsorProfile(userId, sponsorProfileData);
+
+            if (!mutationResult || !mutationResult.id) {
+              console.error('❌ Sponsor profile mutation returned null — data may not have saved!');
+              console.error('This usually means the JWT token lacks proper Hasura claims.');
+              // Throw to trigger the error toast so user knows to retry
+              throw new Error('Profile save returned null. Please try logging out and back in, then retry.');
+            }
+            console.log('✅ Sponsor profile saved via direct mutation:', mutationResult);
           }
         } else if (state.userType === 'agency') {
           if (createOrUpdateAgencyProfile) {
@@ -1248,6 +1336,7 @@ export const OnboardingProvider = ({ children }) => {
     calculateProfileCompletion,
     parseSalaryToNumber,
     parseExperienceToYears,
+    convertChildrenAgesToIntegers,
     toast,
   ]);
 
