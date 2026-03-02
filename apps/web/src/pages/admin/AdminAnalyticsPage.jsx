@@ -339,7 +339,7 @@ const AdminAnalyticsPage = () => {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percentage }) => `${name} ${percentage}%`}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {analyticsData.userDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
