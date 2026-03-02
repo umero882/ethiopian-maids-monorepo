@@ -26,12 +26,9 @@ const GET_LOCAL_DISPUTES = gql`
       created_at
       updated_at
       user_id
-      profile {
-        id
-        full_name
-        email
-        user_type
-      }
+      user_name
+      user_email
+      user_type
     }
     disputes_aggregate: support_tickets_aggregate(
       where: { category: { _eq: "dispute" } }
@@ -169,9 +166,9 @@ class AdminDisputesService {
       due_date: this.calculateDueDate(ticket.created_at),
       disputer: {
         id: ticket.user_id,
-        name: ticket.profile?.full_name || 'Unknown User',
-        email: ticket.profile?.email || '',
-        type: ticket.profile?.user_type || 'sponsor',
+        name: ticket.user_name || 'Unknown User',
+        email: ticket.user_email || '',
+        type: ticket.user_type || 'sponsor',
         phone: '',
       },
       disputed_party: {
@@ -192,7 +189,7 @@ class AdminDisputesService {
         {
           timestamp: ticket.created_at,
           event: 'dispute_created',
-          actor: ticket.profile?.full_name || 'User',
+          actor: ticket.user_name || 'User',
           description: 'Dispute ticket created',
         },
       ],

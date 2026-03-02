@@ -200,16 +200,15 @@ const GET_EARNINGS_SUMMARY_DYNAMIC = gql`
 
 const GET_TOP_AGENCIES = gql`
   query GetTopAgencies($limit: Int!) {
-    agencies(
+    agency_profiles(
       limit: $limit
       order_by: { created_at: desc }
     ) {
       id
-      user_id
-      agency_name
-      contact_email
-      phone_number
-      is_verified
+      full_name
+      business_email
+      business_phone
+      verification_status
       created_at
     }
   }
@@ -294,20 +293,20 @@ const GET_MONTHLY_TREND = gql`
 
 // Query for agency names
 const GET_AGENCIES_BY_IDS = gql`
-  query GetAgenciesByIds($ids: [uuid!]!) {
-    agencies(where: { id: { _in: $ids } }) {
+  query GetAgenciesByIds($ids: [String!]!) {
+    agency_profiles(where: { id: { _in: $ids } }) {
       id
-      agency_name
-      contact_email
-      is_verified
+      full_name
+      business_email
+      verification_status
     }
   }
 `;
 
 // Query for maid names
 const GET_MAIDS_BY_IDS = gql`
-  query GetMaidsByIds($ids: [uuid!]!) {
-    maids(where: { id: { _in: $ids } }) {
+  query GetMaidsByIds($ids: [String!]!) {
+    maid_profiles(where: { id: { _in: $ids } }) {
       id
       full_name
       email
@@ -318,7 +317,7 @@ const GET_MAIDS_BY_IDS = gql`
 // Query for sponsor names
 const GET_SPONSORS_BY_IDS = gql`
   query GetSponsorsByIds($ids: [String!]!) {
-    sponsors(where: { id: { _in: $ids } }) {
+    sponsor_profiles(where: { id: { _in: $ids } }) {
       id
       full_name
       email
@@ -352,7 +351,7 @@ async function fetchAgencyDetails(agencyIds) {
     }
 
     const agencyMap = {};
-    (data?.agencies || []).forEach(agency => {
+    (data?.agency_profiles || []).forEach(agency => {
       agencyMap[agency.id] = agency;
     });
     return agencyMap;
@@ -384,7 +383,7 @@ async function fetchMaidDetails(maidIds) {
     }
 
     const maidMap = {};
-    (data?.maids || []).forEach(maid => {
+    (data?.maid_profiles || []).forEach(maid => {
       maidMap[maid.id] = maid;
     });
     return maidMap;
@@ -416,7 +415,7 @@ async function fetchSponsorDetails(sponsorIds) {
     }
 
     const sponsorMap = {};
-    (data?.sponsors || []).forEach(sponsor => {
+    (data?.sponsor_profiles || []).forEach(sponsor => {
       sponsorMap[sponsor.id] = sponsor;
     });
     return sponsorMap;
@@ -564,12 +563,12 @@ export const adminEarningsService = {
       agencies.forEach(agency => {
         agencyEarnings[agency.id] = {
           agency_id: agency.id,
-          agency_name: agency.agency_name || 'Unknown Agency',
+          agency_name: agency.full_name || 'Unknown Agency',
           total_revenue: 0,
           transaction_count: 0,
           escrow_count: 0,
           success_count: 0,
-          is_verified: agency.is_verified,
+          is_verified: agency.verification_status,
         };
       });
 
@@ -652,7 +651,7 @@ export const adminEarningsService = {
       // Enrich transactions
       const enrichedTransactions = transactions.map(tx => ({
         ...tx,
-        agency_name: agencyMap[tx.agency_id]?.agency_name || 'Unknown Agency',
+        agency_name: agencyMap[tx.agency_id]?.full_name || 'Unknown Agency',
         maid_name: maidMap[tx.maid_id]?.full_name || 'Unknown Maid',
         sponsor_name: sponsorMap[tx.sponsor_id]?.full_name || 'Unknown Sponsor',
       }));

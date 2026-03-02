@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { auth } from '@/lib/firebaseClient';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, FIREBASE_TOKEN_KEY } from '@/lib/firebaseClient';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken } from 'firebase/auth';
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import { toast } from '@/components/ui/use-toast';
@@ -181,7 +181,15 @@ export const AdminAuthProvider = ({ children }) => {
       );
 
       const user = userCredential.user;
-      log.debug('Firebase login successful, fetching admin profile');
+      log.debug('Firebase login successful, storing token before admin profile fetch');
+
+      // Store the Firebase ID token in localStorage BEFORE querying Hasura
+      // This fixes a race condition where Apollo sends the GetAdminProfile query
+      // before AuthContext's onAuthStateChanged has stored the token
+      const idToken = await getIdToken(user, true); // force refresh to get latest custom claims
+      localStorage.setItem(FIREBASE_TOKEN_KEY, idToken);
+
+      log.debug('Token stored, fetching admin profile');
       const adminProfile = await fetchAdminProfile(user);
 
       if (!adminProfile) {

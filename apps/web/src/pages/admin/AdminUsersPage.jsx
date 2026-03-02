@@ -140,7 +140,7 @@ const GET_USER_STATS = gql`
 `;
 
 // Polling interval for real-time updates (in milliseconds)
-const POLLING_INTERVAL = 5000; // 5 seconds
+const POLLING_INTERVAL = 30000; // 30 seconds
 
 const UPDATE_PROFILE_STATUS = gql`
   mutation UpdateProfileStatus($id: String!, $is_active: Boolean!) {

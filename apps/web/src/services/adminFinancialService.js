@@ -53,7 +53,6 @@ const GET_AGENCY_REVENUES = gql`
     profiles(where: { user_type: { _eq: "agency" } }) {
       id
       full_name
-      company_name
     }
   }
 `;
@@ -220,7 +219,7 @@ export class AdminFinancialService {
       // Create a map of agency names
       const agencyNames = {};
       profiles.forEach(p => {
-        agencyNames[p.id] = p.company_name || p.full_name || 'Unknown Agency';
+        agencyNames[p.id] = p.full_name || 'Unknown Agency';
       });
 
       // Group revenue by agency

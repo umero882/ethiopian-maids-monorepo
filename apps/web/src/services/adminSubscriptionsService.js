@@ -288,14 +288,14 @@ const GET_USER_DETAILS_PROFILES = gql`
 `;
 
 /**
- * Get auth_users details - separate query because id is UUID type
+ * Get profile details by ID (fallback lookup for UUID-format IDs)
  */
 const GET_USER_DETAILS_AUTH = gql`
-  query GetUserDetailsFromAuth($userIds: [uuid!]!) {
-    auth_users(where: { id: { _in: $userIds } }) {
+  query GetUserDetailsFromProfiles2($userIds: [String!]!) {
+    profiles(where: { id: { _in: $userIds } }) {
       id
       email
-      role
+      user_type
     }
   }
 `;
@@ -566,10 +566,10 @@ export const adminSubscriptionsService = {
         });
       }
 
-      // Process auth users data (result 1 if uuidIds exist)
-      if (uuidIds.length > 0 && results[1]?.data?.auth_users) {
-        (results[1].data.auth_users || []).forEach(u => {
-          authUserMap.set(u.id, { email: u.email, role: u.role });
+      // Process profile data by ID (result 1 if uuidIds exist)
+      if (uuidIds.length > 0 && results[1]?.data?.profiles) {
+        (results[1].data.profiles || []).forEach(u => {
+          authUserMap.set(u.id, { email: u.email, role: u.user_type });
         });
       }
 

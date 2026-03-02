@@ -280,12 +280,12 @@ export function AdminUserDetailPage() {
 
       if (user.user_type === 'agency' && editData.agency_profile?.id) {
         const agencyFields = {
-          agency_name: editData.agency_profile.agency_name,
+          full_name: editData.agency_profile.full_name,
           license_number: editData.agency_profile.license_number,
           phone: editData.agency_profile.phone,
           email: editData.agency_profile.email,
-          website: editData.agency_profile.website,
-          description: editData.agency_profile.description,
+          website_url: editData.agency_profile.website_url,
+          agency_description: editData.agency_profile.agency_description,
           verification_status: editData.agency_profile.verification_status,
         };
         await userManagementService.updateAgencyProfile(editData.agency_profile.id, agencyFields);
@@ -1162,8 +1162,8 @@ function AgencyProfileSection({ profile, isEditing, onChange }) {
             <div className="space-y-2">
               <Label>Agency Name</Label>
               <Input
-                value={profile.agency_name || ''}
-                onChange={(e) => onChange('agency_name', e.target.value)}
+                value={profile.full_name || ''}
+                onChange={(e) => onChange('full_name', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -1191,8 +1191,8 @@ function AgencyProfileSection({ profile, isEditing, onChange }) {
             <div className="space-y-2">
               <Label>Website</Label>
               <Input
-                value={profile.website || ''}
-                onChange={(e) => onChange('website', e.target.value)}
+                value={profile.website_url || ''}
+                onChange={(e) => onChange('website_url', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -1216,19 +1216,19 @@ function AgencyProfileSection({ profile, isEditing, onChange }) {
             <div className="space-y-2 md:col-span-2">
               <Label>Description</Label>
               <Textarea
-                value={profile.description || ''}
-                onChange={(e) => onChange('description', e.target.value)}
+                value={profile.agency_description || ''}
+                onChange={(e) => onChange('agency_description', e.target.value)}
                 rows={3}
               />
             </div>
           </>
         ) : (
           <>
-            <InfoRow label="Agency Name" value={profile.agency_name} icon={Building2} />
+            <InfoRow label="Agency Name" value={profile.full_name} icon={Building2} />
             <InfoRow label="License Number" value={profile.license_number} icon={FileText} />
             <InfoRow label="Phone" value={profile.phone} icon={Phone} />
             <InfoRow label="Email" value={profile.email} icon={Mail} />
-            <InfoRow label="Website" value={profile.website} icon={Globe} />
+            <InfoRow label="Website" value={profile.website_url} icon={Globe} />
             <InfoRow label="Location" value={`${profile.city || ''}, ${profile.country || ''}`} icon={MapPin} />
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Verification</p>
@@ -1248,10 +1248,10 @@ function AgencyProfileSection({ profile, isEditing, onChange }) {
                 {profile.total_maids || 0}
               </Badge>
             </div>
-            {profile.description && (
+            {profile.agency_description && (
               <div className="md:col-span-2">
                 <p className="text-xs text-gray-500 mb-1">Description</p>
-                <p className="text-sm text-gray-700">{profile.description}</p>
+                <p className="text-sm text-gray-700">{profile.agency_description}</p>
               </div>
             )}
           </>
@@ -1283,8 +1283,8 @@ function SponsorProfileSection({ profile, isEditing, onChange }) {
             <div className="space-y-2">
               <Label>Phone</Label>
               <Input
-                value={profile.phone || ''}
-                onChange={(e) => onChange('phone', e.target.value)}
+                value={profile.phone_number || ''}
+                onChange={(e) => onChange('phone_number', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -1305,15 +1305,15 @@ function SponsorProfileSection({ profile, isEditing, onChange }) {
         ) : (
           <>
             <InfoRow label="Full Name" value={profile.full_name} icon={User} />
-            <InfoRow label="Phone" value={profile.phone} icon={Phone} />
+            <InfoRow label="Phone" value={profile.phone_number} icon={Phone} />
             <InfoRow label="Location" value={`${profile.city || ''}, ${profile.country || ''}`} icon={MapPin} />
             <InfoRow label="Occupation" value={profile.occupation} icon={Briefcase} />
             <InfoRow label="Company" value={profile.company} icon={Building2} />
-            <InfoRow label="Family Size" value={profile.family_size} icon={Users} />
-            {profile.budget_min && (
+            <InfoRow label="Household Size" value={profile.household_size} icon={Users} />
+            {profile.salary_budget_min && (
               <InfoRow
                 label="Budget"
-                value={`${profile.budget_currency || 'USD'} ${profile.budget_min} - ${profile.budget_max}`}
+                value={`${profile.currency || 'USD'} ${profile.salary_budget_min} - ${profile.salary_budget_max}`}
                 icon={DollarSign}
               />
             )}

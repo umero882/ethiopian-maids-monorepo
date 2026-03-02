@@ -150,11 +150,11 @@ const AdminSystemMaintenancePage = () => {
       // Log activity via GraphQL
       await apolloClient.mutate({
         mutation: gql`
-          mutation LogMaintenanceActivity($action: String!, $target_type: String!, $target_id: String!, $details: jsonb!) {
+          mutation LogMaintenanceActivity($action: String!, $resource_type: String!, $resource_id: String!, $details: jsonb!) {
             insert_admin_activity_logs_one(object: {
               action: $action
-              target_type: $target_type
-              target_id: $target_id
+              resource_type: $resource_type
+              resource_id: $resource_id
               details: $details
             }) {
               id
@@ -163,8 +163,8 @@ const AdminSystemMaintenancePage = () => {
         `,
         variables: {
           action: newMode ? 'maintenance_mode_enabled' : 'maintenance_mode_disabled',
-          target_type: 'system',
-          target_id: 'maintenance_mode',
+          resource_type: 'system',
+          resource_id: 'maintenance_mode',
           details: {
             previous_state: maintenanceMode,
             new_state: newMode,

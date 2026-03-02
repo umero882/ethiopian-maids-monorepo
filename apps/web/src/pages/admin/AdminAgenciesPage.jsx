@@ -411,7 +411,7 @@ const AdminAgenciesPage = () => {
           avatar_url: profile.logo_url,
           created_at: profile.created_at,
           last_active: profile.updated_at,
-          business_name: profile.full_name || 'Unknown Agency',
+          full_name: profile.full_name || 'Unknown Agency',
           contact_person: profile.contact_person_name || profile.authorized_person_name || profile.full_name || 'N/A',
           verification_status: verificationStatus,
           subscription_status: (profile.subscription_tier || 'free').toLowerCase().trim(),
@@ -690,7 +690,7 @@ const AdminAgenciesPage = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-xl font-semibold">{agency.business_name || agency.full_name}</p>
+                  <p className="text-xl font-semibold">{agency.full_name}</p>
                   <div className="flex items-center gap-3 mt-1">
                     {getVerificationBadge(agency.verification_status)}
                     {getSubscriptionBadge(agency.subscription_status)}
@@ -734,7 +734,7 @@ const AdminAgenciesPage = () => {
                       <div>
                         <p className="text-xs text-slate-500">Agency Name</p>
                         <p className={`text-sm font-medium ${!agency.full_name ? 'text-red-500' : ''}`}>
-                          {agency.full_name || agency.business_name || 'Missing'}
+                          {agency.full_name || 'Missing'}
                         </p>
                       </div>
                       <div>
@@ -1481,7 +1481,7 @@ const AdminAgenciesPage = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{agency.business_name}</p>
+                            <p className="font-medium">{agency.full_name}</p>
                             <p className="text-sm text-muted-foreground">{agency.contact_person}</p>
                           </div>
                         </div>

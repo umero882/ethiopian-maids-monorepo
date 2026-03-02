@@ -16,7 +16,7 @@ const log = createLogger('UserManagementService');
 
 // Get user by ID with all related profiles
 const GetUserByIdDocument = gql`
-  query GetUserById($id: uuid!) {
+  query GetUserById($id: String!) {
     profiles_by_pk(id: $id) {
       id
       full_name
@@ -85,46 +85,43 @@ const GetUserByIdDocument = gql`
       }
       agency_profile {
         id
-        user_id
-        agency_name
+        full_name
         license_number
         country
         city
-        address
+        business_address
         phone
         email
-        website
-        description
+        website_url
+        agency_description
         logo_url
         verification_status
-        is_verified
+        verified
+        license_verified
         total_maids
         active_maids
-        rating
-        total_reviews
+        average_rating
         subscription_tier
         created_at
         updated_at
       }
       sponsor_profile {
         id
-        user_id
         full_name
-        phone
+        phone_number
         country
         city
         address
         occupation
         company
         preferred_nationality
-        preferred_age_range
-        preferred_experience
-        budget_min
-        budget_max
-        budget_currency
-        family_size
-        children_count
-        special_requirements
+        preferred_experience_years
+        salary_budget_min
+        salary_budget_max
+        currency
+        household_size
+        number_of_children
+        required_skills
         created_at
         updated_at
       }
@@ -168,7 +165,7 @@ const GetAllUsersDocument = gql`
       agency_profile {
         id
         verification_status
-        agency_name
+        full_name
       }
       sponsor_profile {
         id
@@ -185,7 +182,7 @@ const GetAllUsersDocument = gql`
 
 // Update profile (main user data)
 const UpdateProfileDocument = gql`
-  mutation UpdateProfile($id: uuid!, $data: profiles_set_input!) {
+  mutation UpdateProfile($id: String!, $data: profiles_set_input!) {
     update_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
       id
       full_name
@@ -207,7 +204,7 @@ const UpdateProfileDocument = gql`
 
 // Update maid profile
 const UpdateMaidProfileDocument = gql`
-  mutation UpdateMaidProfile($id: uuid!, $data: maid_profiles_set_input!) {
+  mutation UpdateMaidProfile($id: String!, $data: maid_profiles_set_input!) {
     update_maid_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
       id
       full_name
@@ -220,10 +217,10 @@ const UpdateMaidProfileDocument = gql`
 
 // Update agency profile
 const UpdateAgencyProfileDocument = gql`
-  mutation UpdateAgencyProfile($id: uuid!, $data: agency_profiles_set_input!) {
+  mutation UpdateAgencyProfile($id: String!, $data: agency_profiles_set_input!) {
     update_agency_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
       id
-      agency_name
+      full_name
       verification_status
       updated_at
     }
@@ -232,7 +229,7 @@ const UpdateAgencyProfileDocument = gql`
 
 // Update sponsor profile
 const UpdateSponsorProfileDocument = gql`
-  mutation UpdateSponsorProfile($id: uuid!, $data: sponsor_profiles_set_input!) {
+  mutation UpdateSponsorProfile($id: String!, $data: sponsor_profiles_set_input!) {
     update_sponsor_profiles_by_pk(pk_columns: { id: $id }, _set: $data) {
       id
       full_name
@@ -243,7 +240,7 @@ const UpdateSponsorProfileDocument = gql`
 
 // Delete user profile (soft delete by setting is_active = false and adding deleted flag)
 const DeleteUserDocument = gql`
-  mutation DeleteUser($id: uuid!) {
+  mutation DeleteUser($id: String!) {
     update_profiles_by_pk(
       pk_columns: { id: $id }
       _set: { is_active: false }
@@ -256,7 +253,7 @@ const DeleteUserDocument = gql`
 
 // Hard delete user - removes the profile completely
 const HardDeleteUserDocument = gql`
-  mutation HardDeleteUser($id: uuid!) {
+  mutation HardDeleteUser($id: String!) {
     delete_profiles_by_pk(id: $id) {
       id
     }
@@ -265,7 +262,7 @@ const HardDeleteUserDocument = gql`
 
 // Delete maid profile
 const DeleteMaidProfileDocument = gql`
-  mutation DeleteMaidProfile($userId: uuid!) {
+  mutation DeleteMaidProfile($userId: String!) {
     delete_maid_profiles(where: { user_id: { _eq: $userId } }) {
       affected_rows
     }
@@ -274,8 +271,8 @@ const DeleteMaidProfileDocument = gql`
 
 // Delete agency profile
 const DeleteAgencyProfileDocument = gql`
-  mutation DeleteAgencyProfile($userId: uuid!) {
-    delete_agency_profiles(where: { user_id: { _eq: $userId } }) {
+  mutation DeleteAgencyProfile($userId: String!) {
+    delete_agency_profiles(where: { id: { _eq: $userId } }) {
       affected_rows
     }
   }
@@ -283,8 +280,8 @@ const DeleteAgencyProfileDocument = gql`
 
 // Delete sponsor profile
 const DeleteSponsorProfileDocument = gql`
-  mutation DeleteSponsorProfile($userId: uuid!) {
-    delete_sponsor_profiles(where: { user_id: { _eq: $userId } }) {
+  mutation DeleteSponsorProfile($userId: String!) {
+    delete_sponsor_profiles(where: { id: { _eq: $userId } }) {
       affected_rows
     }
   }
@@ -321,8 +318,7 @@ const CreateAgencyProfileDocument = gql`
   mutation CreateAgencyProfile($data: agency_profiles_insert_input!) {
     insert_agency_profiles_one(object: $data) {
       id
-      user_id
-      agency_name
+      full_name
     }
   }
 `;
@@ -340,11 +336,11 @@ const CreateSponsorProfileDocument = gql`
 
 // Get user activity logs
 const GetUserActivityDocument = gql`
-  query GetUserActivity($userId: uuid!, $limit: Int = 50) {
+  query GetUserActivity($userId: String!, $limit: Int = 50) {
     admin_activity_logs(
       where: {
         _or: [
-          { target_id: { _eq: $userId } },
+          { resource_id: { _eq: $userId } },
           { admin_id: { _eq: $userId } }
         ]
       }
@@ -354,8 +350,8 @@ const GetUserActivityDocument = gql`
       id
       admin_id
       action_type
-      target_type
-      target_id
+      resource_type
+      resource_id
       details
       ip_address
       created_at
@@ -365,7 +361,7 @@ const GetUserActivityDocument = gql`
 
 // Bulk update users
 const BulkUpdateUsersDocument = gql`
-  mutation BulkUpdateUsers($ids: [uuid!]!, $data: profiles_set_input!) {
+  mutation BulkUpdateUsers($ids: [String!]!, $data: profiles_set_input!) {
     update_profiles(where: { id: { _in: $ids } }, _set: $data) {
       affected_rows
       returning {

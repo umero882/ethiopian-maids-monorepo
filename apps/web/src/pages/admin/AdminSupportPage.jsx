@@ -81,12 +81,9 @@ const GET_SUPPORT_TICKETS = gql`
       created_at
       updated_at
       user_id
-      user {
-        id
-        full_name
-        email
-        user_type
-      }
+      user_name
+      user_email
+      user_type
     }
     support_tickets_aggregate(
       where: {
@@ -126,12 +123,9 @@ const GET_SUPPORT_TICKETS_NO_FILTER = gql`
       created_at
       updated_at
       user_id
-      user {
-        id
-        full_name
-        email
-        user_type
-      }
+      user_name
+      user_email
+      user_type
     }
     support_tickets_aggregate {
       aggregate {
@@ -154,11 +148,11 @@ const UPDATE_TICKET_STATUS = gql`
 `;
 
 const INSERT_TICKET_REPLY = gql`
-  mutation InsertTicketReply($ticket_id: uuid!, $message: String!, $is_admin_reply: Boolean!, $created_at: timestamptz!) {
-    insert_support_ticket_messages_one(object: {
+  mutation InsertTicketReply($ticket_id: uuid!, $message: String!, $sender_type: String!, $created_at: timestamptz!) {
+    insert_support_messages_one(object: {
       ticket_id: $ticket_id
       message: $message
-      is_admin_reply: $is_admin_reply
+      sender_type: $sender_type
       created_at: $created_at
     }) {
       id
@@ -167,11 +161,11 @@ const INSERT_TICKET_REPLY = gql`
 `;
 
 const LOG_ADMIN_ACTIVITY = gql`
-  mutation LogAdminActivity($action: String!, $target_type: String!, $target_id: String!, $details: jsonb!) {
+  mutation LogAdminActivity($action: String!, $resource_type: String!, $resource_id: String!, $details: jsonb!) {
     insert_admin_activity_logs_one(object: {
       action: $action
-      target_type: $target_type
-      target_id: $target_id
+      resource_type: $resource_type
+      resource_id: $resource_id
       details: $details
     }) {
       id
@@ -319,8 +313,8 @@ const AdminSupportPage = () => {
         mutation: LOG_ADMIN_ACTIVITY,
         variables: {
           action: 'ticket_status_changed',
-          target_type: 'support_ticket',
-          target_id: ticket.id,
+          resource_type: 'support_ticket',
+          resource_id: ticket.id,
           details: {
             ticket_number: ticket.ticket_number,
             old_status: ticket.status,
@@ -376,7 +370,7 @@ const AdminSupportPage = () => {
         variables: {
           ticket_id: selectedTicket.id,
           message: replyMessage.trim(),
-          is_admin_reply: true,
+          sender_type: 'admin',
           created_at: new Date().toISOString()
         }
       });
@@ -631,7 +625,7 @@ const AdminSupportPage = () => {
                           </p>
                         </td>
                         <td className="p-3 text-sm">
-                          {ticket.user?.full_name || 'N/A'}
+                          {ticket.user_name || 'N/A'}
                         </td>
                         <td className="p-3">
                           {getPriorityBadge(ticket.priority)}

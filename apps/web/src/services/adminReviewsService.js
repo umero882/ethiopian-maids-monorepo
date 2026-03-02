@@ -93,23 +93,23 @@ const GET_ADMIN_REVIEWS_STATS = gql`
 // Query to get sponsor info by IDs
 const GET_SPONSORS_BY_IDS = gql`
   query GetSponsorsByIds($ids: [String!]!) {
-    sponsors(where: { id: { _in: $ids } }) {
+    sponsor_profiles(where: { id: { _in: $ids } }) {
       id
       full_name
       email
-      phone_number
+      phone
     }
   }
 `;
 
 // Query to get maid info by IDs
 const GET_MAIDS_BY_IDS = gql`
-  query GetMaidsByIds($ids: [uuid!]!) {
-    maids(where: { id: { _in: $ids } }) {
+  query GetMaidsByIds($ids: [String!]!) {
+    maid_profiles(where: { id: { _in: $ids } }) {
       id
       full_name
       email
-      phone_number
+      phone
       profile_photo_url
     }
   }
@@ -231,7 +231,7 @@ async function fetchSponsorDetails(sponsorIds) {
     }
 
     const sponsorMap = {};
-    (data?.sponsors || []).forEach(sponsor => {
+    (data?.sponsor_profiles || []).forEach(sponsor => {
       sponsorMap[sponsor.id] = sponsor;
     });
     return sponsorMap;
@@ -260,7 +260,7 @@ async function fetchMaidDetails(maidIds) {
     }
 
     const maidMap = {};
-    (data?.maids || []).forEach(maid => {
+    (data?.maid_profiles || []).forEach(maid => {
       maidMap[maid.id] = maid;
     });
     return maidMap;

@@ -148,13 +148,13 @@ const GET_ADMIN_TRANSACTIONS_STATS = gql`
   }
 `;
 
-// Query to get user info by IDs from auth_users
+// Query to get user info by IDs from profiles
 const GET_USERS_BY_IDS = gql`
-  query GetUsersByIds($ids: [uuid!]!) {
-    auth_users(where: { id: { _in: $ids } }) {
+  query GetUsersByIds($ids: [String!]!) {
+    profiles(where: { id: { _in: $ids } }) {
       id
       email
-      display_name
+      full_name
       user_type
     }
   }
@@ -163,24 +163,23 @@ const GET_USERS_BY_IDS = gql`
 // Query to get sponsor info
 const GET_SPONSORS_BY_USER_IDS = gql`
   query GetSponsorsByUserIds($ids: [String!]!) {
-    sponsors(where: { id: { _in: $ids } }) {
+    sponsor_profiles(where: { id: { _in: $ids } }) {
       id
       full_name
       email
-      phone_number
+      phone
     }
   }
 `;
 
 // Query to get maid info
 const GET_MAIDS_BY_USER_IDS = gql`
-  query GetMaidsByUserIds($ids: [uuid!]!) {
-    maids(where: { user_id: { _in: $ids } }) {
+  query GetMaidsByUserIds($ids: [String!]!) {
+    maid_profiles(where: { id: { _in: $ids } }) {
       id
-      user_id
       full_name
       email
-      phone_number
+      phone
     }
   }
 `;
@@ -188,12 +187,11 @@ const GET_MAIDS_BY_USER_IDS = gql`
 // Query to get agency info
 const GET_AGENCIES_BY_USER_IDS = gql`
   query GetAgenciesByUserIds($ids: [String!]!) {
-    agencies(where: { user_id: { _in: $ids } }) {
+    agency_profiles(where: { id: { _in: $ids } }) {
       id
-      user_id
-      agency_name
-      contact_email
-      phone_number
+      full_name
+      business_email
+      business_phone
     }
   }
 `;
@@ -309,7 +307,7 @@ async function fetchUserDetails(userIds) {
     }
 
     const userMap = {};
-    (data?.auth_users || []).forEach(user => {
+    (data?.profiles || []).forEach(user => {
       userMap[user.id] = user;
     });
     return userMap;
@@ -341,7 +339,7 @@ async function fetchSponsorDetails(userIds) {
     }
 
     const sponsorMap = {};
-    (data?.sponsors || []).forEach(sponsor => {
+    (data?.sponsor_profiles || []).forEach(sponsor => {
       sponsorMap[sponsor.id] = sponsor;
     });
     return sponsorMap;
@@ -373,8 +371,8 @@ async function fetchMaidDetails(userIds) {
     }
 
     const maidMap = {};
-    (data?.maids || []).forEach(maid => {
-      maidMap[maid.user_id] = maid;
+    (data?.maid_profiles || []).forEach(maid => {
+      maidMap[maid.id] = maid;
     });
     return maidMap;
   } catch (error) {
@@ -405,8 +403,8 @@ async function fetchAgencyDetails(userIds) {
     }
 
     const agencyMap = {};
-    (data?.agencies || []).forEach(agency => {
-      agencyMap[agency.user_id] = agency;
+    (data?.agency_profiles || []).forEach(agency => {
+      agencyMap[agency.id] = agency;
     });
     return agencyMap;
   } catch (error) {
@@ -432,7 +430,7 @@ function enrichTransaction(transaction, userMap, sponsorMap, maidMap, agencyMap)
   if (authUser) {
     userInfo = {
       id: userId,
-      name: authUser.display_name || authUser.email || 'Unknown',
+      name: authUser.full_name || authUser.email || 'Unknown',
       email: authUser.email,
       type: authUser.user_type || 'unknown',
     };
@@ -442,17 +440,17 @@ function enrichTransaction(transaction, userMap, sponsorMap, maidMap, agencyMap)
       const sponsor = sponsorMap[userId];
       userInfo.name = sponsor.full_name || userInfo.name;
       userInfo.email = sponsor.email || userInfo.email;
-      userInfo.phone = sponsor.phone_number;
+      userInfo.phone = sponsor.phone;
     } else if (authUser.user_type === 'maid' && maidMap[userId]) {
       const maid = maidMap[userId];
       userInfo.name = maid.full_name || userInfo.name;
       userInfo.email = maid.email || userInfo.email;
-      userInfo.phone = maid.phone_number;
+      userInfo.phone = maid.phone;
     } else if (authUser.user_type === 'agency' && agencyMap[userId]) {
       const agency = agencyMap[userId];
-      userInfo.name = agency.agency_name || userInfo.name;
-      userInfo.email = agency.contact_email || userInfo.email;
-      userInfo.phone = agency.phone_number;
+      userInfo.name = agency.full_name || userInfo.name;
+      userInfo.email = agency.business_email || userInfo.email;
+      userInfo.phone = agency.business_phone;
     }
   }
 

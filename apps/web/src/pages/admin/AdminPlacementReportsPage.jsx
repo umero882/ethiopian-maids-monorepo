@@ -190,10 +190,6 @@ const GET_AGENCY_STATS = gql`
       agency_id
       available_credits
       total_credits
-      agency_profile {
-        full_name
-        business_name
-      }
     }
   }
 `;
@@ -220,7 +216,6 @@ const GET_RECENT_PLACEMENTS = gql`
       }
       agency_profile {
         full_name
-        business_name
       }
     }
   }
@@ -884,7 +879,7 @@ const AdminPlacementReportsPage = () => {
                   {agencyStats.lowBalanceAgencies.map((agency) => (
                     <div key={agency.agency_id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{agency.agency_profile?.full_name || agency.agency_profile?.business_name || 'Unknown Agency'}</p>
+                        <p className="font-medium">{agency.agency_profile?.full_name || `Agency ${agency.agency_id?.substring(0, 8)}` || 'Unknown Agency'}</p>
                         <p className="text-sm text-gray-500">ID: {agency.agency_id}</p>
                       </div>
                       <Badge variant="destructive">
@@ -926,7 +921,7 @@ const AdminPlacementReportsPage = () => {
                       <tr key={placement.id} className="border-b hover:bg-gray-50">
                         <td className="p-3">{placement.maid_profile?.full_name || 'N/A'}</td>
                         <td className="p-3">{placement.sponsor_profile?.full_name || 'N/A'}</td>
-                        <td className="p-3">{placement.agency_profile?.full_name || placement.agency_profile?.business_name || 'Independent'}</td>
+                        <td className="p-3">{placement.agency_profile?.full_name || 'Independent'}</td>
                         <td className="p-3">
                           <Badge variant={getStatusBadgeVariant(placement.status)}>
                             {getStatusLabel(placement.status)}

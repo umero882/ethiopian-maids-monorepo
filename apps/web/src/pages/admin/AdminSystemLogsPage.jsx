@@ -100,12 +100,12 @@ const AdminSystemLogsPage = () => {
         whereConditions.push(`action: { _eq: "${actionFilter}" }`);
       }
       if (targetTypeFilter !== 'all') {
-        whereConditions.push(`target_type: { _eq: "${targetTypeFilter}" }`);
+        whereConditions.push(`resource_type: { _eq: "${targetTypeFilter}" }`);
       }
       if (searchTerm) {
         whereConditions.push(`_or: [
           { action: { _ilike: "%${searchTerm}%" } },
-          { target_type: { _ilike: "%${searchTerm}%" } }
+          { resource_type: { _ilike: "%${searchTerm}%" } }
         ]`);
       }
 
@@ -122,12 +122,12 @@ const AdminSystemLogsPage = () => {
             ) {
               id
               action
-              target_type
-              target_id
+              resource_type
+              resource_id
               details
               created_at
               admin_id
-              admin {
+              admin_user {
                 id
                 full_name
                 email
@@ -469,16 +469,16 @@ const AdminSystemLogsPage = () => {
                               </div>
                             </td>
                             <td className="p-3 text-sm">
-                              {log.admin?.full_name || 'System'}
+                              {log.admin_user?.full_name || 'System'}
                             </td>
                             <td className="p-3">
                               {getActionBadge(log.action)}
                             </td>
                             <td className="p-3">
-                              {getTargetTypeBadge(log.target_type)}
+                              {getTargetTypeBadge(log.resource_type)}
                             </td>
                             <td className="p-3 text-sm font-mono">
-                              {log.target_id?.substring(0, 8)}...
+                              {log.resource_id?.substring(0, 8)}...
                             </td>
                             <td className="p-3">
                               <Button
@@ -581,7 +581,7 @@ const AdminSystemLogsPage = () => {
                   <p className="text-sm font-medium text-muted-foreground">Admin</p>
                   <p className="text-sm">{selectedLog.admin?.full_name || 'System'}</p>
                   {selectedLog.admin?.email && (
-                    <p className="text-xs text-muted-foreground">{selectedLog.admin.email}</p>
+                    <p className="text-xs text-muted-foreground">{selectedLog.admin_user?.email}</p>
                   )}
                 </div>
                 <div>
@@ -590,11 +590,11 @@ const AdminSystemLogsPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Target Type</p>
-                  <div className="mt-1">{getTargetTypeBadge(selectedLog.target_type)}</div>
+                  <div className="mt-1">{getTargetTypeBadge(selectedLog.resource_type)}</div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Target ID</p>
-                  <p className="text-sm font-mono">{selectedLog.target_id}</p>
+                  <p className="text-sm font-mono">{selectedLog.resource_id}</p>
                 </div>
               </div>
 

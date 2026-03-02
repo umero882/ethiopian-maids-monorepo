@@ -56,13 +56,21 @@ const GET_USER_BY_EMAIL = gql`
  * Valid user roles in the system
  */
 type UserRole = 'user' | 'maid' | 'sponsor' | 'agency' | 'admin';
+type HasuraRole = UserRole | 'site_admin';
+
+/**
+ * Hasura role name for admin users.
+ * In Hasura, 'admin' is a reserved built-in superuser role tied to the admin secret header.
+ * JWT-based roles named 'admin' cannot have permissions defined. We use 'site_admin' instead.
+ */
+const HASURA_ADMIN_ROLE = 'site_admin';
 
 /**
  * Hasura claims structure
  */
 interface HasuraClaims {
-  'x-hasura-allowed-roles': UserRole[];
-  'x-hasura-default-role': UserRole;
+  'x-hasura-allowed-roles': HasuraRole[];
+  'x-hasura-default-role': HasuraRole;
   'x-hasura-user-id': string;
 }
 
@@ -79,21 +87,26 @@ interface FullCustomClaims {
  * Includes BOTH direct user_type claim AND Hasura-specific claims
  */
 function buildFullCustomClaims(userId: string, userRole: UserRole = 'user'): FullCustomClaims {
-  // All users get the 'user' base role plus their specific role
-  const allowedRoles: UserRole[] = ['user'];
+  // Map 'admin' user type to 'site_admin' Hasura role (admin is reserved in Hasura)
+  const hasuraRole: HasuraRole = userRole === 'admin' ? HASURA_ADMIN_ROLE : (userRole || 'user');
 
-  // Add specific role if different from base user role
-  if (userRole && userRole !== 'user' && !allowedRoles.includes(userRole)) {
-    allowedRoles.push(userRole);
+  // All users get the 'user' base role plus their specific role
+  const allowedRoles: HasuraRole[] = ['user'];
+
+  // Add specific Hasura role if different from base user role
+  if (hasuraRole && hasuraRole !== 'user' && !allowedRoles.includes(hasuraRole)) {
+    allowedRoles.push(hasuraRole);
   }
 
   return {
     // Direct user_type claim - easily accessible without parsing Hasura claims
+    // Keeps 'admin' as-is for frontend business logic checks
     user_type: userRole || 'user',
     // Hasura-specific claims for GraphQL authorization
+    // Uses 'site_admin' instead of 'admin' since admin is reserved in Hasura
     'https://hasura.io/jwt/claims': {
       'x-hasura-allowed-roles': allowedRoles,
-      'x-hasura-default-role': userRole || 'user',
+      'x-hasura-default-role': hasuraRole,
       'x-hasura-user-id': userId,
     },
   };
@@ -254,7 +267,8 @@ export async function syncHasuraClaims(
   const targetUserId = data?.userId || context.auth.uid;
   const callerClaims = context.auth.token as Record<string, unknown>;
   const hasuraClaims = callerClaims['https://hasura.io/jwt/claims'] as HasuraClaims | undefined;
-  const isAdmin = hasuraClaims?.['x-hasura-default-role'] === 'admin';
+  const callerRole = hasuraClaims?.['x-hasura-default-role'];
+  const isAdmin = callerRole === HASURA_ADMIN_ROLE || callerRole === 'admin';
 
   if (targetUserId !== context.auth.uid && !isAdmin) {
     throw new functions.https.HttpsError('permission-denied', 'Cannot sync claims for other users');
@@ -326,7 +340,8 @@ export async function adminSetUserRole(
   const callerClaims = context.auth.token as Record<string, unknown>;
   const hasuraClaims = callerClaims['https://hasura.io/jwt/claims'] as HasuraClaims | undefined;
 
-  if (hasuraClaims?.['x-hasura-default-role'] !== 'admin') {
+  const callerAdminRole = hasuraClaims?.['x-hasura-default-role'];
+  if (callerAdminRole !== HASURA_ADMIN_ROLE && callerAdminRole !== 'admin') {
     throw new functions.https.HttpsError('permission-denied', 'Only admins can set user roles');
   }
 

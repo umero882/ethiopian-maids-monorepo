@@ -877,7 +877,7 @@ Ethiopian Maids Platform Team`
       }
 
       const channels = [];
-      const agencyName = agency.business_name || agency.agency_name || 'Agency';
+      const agencyName = agency.full_name || 'Agency';
       const actionTitles = {
         approve: 'Maid Profile Approved',
         reject: 'Maid Profile Rejected',
