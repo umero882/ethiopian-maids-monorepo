@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,7 @@ const AdminDashboard = () => {
   const { adminUser, logAdminActivity } = useAdminAuth();
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isConnected, setIsConnected] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Calculate start of current month for financial stats
   const startOfMonth = useMemo(() => {
@@ -58,6 +59,7 @@ const AdminDashboard = () => {
     loading: profilesLoading,
     error: profilesError
   } = useOnAdminProfileStatsSubscription({
+    skip: refreshing,
     onError: (error) => {
       log.error('Profile stats subscription error:', error);
       setIsConnected(false);
@@ -72,44 +74,54 @@ const AdminDashboard = () => {
     data: activityData,
     loading: activityLoading
   } = useOnAdminActivityLogsSubscription({
+    skip: refreshing,
     variables: { limit: 10 },
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: maidCountData } = useOnMaidCountSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: agencyCountData } = useOnAgencyCountSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: sponsorCountData } = useOnSponsorCountSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: pendingMaidData } = useOnPendingMaidVerificationsSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: pendingJobsData } = useOnPendingJobListingsSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: openTicketsData } = useOnOpenSupportTicketsSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: highPriorityTicketsData } = useOnHighPrioritySupportTicketsSubscription({
+    skip: refreshing,
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: financialData } = useOnMonthlyFinancialStatsSubscription({
+    skip: refreshing,
     variables: { startOfMonth },
     onData: () => setLastUpdated(new Date())
   });
 
   const { data: recentTransactionsData } = useOnRecentTransactionsSubscription({
+    skip: refreshing,
     variables: { limit: 10 },
     onData: () => setLastUpdated(new Date())
   });
@@ -191,11 +203,16 @@ const AdminDashboard = () => {
     }));
   }, [activityData]);
 
-  // Manual refresh - re-trigger subscriptions by updating state
-  const handleRefresh = () => {
-    setLastUpdated(new Date());
-    log.info('Manual refresh triggered');
-  };
+  // Manual refresh - unsubscribe and resubscribe to get fresh data
+  const handleRefresh = useCallback(() => {
+    log.info('Manual refresh triggered - restarting subscriptions');
+    setRefreshing(true);
+    // Brief skip causes all subscriptions to unsubscribe, then re-subscribe with fresh data
+    setTimeout(() => {
+      setRefreshing(false);
+      setLastUpdated(new Date());
+    }, 100);
+  }, []);
 
   const MetricCard = ({ title, value, change, changeType, icon: Icon, description }) => (
     <Card>
@@ -276,9 +293,9 @@ const AdminDashboard = () => {
           </div>
 
           {/* Refresh Button */}
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
       </div>
