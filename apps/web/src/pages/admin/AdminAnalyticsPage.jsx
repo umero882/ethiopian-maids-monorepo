@@ -239,7 +239,38 @@ const AdminAnalyticsPage = () => {
               <SelectItem value="1y">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => toast({ title: 'Feature Coming Soon', description: 'Export analytics report feature will be available soon.' })}>
+          <Button variant="outline" onClick={() => {
+            if (!analyticsData || analyticsData === emptyAnalyticsData) {
+              toast({ title: 'No Data', description: 'No analytics data to export.' });
+              return;
+            }
+            const rows = [
+              ['Metric', 'Value'],
+              ['Total Users', analyticsData.overview.totalUsers],
+              ['Total Revenue', analyticsData.overview.totalRevenue],
+              ['Active Jobs', analyticsData.overview.activeJobs],
+              ['Completed Matches', analyticsData.overview.completedMatches],
+              ['Growth Rate', `${analyticsData.overview.growthRate}%`],
+              ['Conversion Rate', `${analyticsData.overview.conversionRate}%`],
+              ['Avg Session Duration', analyticsData.overview.avgSessionDuration],
+              ['Bounce Rate', `${analyticsData.overview.bounceRate}%`],
+              [],
+              ['User Distribution'],
+              ['Type', 'Count'],
+              ...analyticsData.userDistribution.map(d => [d.name, d.value]),
+              [],
+              ['User Growth'],
+              ['Month', 'Agencies', 'Maids', 'Sponsors'],
+              ...analyticsData.userGrowth.map(d => [d.month, d.agencies, d.maids, d.sponsors]),
+            ];
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `analytics_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            toast({ title: 'Export Complete', description: 'Analytics report exported to CSV.' });
+          }}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

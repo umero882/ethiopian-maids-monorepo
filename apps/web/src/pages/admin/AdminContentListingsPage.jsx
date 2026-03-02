@@ -34,6 +34,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -77,8 +83,13 @@ const AdminContentListingsPage = () => {
     updateStatus,
     featureListing,
     isOperating,
-    exportListings
+    exportListings,
+    fetchListingById,
+    selectedListing,
+    setSelectedListing
   } = useAdminListings();
+
+  const [detailOpen, setDetailOpen] = React.useState(false);
 
   // Convenience wrappers for status updates
   const approveListing = (id) => updateStatus(id, 'active');
@@ -349,7 +360,10 @@ const AdminContentListingsPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedListing(listing);
+                              setDetailOpen(true);
+                            }}>
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
@@ -410,6 +424,78 @@ const AdminContentListingsPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Listing Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={(open) => {
+        setDetailOpen(open);
+        if (!open) setSelectedListing(null);
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Listing Details</DialogTitle>
+          </DialogHeader>
+          {selectedListing && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Title</p>
+                  <p className="font-medium">{selectedListing.title || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Job Type</p>
+                  <p className="font-medium">{selectedListing.job_type?.replace('_', ' ') || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <div>{getStatusBadge(selectedListing.status)}</div>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Employer</p>
+                  <p className="font-medium">{selectedListing.sponsor_profile?.full_name || 'Unknown'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Location</p>
+                  <p className="font-medium">
+                    {[selectedListing.city, selectedListing.country].filter(Boolean).join(', ') || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Salary Range</p>
+                  <p className="font-medium">
+                    {selectedListing.salary_min && selectedListing.salary_max
+                      ? `${selectedListing.salary_min}-${selectedListing.salary_max} ${selectedListing.currency || 'USD'}`
+                      : selectedListing.salary_min || selectedListing.salary_max || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Featured</p>
+                  <p className="font-medium">{selectedListing.featured ? 'Yes' : 'No'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Urgent</p>
+                  <p className="font-medium">{selectedListing.urgent ? 'Yes' : 'No'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Created</p>
+                  <p className="font-medium">{new Date(selectedListing.created_at).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Expires</p>
+                  <p className="font-medium">
+                    {selectedListing.expires_at ? new Date(selectedListing.expires_at).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              {selectedListing.description && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Description</p>
+                  <p className="text-sm mt-1">{selectedListing.description}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
