@@ -252,7 +252,6 @@ export function AdminUserDetailPage() {
         email: editData.email,
         phone: editData.phone,
         country: editData.country,
-        city: editData.city,
         is_active: editData.is_active,
         verification_status: editData.verification_status,
         subscription_status: editData.subscription_status,
@@ -659,14 +658,6 @@ export function AdminUserDetailPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={editData.city || ''}
-                          onChange={(e) => handleFieldChange('city', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
                         <Label>Status</Label>
                         <div className="flex items-center gap-2">
                           <Switch
@@ -685,7 +676,7 @@ export function AdminUserDetailPage() {
                       <InfoRow label="Email" value={user.email} icon={Mail} />
                       <InfoRow label="Phone" value={user.phone} icon={Phone} />
                       <InfoRow label="Country" value={user.country} icon={Globe} />
-                      <InfoRow label="City" value={user.city} icon={MapPin} />
+                      <InfoRow label="Location" value={user.location} icon={MapPin} />
                       <InfoRow
                         label="Joined"
                         value={user.created_at ? format(new Date(user.created_at), 'PPP') : null}

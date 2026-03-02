@@ -24,7 +24,6 @@ const GetUserByIdDocument = gql`
       phone
       user_type
       country
-      city
       location
       is_active
       registration_complete
@@ -190,7 +189,6 @@ const UpdateProfileDocument = gql`
       phone
       user_type
       country
-      city
       location
       is_active
       registration_complete
