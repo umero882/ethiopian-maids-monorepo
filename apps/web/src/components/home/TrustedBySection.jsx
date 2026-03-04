@@ -53,9 +53,9 @@ const TrustedBySection = () => {
 
         {/* Infinite Scrolling Container */}
         <div className='relative overflow-hidden'>
-          <div className='flex space-x-12'>
+          <div className='flex space-x-16'>
             <motion.div
-              className='flex space-x-12 shrink-0'
+              className='flex space-x-16 shrink-0'
               animate={{
                 x: ['0%', '-50%'],
               }}
@@ -71,12 +71,12 @@ const TrustedBySection = () => {
               {duplicatedLogos.map((logo, index) => (
                 <div
                   key={`${logo.name}-${index}`}
-                  className='flex items-center justify-center h-16 w-32 transition-all duration-300 hover:scale-110 cursor-pointer'
+                  className='flex items-center justify-center h-24 md:h-28 w-40 md:w-48 transition-all duration-300 hover:scale-110 cursor-pointer'
                 >
                   <img
                     src={logo.src}
                     alt={logo.alt}
-                    className='max-h-12 max-w-28 object-contain transition-transform duration-300'
+                    className='max-h-20 md:max-h-24 max-w-36 md:max-w-44 object-contain transition-transform duration-300'
                     loading='lazy'
                   />
                 </div>

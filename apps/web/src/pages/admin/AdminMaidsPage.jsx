@@ -114,7 +114,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
 
 
-// GraphQL Query - OPTIMIZED for list view (only essential fields)
+// GraphQL Query - includes fields needed for list view AND profile completeness checks in the dialog
 const GET_MAIDS_QUERY = gql`
   query GetMaids($limit: Int!, $offset: Int!, $where: maid_profiles_bool_exp, $order_by: [maid_profiles_order_by!]) {
     maid_profiles(
@@ -144,6 +144,25 @@ const GET_MAIDS_QUERY = gql`
       profile_completion_percentage
       created_at
       updated_at
+      # Fields needed for profile completeness checks (required fields)
+      date_of_birth
+      skills
+      languages
+      introduction_video_url
+      about_me
+      passport_number
+      passport_number_encrypted
+      national_id_encrypted
+      national_id_hash
+      # Fields needed for dialog display (optional but commonly shown)
+      marital_status
+      religion
+      education_level
+      visa_status
+      current_visa_status
+      preferred_salary_min
+      preferred_salary_max
+      preferred_currency
     }
     maid_profiles_aggregate(where: $where) {
       aggregate {
@@ -1414,10 +1433,12 @@ Ethiopian Maids Platform Team`
     const [refreshing, setRefreshing] = useState(false);
     const [maidData, setMaidData] = useState(initialMaid);
 
-    // Update maidData when initialMaid changes
+    // Update maidData only when a DIFFERENT maid is selected (ID changes)
+    // Using initialMaid?.id prevents re-renders from overwriting full profile data
+    // loaded by the loadFullProfile effect (initialMaid is a new object ref on each parent render)
     useEffect(() => {
       setMaidData(initialMaid);
-    }, [initialMaid]);
+    }, [initialMaid?.id]);
 
     // Function to fetch documents
     const fetchDocuments = async (maidId) => {
@@ -1488,19 +1509,69 @@ Ethiopian Maids Platform Team`
       }
     };
 
-    // Fetch maid documents when dialog opens
-    useEffect(() => {
-      const loadDocuments = async () => {
-        if (!maidData?.id || !open) return;
+    // Fetch full maid profile and documents when dialog opens
+    // The list query now includes key fields, but we still fetch the complete profile
+    // for additional fields (passport details, work history, etc.)
+    const loadedMaidIdRef = useRef(null);
 
+    useEffect(() => {
+      if (!initialMaid?.id || !open) return;
+
+      // Prevent re-fetching if we already loaded this maid's full profile
+      if (loadedMaidIdRef.current === initialMaid.id) return;
+
+      let cancelled = false;
+
+      const loadFullProfile = async () => {
         setDocumentsLoading(true);
-        const docs = await fetchDocuments(maidData.id);
-        setMaidDocuments(docs);
+        loadedMaidIdRef.current = initialMaid.id;
+        const maidId = initialMaid.id;
+
+        // Fetch full maid profile and documents in parallel
+        const [profileResult, docsResult] = await Promise.allSettled([
+          apolloClient.query({
+            query: GET_MAID_BY_ID,
+            variables: { id: maidId },
+            fetchPolicy: 'network-only',
+          }),
+          fetchDocuments(maidId),
+        ]);
+
+        if (cancelled) return;
+
+        // Apply profile data if successful
+        if (profileResult.status === 'fulfilled') {
+          const { data: profileData, errors: profileErrors } = profileResult.value;
+          if (!profileErrors && profileData?.maid_profiles_by_pk) {
+            setMaidData(profileData.maid_profiles_by_pk);
+          } else if (profileErrors) {
+            logger.error('GraphQL errors fetching full profile:', profileErrors);
+          }
+        } else {
+          logger.error('Error fetching full maid profile:', profileResult.reason);
+        }
+
+        // Apply documents data if successful
+        if (docsResult.status === 'fulfilled') {
+          setMaidDocuments(docsResult.value || []);
+        } else {
+          logger.error('Error fetching maid documents:', docsResult.reason);
+        }
+
         setDocumentsLoading(false);
       };
 
-      loadDocuments();
-    }, [maidData?.id, open]);
+      loadFullProfile();
+
+      return () => { cancelled = true; };
+    }, [initialMaid?.id, open]);
+
+    // Reset loaded ref when dialog closes so re-opening fetches fresh data
+    useEffect(() => {
+      if (!open) {
+        loadedMaidIdRef.current = null;
+      }
+    }, [open]);
 
     // Get identity documents (passport/national_id) - check both document_type and type fields
     // Also filter to only include documents that have a valid URL

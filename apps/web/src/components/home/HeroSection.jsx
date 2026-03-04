@@ -44,40 +44,50 @@ const HeroSection = () => {
       className='relative overflow-hidden bg-cover bg-no-repeat pt-32 md:pt-36 min-h-screen'
       style={{
         backgroundImage:
-          'linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/images/hero-background.png")',
-        backgroundPosition: 'center 20%',
+          'linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.3)), url("/images/hero-background.png")',
         backgroundSize: 'cover',
       }}
       aria-label='Hero section with Ethiopian maid in kitchen background'
     >
-      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 flex items-end min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-9rem)]'>
-        <div className='text-center w-full pb-8 md:pb-16'>
+      {/* Responsive background-position: show the lady on mobile (left-shifted), centered on desktop */}
+      <style>{`
+        [aria-label="Hero section with Ethiopian maid in kitchen background"] {
+          background-position: 25% 15%;
+        }
+        @media (min-width: 768px) {
+          [aria-label="Hero section with Ethiopian maid in kitchen background"] {
+            background-position: center 20%;
+          }
+        }
+      `}</style>
+      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-24 flex items-end min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-9rem)]'>
+        <div className='text-center w-full pb-4 md:pb-16'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className='mt-20 md:mt-32 lg:mt-40'
+            className='mt-4 md:mt-32 lg:mt-40'
           >
-            <div className='inline-block mb-4'>
-              <Badge className='bg-white/20 text-white border-white/30 backdrop-blur-sm'>
+            <div className='inline-block mb-2 md:mb-4'>
+              <Badge className='bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs md:text-sm'>
                 Trusted by Families Across the GCC
               </Badge>
             </div>
-            <div className='mb-6'>
-              <h1 className='text-4xl md:text-6xl font-bold text-white text-shadow-2xl'>
+            <div className='mb-3 md:mb-6'>
+              <h1 className='text-2xl md:text-6xl font-bold text-white text-shadow-2xl'>
                 Connect Maids & Sponsors
                 <span className='block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400 drop-shadow-2xl'>
                   Across the GCC
                 </span>
               </h1>
             </div>
-            <div className='mb-8 max-w-3xl mx-auto'>
-              <p className='text-xl text-white font-medium drop-shadow-lg'>
+            <div className='mb-4 md:mb-8 max-w-3xl mx-auto'>
+              <p className='text-sm md:text-xl text-white font-medium drop-shadow-lg'>
                 The premier platform connecting Ethiopian domestic workers with
                 families and agencies across Gulf countries.
               </p>
             </div>
-            <div className='flex flex-col sm:flex-row gap-4 justify-center mb-12 md:mb-16'>
+            <div className='flex flex-col sm:flex-row gap-3 justify-center mb-6 md:mb-16'>
               {loading ? (
                 // Show loading skeleton for buttons
                 <>
@@ -94,7 +104,7 @@ const HeroSection = () => {
                     <Button
                       size='lg'
                       onClick={() => navigate(user ? '/maids' : '/get-started')}
-                      className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-purple-500/25 text-lg font-semibold px-8 py-4 h-auto border-0 backdrop-blur-sm'
+                      className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-purple-500/25 text-base md:text-lg font-semibold px-6 md:px-8 py-3 md:py-4 h-auto border-0 backdrop-blur-sm'
                     >
                       {user ? (
                         <>
@@ -119,7 +129,7 @@ const HeroSection = () => {
                       size='lg'
                       variant='outline'
                       onClick={() => navigate('/jobs')}
-                      className='border-2 border-white/80 text-white hover:bg-white hover:text-purple-700 hover:border-white text-lg font-semibold px-8 py-4 h-auto backdrop-blur-sm bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300'
+                      className='border-2 border-white/80 text-white hover:bg-white hover:text-purple-700 hover:border-white text-base md:text-lg font-semibold px-6 md:px-8 py-3 md:py-4 h-auto backdrop-blur-sm bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300'
                     >
                       <Briefcase className='mr-2 w-5 h-5' />
                       View Jobs
@@ -131,7 +141,7 @@ const HeroSection = () => {
             </div>
 
             {/* Statistics Badges */}
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl mx-auto mt-8'>
+            <div className='grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto mt-4 md:mt-8'>
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (

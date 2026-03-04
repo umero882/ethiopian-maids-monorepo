@@ -234,10 +234,10 @@ const MaidBiometricDocStep = () => {
 
       if (side === 'front') {
         updateFormData({ idDocument: docData });
-        awardPoints(30, 'ID front uploaded');
+        awardPoints(30, 'Passport uploaded');
       } else {
         updateFormData({ idDocumentBack: docData });
-        awardPoints(20, 'ID back uploaded');
+        awardPoints(20, 'Passport visa page uploaded');
       }
       setIsUploading(false);
       setUploadingSide(null);
@@ -270,7 +270,7 @@ const MaidBiometricDocStep = () => {
     <div className="space-y-4">
       <StepCard
         title="Identity Verification"
-        description="Capture your photo and upload ID"
+        description="Capture your photo and upload your Passport"
         icon={Shield}
         showHeader={true}
       >
@@ -278,31 +278,33 @@ const MaidBiometricDocStep = () => {
           {/* Section tabs */}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => setActiveSection('face')}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition-all',
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border transition-all min-h-[48px]',
                 activeSection === 'face'
                   ? 'bg-purple-600/30 border-purple-500 text-white'
-                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10 active:bg-white/20'
               )}
             >
               <Camera className="w-4 h-4" />
-              <span className="text-sm">Face Photo</span>
+              <span className="text-sm font-medium">Face Photo</span>
               {formData.facePhoto && (
                 <CheckCircle className="w-4 h-4 text-green-400" />
               )}
             </button>
             <button
+              type="button"
               onClick={() => setActiveSection('document')}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition-all',
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border transition-all min-h-[48px]',
                 activeSection === 'document'
                   ? 'bg-purple-600/30 border-purple-500 text-white'
-                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10 active:bg-white/20'
               )}
             >
               <FileText className="w-4 h-4" />
-              <span className="text-sm">ID Document</span>
+              <span className="text-sm font-medium">Passport</span>
               {formData.idDocument && (
                 <CheckCircle className="w-4 h-4 text-green-400" />
               )}
@@ -478,7 +480,7 @@ const MaidBiometricDocStep = () => {
               >
                 {/* Front Side */}
                 <div>
-                  <p className="text-white text-sm font-medium mb-2">📄 Front Side (Required)</p>
+                  <p className="text-white text-sm font-medium mb-2">📄 Passport Photo Page (Required)</p>
                   {formData.idDocument ? (
                     <div className="bg-white/10 rounded-xl p-3 border border-green-500/50">
                       <div className="flex items-center gap-3">
@@ -504,25 +506,29 @@ const MaidBiometricDocStep = () => {
                     </div>
                   ) : (
                     <div>
-                      <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'front')} className="hidden" id="document-upload-front" />
-                      <label htmlFor="document-upload-front" className="block aspect-[3/2] max-w-[300px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all">
+                      <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'front')} className="sr-only" />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-[3/2] max-w-[300px] w-full mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 active:bg-white/15 transition-all"
+                      >
                         {isUploading && uploadingSide === 'front' ? (
                           <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
                         ) : (
                           <>
                             <Upload className="w-10 h-10 text-gray-500 mb-2" />
-                            <p className="text-gray-400 text-sm text-center px-4">Upload front of ID/Passport</p>
+                            <p className="text-gray-400 text-sm text-center px-4">Upload your passport photo page</p>
                             <p className="text-gray-500 text-xs mt-1">JPG, PNG, or PDF (max 10MB)</p>
                           </>
                         )}
-                      </label>
+                      </button>
                     </div>
                   )}
                 </div>
 
                 {/* Back Side */}
                 <div>
-                  <p className="text-white text-sm font-medium mb-2">📄 Back Side (Optional for Passport)</p>
+                  <p className="text-white text-sm font-medium mb-2">📄 Passport Visa Page (Optional)</p>
                   {formData.idDocumentBack ? (
                     <div className="bg-white/10 rounded-xl p-3 border border-green-500/50">
                       <div className="flex items-center gap-3">
@@ -548,32 +554,30 @@ const MaidBiometricDocStep = () => {
                     </div>
                   ) : (
                     <div>
-                      <input ref={backFileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'back')} className="hidden" id="document-upload-back" />
-                      <label htmlFor="document-upload-back" className="block aspect-[3/2] max-w-[300px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all">
+                      <input ref={backFileInputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, 'back')} className="sr-only" />
+                      <button
+                        type="button"
+                        onClick={() => backFileInputRef.current?.click()}
+                        className="aspect-[3/2] max-w-[300px] w-full mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 active:bg-white/15 transition-all"
+                      >
                         {isUploading && uploadingSide === 'back' ? (
                           <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
                         ) : (
                           <>
                             <Upload className="w-10 h-10 text-gray-500 mb-2" />
-                            <p className="text-gray-400 text-sm text-center px-4">Upload back of ID</p>
-                            <p className="text-gray-500 text-xs mt-1">Skip if using Passport</p>
+                            <p className="text-gray-400 text-sm text-center px-4">Upload passport visa page</p>
+                            <p className="text-gray-500 text-xs mt-1">Optional but recommended</p>
                           </>
                         )}
-                      </label>
+                      </button>
                     </div>
                   )}
                 </div>
 
                 {/* Document type hints */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                    <Image className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">Passport</span>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">National ID (front + back)</span>
-                  </div>
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 flex items-center gap-2">
+                  <Image className="w-5 h-5 text-purple-400" />
+                  <span className="text-sm text-purple-200 font-medium">Passport Required</span>
                 </div>
               </motion.div>
             )}

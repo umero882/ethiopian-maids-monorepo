@@ -77,6 +77,20 @@ const GET_MAID_BOOKINGS = gql`
   }
 `;
 
+const GET_MAID_DOCUMENTS = gql`
+  query GetMaidDocumentsOverview($maidId: String!) {
+    maid_documents(where: { maid_id: { _eq: $maidId } }) {
+      id
+      type
+      document_type
+      file_url
+    }
+  }
+`;
+
+// Passport-type aliases that satisfy the passport/ID requirement
+const PASSPORT_ALIASES = ['passport', 'passport_front', 'passport_back', 'id_front', 'id_back'];
+
 const GET_USER_NOTIFICATIONS = gql`
   query GetUserNotificationsOverview($userId: String!) {
     notifications(
@@ -119,6 +133,24 @@ const MaidOverview = () => {
 
         const maidProfileData = profileResult?.maid_profiles?.[0] || null;
 
+        // Fetch maid documents to check passport/ID upload status
+        let hasPassportDoc = false;
+        try {
+          const { data: docsResult } = await apolloClient.query({
+            query: GET_MAID_DOCUMENTS,
+            variables: { maidId: user.id },
+            fetchPolicy: 'network-only',
+          });
+          const docTypes = new Set(
+            (docsResult?.maid_documents || [])
+              .map(d => d.type || d.document_type)
+              .filter(Boolean)
+          );
+          hasPassportDoc = PASSPORT_ALIASES.some(alias => docTypes.has(alias));
+        } catch (docErr) {
+          console.warn('Error fetching maid documents:', docErr);
+        }
+
         let profileData;
         if (maidProfileData) {
           // Transform database data to match dashboard expectations
@@ -143,7 +175,7 @@ const MaidOverview = () => {
             verificationStatus: {
               email: true, // Email is verified during registration
               phone: user.registration_complete || false,
-              documents: maidProfileData.medical_certificate_valid && maidProfileData.police_clearance_valid,
+              documents: hasPassportDoc,
             },
             approvalStatus: maidProfileData.verification_status || 'pending_verification',
             lastUpdated: maidProfileData.updated_at || maidProfileData.created_at,

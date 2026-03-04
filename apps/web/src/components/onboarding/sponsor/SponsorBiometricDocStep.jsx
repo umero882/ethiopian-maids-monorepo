@@ -245,8 +245,12 @@ const SponsorBiometricDocStep = () => {
           </div>
         ) : (
           <div>
-            <input ref={inputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, side)} className="hidden" id={inputId} />
-            <label htmlFor={inputId} className="block aspect-[3/2] max-w-[300px] mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 transition-all">
+            <input ref={inputRef} type="file" accept="image/*,application/pdf" onChange={(e) => handleDocumentUpload(e, side)} className="sr-only" />
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="aspect-[3/2] max-w-[300px] w-full mx-auto rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-purple-500/50 active:bg-white/15 transition-all"
+            >
               {isUploading && uploadingSide === side ? (
                 <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
               ) : (
@@ -256,7 +260,7 @@ const SponsorBiometricDocStep = () => {
                   <p className="text-gray-500 text-xs mt-1">JPG, PNG, or PDF (max 10MB)</p>
                 </>
               )}
-            </label>
+            </button>
           </div>
         )}
       </div>
@@ -275,29 +279,31 @@ const SponsorBiometricDocStep = () => {
           {/* Section tabs */}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => setActiveSection('face')}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition-all',
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border transition-all min-h-[48px]',
                 activeSection === 'face'
                   ? 'bg-purple-600/30 border-purple-500 text-white'
-                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10 active:bg-white/20'
               )}
             >
               <Camera className="w-4 h-4" />
-              <span className="text-sm">Face Photo</span>
+              <span className="text-sm font-medium">Face Photo</span>
               {formData.facePhoto && <CheckCircle className="w-4 h-4 text-green-400" />}
             </button>
             <button
+              type="button"
               onClick={() => setActiveSection('document')}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition-all',
+                'flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border transition-all min-h-[48px]',
                 activeSection === 'document'
                   ? 'bg-purple-600/30 border-purple-500 text-white'
-                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/5 border-white/20 text-gray-400 hover:bg-white/10 active:bg-white/20'
               )}
             >
               <FileText className="w-4 h-4" />
-              <span className="text-sm">ID/Passport</span>
+              <span className="text-sm font-medium">Emirates ID</span>
               {formData.idDocument && <CheckCircle className="w-4 h-4 text-green-400" />}
             </button>
           </div>
@@ -388,17 +394,11 @@ const SponsorBiometricDocStep = () => {
             {/* Document Section */}
             {activeSection === 'document' && (
               <motion.div key="document" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                {renderDocUpload('front', '📄 Front Side (Required)', 'Upload front of Emirates ID or Passport', 'sponsor-doc-front', fileInputRef)}
-                {renderDocUpload('back', '📄 Back Side (Optional for Passport)', 'Upload back of Emirates ID', 'sponsor-doc-back', backFileInputRef)}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                    <Image className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">Passport</span>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">Emirates ID (front + back)</span>
-                  </div>
+                {renderDocUpload('front', '📄 Emirates ID - Front (Required)', 'Upload front of your Emirates ID', 'sponsor-doc-front', fileInputRef)}
+                {renderDocUpload('back', '📄 Emirates ID - Back (Required)', 'Upload back of your Emirates ID', 'sponsor-doc-back', backFileInputRef)}
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-400" />
+                  <span className="text-sm text-purple-200 font-medium">Emirates ID Required (front + back)</span>
                 </div>
               </motion.div>
             )}

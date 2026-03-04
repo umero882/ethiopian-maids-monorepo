@@ -44,7 +44,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -83,11 +85,40 @@ import {
   Award,
   ExternalLink,
   Image,
-  CreditCard
+  CreditCard,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
+
+// GraphQL mutations for notifications and WhatsApp
+const CREATE_NOTIFICATION_MUTATION = gql`
+  mutation CreateNotification($data: notifications_insert_input!) {
+    insert_notifications_one(object: $data) {
+      id
+      user_id
+      type
+      title
+      message
+      priority
+      created_at
+    }
+  }
+`;
+
+const CREATE_WHATSAPP_MESSAGE = gql`
+  mutation CreateWhatsAppMessage($data: whatsapp_messages_insert_input!) {
+    insert_whatsapp_messages_one(object: $data) {
+      id
+      phone_number
+      message_content
+      message_type
+      created_at
+    }
+  }
+`;
 
 const AdminAgenciesPage = () => {
   const { logAdminActivity } = useAdminAuth();
@@ -111,6 +142,165 @@ const AdminAgenciesPage = () => {
     premium: 0
   });
   const itemsPerPage = 20;
+
+  // Verification dialog state
+  const [verificationDialog, setVerificationDialog] = useState({
+    open: false,
+    agency: null,
+    action: null,
+    message: ''
+  });
+  const [verificationProcessing, setVerificationProcessing] = useState(false);
+
+  // Default message templates for agency verification
+  const defaultMessages = {
+    approve: (name) => `Dear ${name},\n\nCongratulations! Your agency profile has been reviewed and approved. Your agency is now verified on Ethiopian Maids Platform.\n\nYou now have access to all agency features including maid management, recruitment tools, and client matching.\n\nWelcome aboard!\n\nBest regards,\nEthiopian Maids Platform Team`,
+    reject: (name) => `Dear ${name},\n\nWe have reviewed your agency profile and found that it is incomplete or does not meet our requirements. Please update your profile with the required information and resubmit for review.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nEthiopian Maids Platform Team`,
+    pending: (name) => `Dear ${name},\n\nYour agency profile verification status has been set to pending for further review. Our team will review your profile and update you shortly.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nEthiopian Maids Platform Team`
+  };
+
+  // Open verification dialog with pre-filled message
+  const openVerificationDialog = (agency, action) => {
+    const name = agency.full_name || 'Agency';
+    const message = defaultMessages[action]?.(name) || '';
+    setVerificationDialog({
+      open: true,
+      agency,
+      action,
+      message
+    });
+  };
+
+  // Send in-app notification
+  const sendInAppNotification = async (userId, type, title, message, priority = 'normal', actionUrl = null) => {
+    try {
+      await apolloClient.mutate({
+        mutation: CREATE_NOTIFICATION_MUTATION,
+        variables: {
+          data: {
+            user_id: userId,
+            type,
+            title,
+            message,
+            priority,
+            action_url: actionUrl,
+            related_type: 'agency_profile',
+            is_read: false
+          }
+        }
+      });
+      return true;
+    } catch (error) {
+      logger.error('Failed to send in-app notification:', error);
+      return false;
+    }
+  };
+
+  // Send WhatsApp message
+  const sendWhatsAppMessage = async (phoneNumber, messageContent) => {
+    if (!phoneNumber) return false;
+    try {
+      const cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
+      if (cleanPhone.length < 8) return false;
+
+      await apolloClient.mutate({
+        mutation: CREATE_WHATSAPP_MESSAGE,
+        variables: {
+          data: {
+            phone_number: cleanPhone,
+            message_content: messageContent,
+            message_type: 'text',
+            sender: 'assistant',
+            processed: false
+          }
+        }
+      });
+      return true;
+    } catch (error) {
+      logger.error('Failed to send WhatsApp message:', error);
+      return false;
+    }
+  };
+
+  // Handle verification with message (full flow: update DB + send notifications)
+  const handleVerificationWithMessage = async () => {
+    const { agency, action, message } = verificationDialog;
+    if (!agency || !action) return;
+
+    setVerificationProcessing(true);
+    try {
+      const isVerified = action === 'approve';
+      let verificationStatus = 'pending';
+      if (action === 'approve') verificationStatus = 'verified';
+      else if (action === 'reject') verificationStatus = 'rejected';
+
+      // 1. Update database
+      const { errors } = await apolloClient.mutate({
+        mutation: UPDATE_AGENCY_VERIFICATION,
+        variables: { agencyId: agency.id, isVerified, verificationStatus }
+      });
+
+      if (errors) throw new Error(errors[0]?.message || 'Failed to update verification');
+
+      // 2. Optimistic UI update
+      setAgenciesData(prev =>
+        prev.map(a =>
+          a.id === agency.id
+            ? { ...a, verification_status: verificationStatus }
+            : a
+        )
+      );
+
+      // 3. Log admin activity
+      await logAdminActivity(`agency_verification_${action}`, 'agency', agency.id, {
+        message: message?.substring(0, 500),
+        previous_status: agency.verification_status
+      });
+
+      // 4. Send in-app notification
+      const notifTitle = action === 'approve'
+        ? 'Agency Profile Approved'
+        : action === 'reject'
+        ? 'Agency Profile Needs Updates'
+        : 'Agency Profile Under Review';
+
+      const notifType = action === 'approve' ? 'success' : action === 'reject' ? 'warning' : 'info';
+      const notifPriority = action === 'reject' ? 'high' : 'normal';
+
+      const notifSent = await sendInAppNotification(
+        agency.id, notifType, notifTitle, message, notifPriority, '/agency/profile'
+      );
+
+      // 5. Send WhatsApp message
+      const phone = agency.business_phone || agency.phone;
+      const whatsappSent = await sendWhatsAppMessage(phone, message);
+
+      // 6. Close dialog and show toast
+      setVerificationDialog({ open: false, agency: null, action: null, message: '' });
+
+      const channels = [];
+      if (notifSent) channels.push('in-app notification');
+      if (whatsappSent) channels.push('WhatsApp');
+
+      toast({
+        title: 'Verification Updated',
+        description: `Agency has been ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'set to pending'}.${channels.length > 0 ? ` Sent via: ${channels.join(', ')}` : ''}`,
+      });
+
+      // Refresh stats
+      fetchStats();
+    } catch (error) {
+      logger.error('Failed to update verification:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update verification status.',
+        variant: 'destructive',
+      });
+      fetchAgencies();
+    } finally {
+      setVerificationProcessing(false);
+    }
+  };
 
   // GraphQL query for agencies - using actual schema fields
   const GET_AGENCIES = gql`
@@ -495,52 +685,11 @@ const AdminAgenciesPage = () => {
     }
   `;
 
-  // Handle verification action
-  const handleVerificationAction = async (agencyId, action, reason = '') => {
-    try {
-      const isVerified = action === 'approve';
-      let verificationStatus = 'pending';
-      if (action === 'approve') {
-        verificationStatus = 'verified';
-      } else if (action === 'reject') {
-        verificationStatus = 'rejected';
-      }
-
-      const { errors } = await apolloClient.mutate({
-        mutation: UPDATE_AGENCY_VERIFICATION,
-        variables: { agencyId, isVerified, verificationStatus }
-      });
-
-      // Log rejection reason if provided
-      if (reason && action === 'reject') {
-        logger.info(`Agency ${agencyId} rejected. Reason: ${reason}`);
-      }
-
-      if (errors) throw new Error(errors[0]?.message || 'Failed to update verification');
-
-      // Optimistic UI update
-      setAgenciesData(prev =>
-        prev.map(agency =>
-          agency.id === agencyId
-            ? { ...agency, verification_status: isVerified ? 'verified' : 'rejected' }
-            : agency
-        )
-      );
-
-      await logAdminActivity(`agency_verification_${action}`, 'agency', agencyId);
-
-      toast({
-        title: 'Verification Updated',
-        description: `Agency has been ${action === 'approve' ? 'verified' : 'rejected'} successfully.`,
-      });
-    } catch (error) {
-      logger.error('Failed to update verification status:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update verification status.',
-        variant: 'destructive',
-      });
-      fetchAgencies();
+  // Handle verification action - opens verification dialog
+  const handleVerificationAction = (agencyId, action) => {
+    const agency = agenciesData.find(a => a.id === agencyId);
+    if (agency) {
+      openVerificationDialog(agency, action);
     }
   };
 
@@ -584,7 +733,8 @@ const AdminAgenciesPage = () => {
     const [selectedMissingItems, setSelectedMissingItems] = useState(new Set());
     const [agencyData, setAgencyData] = useState(initialAgency);
     const [detailsLoading, setDetailsLoading] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState('');
+    const [refreshing, setRefreshing] = useState(false);
+    const scrollContainerRef = React.useRef(null);
 
     // Fetch full agency details when dialog opens
     useEffect(() => {
@@ -619,6 +769,30 @@ const AdminAgenciesPage = () => {
       }
     };
 
+    const refreshAgencyData = async () => {
+      if (!initialAgency?.id) return;
+      setRefreshing(true);
+      try {
+        const { data, errors } = await apolloClient.query({
+          query: GET_AGENCY_DETAILS,
+          variables: { id: initialAgency.id },
+          fetchPolicy: 'network-only'
+        });
+        if (!errors && data?.agency_profiles_by_pk) {
+          setAgencyData({
+            ...initialAgency,
+            ...data.agency_profiles_by_pk,
+            verification_status: initialAgency.verification_status,
+            subscription_status: initialAgency.subscription_status,
+          });
+        }
+      } catch (err) {
+        logger.error('Failed to refresh agency details:', err);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+
     if (!initialAgency) return null;
 
     const agency = agencyData || initialAgency;
@@ -640,8 +814,9 @@ const AdminAgenciesPage = () => {
 
     const isEligibleForApproval = requiredMissing.length === 0;
 
-    // Toggle missing item selection
+    // Toggle missing item selection (preserves scroll position)
     const toggleMissingItem = (key) => {
+      const scrollPos = scrollContainerRef.current?.scrollTop;
       setSelectedMissingItems(prev => {
         const newSet = new Set(prev);
         if (newSet.has(key)) {
@@ -651,29 +826,76 @@ const AdminAgenciesPage = () => {
         }
         return newSet;
       });
+      if (scrollPos !== undefined) {
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = scrollPos;
+        });
+      }
     };
 
     const selectAllMissing = () => {
+      const scrollPos = scrollContainerRef.current?.scrollTop;
       setSelectedMissingItems(new Set(allMissing.map(item => item.key)));
+      if (scrollPos !== undefined) {
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = scrollPos;
+        });
+      }
     };
 
     const clearSelection = () => {
+      const scrollPos = scrollContainerRef.current?.scrollTop;
       setSelectedMissingItems(new Set());
+      if (scrollPos !== undefined) {
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = scrollPos;
+        });
+      }
     };
 
-    // Handle rejection with selected missing items
-    const handleRejectWithMissingItems = () => {
-      const selectedLabels = allMissing
-        .filter(item => selectedMissingItems.has(item.key))
-        .map(item => item.label);
+    // Generate categorized rejection message from selected missing items
+    const generateRejectionMessage = () => {
+      const selectedItems = allMissing.filter(item => selectedMissingItems.has(item.key));
+      if (selectedItems.length === 0) return null;
 
-      let reason = rejectionReason;
-      if (selectedLabels.length > 0) {
-        reason = `Missing required information: ${selectedLabels.join(', ')}${rejectionReason ? `. Additional notes: ${rejectionReason}` : ''}`;
+      const requiredSelected = selectedItems.filter(item => item.required);
+      const optionalSelected = selectedItems.filter(item => !item.required);
+      const name = agency.full_name || 'Agency';
+
+      let message = `Dear ${name},\n\nWe have reviewed your agency profile and found that it is incomplete. To get your agency approved, please update the following information:\n`;
+
+      if (requiredSelected.length > 0) {
+        message += '\n**Required Information (Must Complete):**\n';
+        requiredSelected.forEach(item => {
+          message += `- ${item.label}\n`;
+        });
       }
 
-      handleVerificationAction(agency.id, 'reject', reason);
-      onOpenChange(false);
+      if (optionalSelected.length > 0) {
+        message += '\n**Recommended Information:**\n';
+        optionalSelected.forEach(item => {
+          message += `- ${item.label}\n`;
+        });
+      }
+
+      message += '\nPlease log in to your agency dashboard and update your profile with the missing information. Once completed, your profile will be reviewed again for approval.\n\nIf you have any questions, please contact our support team.\n\nBest regards,\nEthiopian Maids Platform Team';
+
+      return message;
+    };
+
+    // Handle rejection with selected missing items - opens verification dialog
+    const handleRejectWithMissingItems = () => {
+      const generatedMessage = generateRejectionMessage();
+      if (generatedMessage) {
+        setVerificationDialog({
+          open: true,
+          agency,
+          action: 'reject',
+          message: generatedMessage
+        });
+      } else {
+        openVerificationDialog(agency, 'reject');
+      }
     };
 
     return (
@@ -689,15 +911,56 @@ const AdminAgenciesPage = () => {
                     <Building2 className="h-7 w-7 text-blue-600" />
                   </AvatarFallback>
                 </Avatar>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xl font-semibold">{agency.full_name}</p>
-                  <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-3 mt-1 flex-wrap">
                     {getVerificationBadge(agency.verification_status)}
                     {getSubscriptionBadge(agency.subscription_status)}
                     {agency.license_number && (
                       <span className="text-xs text-slate-500">License: {agency.license_number}</span>
                     )}
                   </div>
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    {agency.email && (
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {agency.email}
+                      </span>
+                    )}
+                    {agency.phone && (
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {agency.phone}
+                      </span>
+                    )}
+                    {agency.location && (
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {agency.location}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-slate-500">Profile: {Math.round((completedCount / agencyProfileRequirements.length) * 100)}%</span>
+                    <Progress value={(completedCount / agencyProfileRequirements.length) * 100} className="h-1.5 w-24" />
+                    <span className="text-xs text-slate-400">{completedCount}/{agencyProfileRequirements.length}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge variant="outline" className={`text-xs ${requiredMissing.length === 0 ? 'border-green-300 text-green-700' : 'border-orange-300 text-orange-700'}`}>
+                    <Shield className="h-3 w-3 mr-1" />
+                    {requiredCompleteCount}/{requiredCount} Required
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshAgencyData}
+                    disabled={refreshing}
+                    className="h-7 text-xs"
+                  >
+                    <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
                 </div>
               </DialogTitle>
               <DialogDescription className="sr-only">
@@ -719,7 +982,7 @@ const AdminAgenciesPage = () => {
           {/* Main Content */}
           <div className="grid grid-cols-3 gap-0 h-[calc(95vh-120px)]">
             {/* Left Column - Agency Details (2/3 width) */}
-            <ScrollArea className="col-span-2 h-full border-r">
+            <ScrollArea className="col-span-2 h-full border-r" ref={scrollContainerRef}>
               <div className="p-6 space-y-4">
                 {/* Business Identity */}
                 <Card>
@@ -1173,37 +1436,17 @@ const AdminAgenciesPage = () => {
                 </Card>
               )}
 
-              {/* Rejection Reason */}
-              {!isEligibleForApproval && (
-                <Card className="border-slate-200">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Additional Notes (Optional)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Add any additional notes for rejection..."
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      className="h-20 text-sm"
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Action Buttons */}
               <Card className="border-2 border-slate-200">
                 <CardContent className="pt-4 space-y-2">
                   <Button
-                    onClick={() => {
-                      handleVerificationAction(agency.id, 'approve');
-                      onOpenChange(false);
-                    }}
+                    onClick={() => openVerificationDialog(agency, 'approve')}
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-sm"
                     disabled={!isEligibleForApproval || detailsLoading}
                     size="lg"
                   >
                     <UserCheck className="h-4 w-4 mr-2" />
-                    {isEligibleForApproval ? 'Approve Agency' : `Approve Agency (${requiredMissing.length} missing)`}
+                    {isEligibleForApproval ? 'Approve Agency' : `Approve (${requiredMissing.length} missing)`}
                   </Button>
 
                   <Button
@@ -1217,10 +1460,7 @@ const AdminAgenciesPage = () => {
                   </Button>
 
                   <Button
-                    onClick={() => {
-                      handleVerificationAction(agency.id, 'pending');
-                      onOpenChange(false);
-                    }}
+                    onClick={() => openVerificationDialog(agency, 'pending')}
                     variant="outline"
                     className="w-full border-slate-300"
                     size="lg"
@@ -1589,6 +1829,114 @@ const AdminAgenciesPage = () => {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
       />
+
+      {/* Verification Dialog with Editable Message */}
+      <Dialog
+        open={verificationDialog.open}
+        onOpenChange={(open) => {
+          if (!open) setVerificationDialog({ open: false, agency: null, action: null, message: '' });
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                verificationDialog.action === 'approve' ? 'bg-green-100' :
+                verificationDialog.action === 'reject' ? 'bg-red-100' : 'bg-yellow-100'
+              }`}>
+                {verificationDialog.action === 'approve' ? (
+                  <UserCheck className={`h-5 w-5 text-green-600`} />
+                ) : verificationDialog.action === 'reject' ? (
+                  <UserX className={`h-5 w-5 text-red-600`} />
+                ) : (
+                  <Clock className={`h-5 w-5 text-yellow-600`} />
+                )}
+              </div>
+              <span>{verificationDialog.action ? verificationDialog.action.charAt(0).toUpperCase() + verificationDialog.action.slice(1) : ''} Verification</span>
+            </DialogTitle>
+            <DialogDescription>
+              <span className="flex items-center gap-2 mt-2">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={verificationDialog.agency?.avatar_url || verificationDialog.agency?.logo_url} />
+                  <AvatarFallback className="text-[10px] bg-blue-100">
+                    <Building2 className="h-3 w-3 text-blue-600" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium text-slate-700">
+                  {verificationDialog.agency?.full_name}
+                </span>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-500">
+                  Current status: {verificationDialog.agency?.verification_status}
+                </span>
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="flex items-center gap-2 mb-2 text-sm font-medium">
+                <MessageSquare className="h-4 w-4" />
+                Message to User
+              </Label>
+              <p className="text-xs text-slate-500 mb-2">
+                This message will be sent to the user via WhatsApp and in-app notification.
+              </p>
+              <Textarea
+                value={verificationDialog.message}
+                onChange={(e) => setVerificationDialog(prev => ({ ...prev, message: e.target.value }))}
+                placeholder="Enter message to send to the user..."
+                className="min-h-[250px] text-sm font-mono leading-relaxed"
+              />
+            </div>
+
+            {/* Action-specific info */}
+            <p className={`text-xs flex items-center gap-1.5 px-3 py-2 rounded-md ${
+              verificationDialog.action === 'approve'
+                ? 'bg-green-50 text-green-700'
+                : verificationDialog.action === 'reject'
+                ? 'bg-red-50 text-red-700'
+                : 'bg-yellow-50 text-yellow-700'
+            }`}>
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+              {verificationDialog.action === 'approve'
+                ? "The agency will be approved and verified. They will gain access to all agency features."
+                : verificationDialog.action === 'reject'
+                ? "The agency profile will be rejected. Make sure to specify a clear reason in the message."
+                : "The agency profile will be set to pending for further review."}
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setVerificationDialog({ open: false, agency: null, action: null, message: '' })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerificationWithMessage}
+              disabled={verificationProcessing}
+              className={
+                verificationDialog.action === 'approve'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : verificationDialog.action === 'reject'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-yellow-600 hover:bg-yellow-700'
+              }
+            >
+              {verificationProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {verificationDialog.action === 'approve' ? 'Approve & Notify' :
+               verificationDialog.action === 'reject' ? 'Reject & Send Reason' :
+               'Set Pending & Notify'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

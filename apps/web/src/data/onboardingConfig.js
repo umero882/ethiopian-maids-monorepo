@@ -215,8 +215,8 @@ const MAID_PROFILE_STEPS = [
   {
     id: STEP_TYPES.MAID_BIOMETRIC_DOC,
     title: 'Identity Verification',
-    subtitle: 'Photo & Documents',
-    description: 'Capture your photo and upload your ID for verification.',
+    subtitle: 'Photo & Passport',
+    description: 'Capture your photo and upload your Passport for verification.',
     icon: Camera,
     phase: 'profile',
     isSkippable: false,
@@ -352,8 +352,8 @@ const SPONSOR_PROFILE_STEPS = [
   {
     id: STEP_TYPES.SPONSOR_BIOMETRIC_DOC,
     title: 'Identity Verification',
-    subtitle: 'Photo & Documents',
-    description: 'Capture your photo and upload your ID for verification.',
+    subtitle: 'Photo & Emirates ID',
+    description: 'Capture your photo and upload your Emirates ID for verification.',
     icon: Camera,
     phase: 'profile',
     isSkippable: false,
@@ -466,8 +466,8 @@ const AGENCY_PROFILE_STEPS = [
   {
     id: STEP_TYPES.AGENCY_BIOMETRIC_DOC,
     title: 'Verification',
-    subtitle: 'Documents & Photo',
-    description: 'Upload trade license and investor ID for verification.',
+    subtitle: 'Photo & Emirates ID',
+    description: 'Capture your photo and upload your Emirates ID for verification.',
     icon: Shield,
     phase: 'profile',
     isSkippable: false,

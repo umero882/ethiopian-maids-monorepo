@@ -60,6 +60,21 @@ const GET_MAID_BOOKINGS = gql`
   }
 `;
 
+const GET_MAID_DOCUMENTS_COUNT = gql`
+  query GetMaidDocumentsCount($maidId: String!) {
+    maid_documents(where: { maid_id: { _eq: $maidId } }) {
+      id
+      type
+      document_type
+      file_url
+      verified
+    }
+  }
+`;
+
+// Passport-type aliases that satisfy the passport/ID requirement
+const PASSPORT_ALIASES = ['passport', 'passport_front', 'passport_back', 'id_front', 'id_back'];
+
 const MaidDashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -217,11 +232,22 @@ const MaidDashboardLayout = () => {
 
       const profileData = profileResult?.maid_profiles?.[0];
 
-      // Calculate pending documents count
-      const pendingDocs = [
-        !profileData?.medical_certificate_valid,
-        !profileData?.police_clearance_valid
-      ].filter(Boolean).length;
+      // Calculate pending documents count by checking maid_documents table
+      let pendingDocs = 0;
+      try {
+        const { data: docsResult } = await apolloClient.query({
+          query: GET_MAID_DOCUMENTS_COUNT,
+          variables: { maidId: user.id },
+          fetchPolicy: 'network-only',
+        });
+        const docs = docsResult?.maid_documents || [];
+        const docTypes = new Set(docs.map(d => d.type || d.document_type).filter(Boolean));
+        // Check if passport/ID requirement is satisfied
+        const hasPassport = PASSPORT_ALIASES.some(alias => docTypes.has(alias));
+        pendingDocs = hasPassport ? 0 : 1;
+      } catch (docError) {
+        console.warn('Error fetching document counts:', docError);
+      }
 
       setDashboardStats({
         pendingBookings: pendingCount,

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { auth, FIREBASE_TOKEN_KEY } from '@/lib/firebaseClient';
+import { auth, FIREBASE_TOKEN_KEY, syncHasuraClaims } from '@/lib/firebaseClient';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken } from 'firebase/auth';
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
@@ -181,12 +181,20 @@ export const AdminAuthProvider = ({ children }) => {
       );
 
       const user = userCredential.user;
-      log.debug('Firebase login successful, storing token before admin profile fetch');
+      log.debug('Firebase login successful, syncing Hasura claims');
+
+      // Sync Hasura claims with database role BEFORE fetching admin profile
+      // This ensures the JWT has the correct role (site_admin) based on profiles.user_type
+      try {
+        await syncHasuraClaims();
+        log.debug('Hasura claims synced successfully');
+      } catch (syncError) {
+        log.warn('Claims sync failed, continuing with existing claims:', syncError);
+      }
 
       // Store the Firebase ID token in localStorage BEFORE querying Hasura
-      // This fixes a race condition where Apollo sends the GetAdminProfile query
-      // before AuthContext's onAuthStateChanged has stored the token
-      const idToken = await getIdToken(user, true); // force refresh to get latest custom claims
+      // Force refresh to get the latest custom claims (including synced role)
+      const idToken = await getIdToken(user, true);
       localStorage.setItem(FIREBASE_TOKEN_KEY, idToken);
 
       log.debug('Token stored, fetching admin profile');

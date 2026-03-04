@@ -1,174 +1,166 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  MapPin,
-  Star,
-  Clock,
-  ArrowRight,
-  Award,
-  Eye,
-  Heart,
-} from 'lucide-react';
+import { ArrowRight, Award, Loader2, MapPin, Briefcase, CheckCircle, User, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { maidService } from '@/services/maidService';
 import { getMaidDisplayName } from '@/lib/displayName';
 
-const featuredMaidsData = [
-  {
-    id: 1,
-    name: 'Almaz Tadesse',
-    age: 28,
-    country: 'Ethiopia',
-    experience: '5 years',
-    rating: 4.9,
-    skills: ['Cleaning', 'Cooking', 'Childcare'],
-    languages: ['Amharic', 'English', 'Arabic'],
-    verified: true,
-    availability: 'Available',
-    salary: '$350-450',
-    image: '/images/Our featured/1.jpg',
-    description:
-      'Experienced domestic worker with excellent childcare skills and cooking expertise.',
-  },
-  {
-    id: 2,
-    name: 'Hanan Mohammed',
-    age: 32,
-    country: 'Ethiopia',
-    experience: '7 years',
-    rating: 4.8,
-    skills: ['Cleaning', 'Cooking', 'Elder Care'],
-    languages: ['Amharic', 'English'],
-    verified: true,
-    availability: 'Available',
-    salary: '$400-500',
-    image: '/images/Our featured/2.png',
-    description:
-      'Specialized in elder care with extensive experience in household management.',
-  },
-  {
-    id: 3,
-    name: 'Meron Bekele',
-    age: 25,
-    country: 'Ethiopia',
-    experience: '3 years',
-    rating: 4.7,
-    skills: ['Cleaning', 'Laundry', 'Basic Cooking'],
-    languages: ['Amharic', 'English'],
-    verified: true,
-    availability: 'Available',
-    salary: '$300-400',
-    image: '/images/Our featured/3.png',
-    description:
-      'Young and energetic with strong attention to detail in household tasks.',
-  },
-  {
-    id: 4,
-    name: 'Selamawit Haile',
-    age: 30,
-    country: 'Ethiopia',
-    experience: '6 years',
-    rating: 4.9,
-    skills: ['Cooking', 'Cleaning', 'Childcare'],
-    languages: ['Amharic', 'English', 'Arabic'],
-    verified: true,
-    availability: 'Available',
-    salary: '$380-480',
-    image: '/images/Our featured/4.png',
-    description:
-      'Expert cook with international cuisine experience and childcare certification.',
-  },
-  {
-    id: 5,
-    name: 'Tigist Wolde',
-    age: 26,
-    country: 'Ethiopia',
-    experience: '4 years',
-    rating: 4.6,
-    skills: ['Cleaning', 'Cooking', 'Pet Care'],
-    languages: ['Amharic', 'English'],
-    verified: true,
-    availability: 'Available',
-    salary: '$320-420',
-    image: '/images/Our featured/5.jpg',
-    description:
-      'Reliable and trustworthy with special skills in pet care and household organization.',
-  },
-  {
-    id: 6,
-    name: 'Bethlehem Assefa',
-    age: 29,
-    country: 'Ethiopia',
-    experience: '5 years',
-    rating: 4.8,
-    skills: ['Elder Care', 'Cooking', 'Cleaning'],
-    languages: ['Amharic', 'English'],
-    verified: true,
-    availability: 'Available',
-    salary: '$360-460',
-    image: '/images/Our featured/6.jpg',
-    description:
-      'Compassionate elder care specialist with excellent cooking and cleaning skills.',
-  },
-  {
-    id: 7,
-    name: 'Rahel Tesfaye',
-    age: 31,
-    country: 'Ethiopia',
-    experience: '8 years',
-    rating: 4.9,
-    skills: ['Cleaning', 'Laundry', 'Ironing'],
-    languages: ['Amharic', 'English', 'Arabic'],
-    verified: true,
-    availability: 'Available',
-    salary: '$400-500',
-    image: '/images/Our featured/7.jpeg',
-    description:
-      'Highly experienced with exceptional attention to detail in all household tasks.',
-  },
-  {
-    id: 8,
-    name: 'Hiwot Girma',
-    age: 27,
-    country: 'Ethiopia',
-    experience: '4 years',
-    rating: 4.7,
-    skills: ['Childcare', 'Cooking', 'Tutoring'],
-    languages: ['Amharic', 'English'],
-    verified: true,
-    availability: 'Available',
-    salary: '$340-440',
-    image: '/images/Our featured/8.jpg',
-    description:
-      'Dedicated childcare provider with educational background and cooking expertise.',
-  },
-];
+// Compact featured card for homepage carousel (industry-standard size)
+const FeaturedCard = ({ maid, onClick }) => {
+  const displayName = maid.full_name || maid.fullName || maid.name || getMaidDisplayName(maid);
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2) || 'NA';
+  const photo = maid.image || maid.profile_photo_url;
+  const profession = maid.profession || maid.primary_profession || maid.primaryProfession || 'Domestic Helper';
+  const experience = maid.experience_years || maid.experience || 0;
+  const expDisplay = experience ? `${experience}+ yrs` : 'New';
+  const isVerified = maid.verified || maid.verification_status === 'verified';
+  const location = [maid.current_city || maid.city, maid.current_country || maid.country]
+    .filter(Boolean)
+    .join(', ') || 'GCC Region';
+  const skills = (maid.skills || []).slice(0, 2);
+  const salary = maid.preferred_salary_min
+    ? `$${maid.preferred_salary_min.toLocaleString()}/mo`
+    : 'Negotiable';
+
+  return (
+    <div
+      className='bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group'
+      onClick={onClick}
+    >
+      {/* Photo - compact landscape ratio */}
+      <div className='relative h-[180px] md:h-[200px] overflow-hidden bg-gray-100'>
+        {photo ? (
+          <img
+            src={photo}
+            alt={displayName}
+            className='w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500'
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        {/* Fallback placeholder */}
+        <div
+          className={`absolute inset-0 flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 ${photo ? 'hidden' : 'flex'}`}
+        >
+          <div className='w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-1'>
+            <User className='w-8 h-8 text-purple-400' />
+          </div>
+          <span className='text-lg font-bold text-purple-400'>{initials}</span>
+        </div>
+
+        {/* Gradient overlay on photo */}
+        <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
+
+        {/* Name + location overlay at bottom of photo */}
+        <div className='absolute bottom-0 left-0 right-0 p-3'>
+          <h3 className='text-white font-semibold text-sm truncate'>{displayName}</h3>
+          <div className='flex items-center gap-1 text-white/80 text-xs'>
+            <MapPin className='w-3 h-3 shrink-0' />
+            <span className='truncate'>{location}</span>
+          </div>
+        </div>
+
+        {/* Verified badge */}
+        {isVerified && (
+          <div className='absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1'>
+            <CheckCircle className='w-3 h-3' />
+            Verified
+          </div>
+        )}
+      </div>
+
+      {/* Info section - compact */}
+      <div className='p-3'>
+        {/* Profession + Experience row */}
+        <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center gap-1 text-gray-700 text-xs font-medium'>
+            <Briefcase className='w-3 h-3 text-purple-500' />
+            <span className='truncate'>{profession}</span>
+          </div>
+          <div className='flex items-center gap-1 text-gray-500 text-xs'>
+            <Clock className='w-3 h-3' />
+            <span>{expDisplay}</span>
+          </div>
+        </div>
+
+        {/* Skills tags */}
+        <div className='flex flex-wrap gap-1 mb-2'>
+          {skills.length > 0 ? skills.map((skill, i) => (
+            <span key={i} className='text-[10px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full'>
+              {skill}
+            </span>
+          )) : (
+            <span className='text-[10px] bg-gray-50 text-gray-400 px-2 py-0.5 rounded-full'>
+              {salary}
+            </span>
+          )}
+          {skills.length > 0 && (
+            <span className='text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full'>
+              {salary}
+            </span>
+          )}
+        </div>
+
+        {/* View Profile button */}
+        <button className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition-all duration-200'>
+          View Profile
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const FeaturedMaidsSection = () => {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const authContext = useAuth();
+  const { user } = authContext || {};
+  const [maids, setMaids] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Duplicate the maids array to create seamless infinite scroll
-  const duplicatedMaids = [...featuredMaidsData, ...featuredMaidsData];
+  useEffect(() => {
+    const fetchFeaturedMaids = async () => {
+      try {
+        const result = await maidService.getMaids(
+          { verification_status: 'verified' },
+          { page: 1, pageSize: 8, userId: user?.uid }
+        );
+        if (result.data && result.data.length > 0) {
+          setMaids(result.data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch featured maids:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeaturedMaids();
+  }, [user?.uid]);
 
-  const handleViewProfile = (maidId) => {
-    navigate(`/maids?highlight=${maidId}`);
-  };
+  // Duplicate maids array for seamless infinite scroll loop
+  const duplicatedMaids = useMemo(() => [...maids, ...maids], [maids]);
+
+  // Duration scales with number of cards for consistent speed
+  const scrollDuration = useMemo(() => Math.max(maids.length * 5, 18), [maids]);
 
   const handleViewAllMaids = () => {
     navigate('/maids');
   };
 
   return (
-    <section className='py-20 bg-gradient-to-br from-gray-50 via-white to-purple-50 overflow-hidden'>
+    <section className='py-16 md:py-20 bg-gradient-to-br from-gray-50 via-white to-purple-50 overflow-hidden'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Header */}
         <motion.div
-          className='text-center mb-16'
+          className='text-center mb-10 md:mb-16'
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -180,212 +172,66 @@ const FeaturedMaidsSection = () => {
               Premium Profiles
             </span>
           </div>
-          <h2 className='text-4xl md:text-5xl font-bold text-gray-900 mb-6'>
+          <h2 className='text-3xl md:text-5xl font-bold text-gray-900 mb-4 md:mb-6'>
             Meet Our{' '}
             <span className='text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600'>
               Featured Maids
             </span>
           </h2>
-          <p className='text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed'>
+          <p className='text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed'>
             Handpicked, verified professionals with exceptional skills and
             experience, ready to become trusted members of your family.
           </p>
         </motion.div>
 
-        {/* Infinite Scrolling Carousel Container */}
-        <div
-          className='relative overflow-hidden'
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Cards Container */}
-          <div className='overflow-hidden'>
+        {/* Infinite Scrolling Compact Cards */}
+        {loading ? (
+          <div className='flex items-center justify-center py-12'>
+            <Loader2 className='w-8 h-8 animate-spin text-purple-600' />
+            <span className='ml-3 text-gray-500'>Loading featured maids...</span>
+          </div>
+        ) : maids.length > 0 ? (
+          <div className='relative overflow-hidden'>
             <motion.div
-              className='flex gap-6'
-              animate={
-                isHovered
-                  ? {}
-                  : {
-                      x: ['0%', '-50%'],
-                    }
-              }
+              className='flex gap-4 shrink-0'
+              animate={{
+                x: ['0%', '-50%'],
+              }}
               transition={{
                 x: {
                   repeat: Infinity,
                   repeatType: 'loop',
-                  duration: 40,
+                  duration: scrollDuration,
                   ease: 'linear',
                 },
               }}
             >
               {duplicatedMaids.map((maid, index) => (
-                <motion.div
+                <div
                   key={`${maid.id}-${index}`}
-                  className='flex-shrink-0 w-80 md:w-96'
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: (index % featuredMaidsData.length) * 0.1,
-                  }}
-                  viewport={{ once: true }}
+                  className='shrink-0 w-[220px] sm:w-[240px] md:w-[260px]'
                 >
-                  <Card
-                    className='h-full bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-pointer'
-                    onMouseEnter={() => setHoveredCard(maid.id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => handleViewProfile(maid.id)}
-                  >
-                    {/* Image Section */}
-                    <div className='relative overflow-hidden'>
-                      <div className='aspect-[4/5] relative'>
-                        <img
-                          src={maid.image}
-                          alt={`${getMaidDisplayName(maid)} - Professional domestic worker`}
-                          className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110'
-                          loading='lazy'
-                        />
-                        <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-
-                        {/* Overlay Content */}
-                        <AnimatePresence>
-                          {hoveredCard === maid.id && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 20 }}
-                              className='absolute bottom-4 left-4 right-4'
-                            >
-                              <Button
-                                size='sm'
-                                className='w-full bg-white/90 text-gray-900 hover:bg-white backdrop-blur-sm'
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleViewProfile(maid.id);
-                                }}
-                              >
-                                <Eye className='w-4 h-4 mr-2' />
-                                View Profile
-                              </Button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {/* Status Badges */}
-                        <div className='absolute top-4 left-4 flex flex-col gap-2'>
-                          {maid.verified && (
-                            <Badge className='bg-green-500/90 text-white border-0 backdrop-blur-sm'>
-                              <Award className='w-3 h-3 mr-1' />
-                              Verified
-                            </Badge>
-                          )}
-                          <Badge className='bg-blue-500/90 text-white border-0 backdrop-blur-sm'>
-                            {maid.availability}
-                          </Badge>
-                        </div>
-
-                        {/* Favorite Button */}
-                        <button
-                          className='absolute top-4 right-4 p-2 bg-white/90 rounded-full hover:bg-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle favorite functionality
-                          }}
-                          aria-label={`Add ${getMaidDisplayName(maid)} to favorites`}
-                        >
-                          <Heart className='w-4 h-4 text-gray-600 hover:text-red-500 transition-colors' />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Card Content */}
-                    <CardContent className='p-6 space-y-4'>
-                      {/* Name and Rating */}
-                      <div className='flex items-start justify-between'>
-                        <div>
-                          <h3 className='text-xl font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors'>
-                            {getMaidDisplayName(maid)}
-                          </h3>
-                          <div className='flex items-center text-sm text-gray-500 mb-2'>
-                            <MapPin className='w-4 h-4 mr-1 text-purple-500' />
-                            {maid.country} • {maid.age} years old
-                          </div>
-                        </div>
-                        <div className='flex items-center bg-yellow-50 px-2 py-1 rounded-full'>
-                          <Star className='w-4 h-4 text-yellow-400 fill-current mr-1' />
-                          <span className='text-sm font-semibold text-gray-700'>
-                            {maid.rating}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Experience and Salary */}
-                      <div className='flex items-center justify-between text-sm'>
-                        <div className='flex items-center text-gray-600'>
-                          <Clock className='w-4 h-4 mr-1 text-purple-500' />
-                          {maid.experience} experience
-                        </div>
-                        <div className='font-semibold text-green-600'>
-                          {maid.salary}/month
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <p className='text-gray-600 text-sm leading-relaxed line-clamp-2'>
-                        {maid.description}
-                      </p>
-
-                      {/* Skills */}
-                      <div className='space-y-2'>
-                        <h4 className='text-sm font-semibold text-gray-700'>
-                          Top Skills
-                        </h4>
-                        <div className='flex flex-wrap gap-1'>
-                          {maid.skills.slice(0, 3).map((skill, skillIndex) => (
-                            <Badge
-                              key={skillIndex}
-                              variant='secondary'
-                              className='text-xs bg-purple-50 text-purple-700 hover:bg-purple-100'
-                            >
-                              {skill}
-                            </Badge>
-                          ))}
-                          {maid.skills.length > 3 && (
-                            <Badge variant='outline' className='text-xs'>
-                              +{maid.skills.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Languages */}
-                      <div className='flex items-center text-sm text-gray-600'>
-                        <span className='font-medium mr-2'>Languages:</span>
-                        <span>{maid.languages.join(', ')}</span>
-                      </div>
-
-                      {/* Action Button */}
-                      <Button
-                        className='w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewProfile(maid.id);
-                        }}
-                      >
-                        View Full Profile
-                        <ArrowRight className='w-4 h-4 ml-2' />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  <FeaturedCard
+                    maid={maid}
+                    onClick={() => navigate(`/maid/${maid.id}`)}
+                  />
+                </div>
               ))}
             </motion.div>
+
+            {/* Gradient overlays for smooth fade effect */}
+            <div className='absolute top-0 left-0 w-10 md:w-16 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10'></div>
+            <div className='absolute top-0 right-0 w-10 md:w-16 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10'></div>
           </div>
-        </div>
+        ) : (
+          <div className='text-center py-12 text-gray-500'>
+            No featured maids available at the moment.
+          </div>
+        )}
 
         {/* Call to Action */}
         <motion.div
-          className='text-center mt-16'
+          className='text-center mt-10 md:mt-16'
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}

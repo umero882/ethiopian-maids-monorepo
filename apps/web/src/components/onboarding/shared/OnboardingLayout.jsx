@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { getStepsForUserType, getTotalSteps, USER_TYPE_THEMES } from '@/data/onboardingConfig';
@@ -6,6 +7,7 @@ import { Trophy, Star, Zap } from 'lucide-react';
 import ConfettiCelebration from './ConfettiCelebration';
 
 const OnboardingLayout = ({ children }) => {
+  const navigate = useNavigate();
   const {
     userType,
     currentStep,
@@ -75,7 +77,11 @@ const OnboardingLayout = ({ children }) => {
             <img
               src="/images/logo/ethiopian-maids-logo.png"
               alt="Ethiopian Maids"
-              className="h-12 sm:h-16 w-auto drop-shadow-2xl"
+              className="h-12 sm:h-16 w-auto drop-shadow-2xl cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate('/')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') navigate('/'); }}
             />
           </motion.div>
 

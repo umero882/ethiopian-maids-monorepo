@@ -278,13 +278,15 @@ const StatsSection = () => {
           {primaryStats.map((stat, index) => {
             const Icon = stat.icon;
             const animatedCount = useCountUp(
-              stat.number,
+              stat.number || 0,
               2000 + index * 200,
               isInView
             );
-            // Fallback to actual number if animation hasn't started after 3 seconds
+            // Fallback to displayNumber for stats without a numeric value
             const displayCount =
-              animatedCount > 0 ? animatedCount : isInView ? stat.number : 0;
+              stat.number == null
+                ? null
+                : animatedCount > 0 ? animatedCount : isInView ? stat.number : 0;
 
             return (
               <motion.div
@@ -337,13 +339,15 @@ const StatsSection = () => {
                   {/* Number */}
                   <div className='relative mb-3'>
                     <div className='text-4xl md:text-5xl font-bold text-gray-900 mb-1'>
-                      {stat.id === 'avg-placement-time'
-                        ? `${displayCount} Days`
-                        : stat.id === 'satisfaction-rate'
-                          ? `${displayCount}%`
-                          : stat.id === 'gcc-countries'
-                            ? displayCount
-                            : `${displayCount.toLocaleString()}+`}
+                      {displayCount == null
+                        ? stat.displayNumber
+                        : stat.id === 'avg-placement-time'
+                          ? `${displayCount} Days`
+                          : stat.id === 'satisfaction-rate'
+                            ? `${displayCount}%`
+                            : stat.id === 'gcc-countries'
+                              ? displayCount
+                              : `${displayCount.toLocaleString()}+`}
                     </div>
                     {/* Growth indicator */}
                     {hoveredStat === stat.id && stat.growthRate && (
@@ -428,16 +432,18 @@ const StatsSection = () => {
               .map((stat, index) => {
                 const Icon = stat.icon;
                 const animatedCount = useCountUp(
-                  stat.number,
+                  stat.number || 0,
                   1500 + index * 150,
                   isInView
                 );
                 const displayCount =
-                  animatedCount > 0
-                    ? animatedCount
-                    : isInView
-                      ? stat.number
-                      : 0;
+                  stat.number == null
+                    ? null
+                    : animatedCount > 0
+                      ? animatedCount
+                      : isInView
+                        ? stat.number
+                        : 0;
 
                 return (
                   <motion.div
@@ -454,9 +460,11 @@ const StatsSection = () => {
                       <Icon className={`w-6 h-6 ${stat.iconColor}`} />
                     </div>
                     <div className='text-2xl font-bold text-gray-900 mb-2'>
-                      {stat.id === 'contract-completion'
-                        ? `${displayCount}%`
-                        : `${displayCount.toLocaleString()}+`}
+                      {displayCount == null
+                        ? stat.displayNumber
+                        : stat.id === 'contract-completion'
+                          ? `${displayCount}%`
+                          : `${displayCount.toLocaleString()}+`}
                     </div>
                     <div className='text-sm font-medium text-gray-700 mb-1'>
                       {stat.label}

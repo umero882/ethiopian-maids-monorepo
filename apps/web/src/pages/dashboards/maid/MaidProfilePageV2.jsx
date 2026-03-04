@@ -96,7 +96,7 @@ import {
 
 const SECTION_CONFIG = [
   { id: 'personal', title: 'Personal Info', subtitle: 'Basic Details', icon: User, step: 1 },
-  { id: 'identity', title: 'Identity', subtitle: 'Photo & Documents', icon: Camera, step: 2 },
+  { id: 'identity', title: 'Identity', subtitle: 'Photo & Passport', icon: Camera, step: 2 },
   { id: 'location', title: 'Location', subtitle: 'Address Details', icon: MapPin, step: 3 },
   { id: 'profession', title: 'Profession', subtitle: 'Work Details', icon: Briefcase, step: 4 },
   { id: 'skills', title: 'Skills', subtitle: 'Your Expertise', icon: Wrench, step: 5 },
@@ -342,10 +342,17 @@ const getGalleryPhotosFromDocs = (documents) => {
     .filter(p => p.url);
 };
 
-const getIdDocsFromDocs = (documents) => {
+const getPassportDocsFromDocs = (documents) => {
   if (!documents) return { front: null, back: null };
-  const front = documents.find(doc => doc.document_type === 'id_front' || doc.type === 'id_front');
-  const back = documents.find(doc => doc.document_type === 'id_back' || doc.type === 'id_back');
+  // Support both new passport types and legacy id_front/id_back types
+  const front = documents.find(doc =>
+    doc.document_type === 'passport_front' || doc.type === 'passport_front' ||
+    doc.document_type === 'id_front' || doc.type === 'id_front'
+  );
+  const back = documents.find(doc =>
+    doc.document_type === 'passport_back' || doc.type === 'passport_back' ||
+    doc.document_type === 'id_back' || doc.type === 'id_back'
+  );
   return {
     front: front ? (front.file_url || front.document_url) : null,
     back: back ? (back.file_url || back.document_url) : null,
@@ -770,15 +777,22 @@ const PersonalInfoSection = ({ profile, isEditing, editData, updateEditData, onE
 // =====================================================
 const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocumentsUpdate }) => {
   const [uploading, setUploading] = useState(null);
-  const idDocs = getIdDocsFromDocs(documents);
+  const passportDocs = getPassportDocsFromDocs(documents);
   const totalItems = 3;
-  const completedItems = [profile?.profile_photo_url, idDocs.front, idDocs.back].filter(Boolean).length;
+  const completedItems = [profile?.profile_photo_url, passportDocs.front, passportDocs.back].filter(Boolean).length;
 
   const handleUpload = async (type) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    document.body.appendChild(input);
+    const cleanup = () => { if (input.parentNode) input.parentNode.removeChild(input); };
+    input.addEventListener('cancel', cleanup);
     input.onchange = async (e) => {
+      cleanup();
       const file = e.target.files[0];
       if (!file) return;
       try {
@@ -792,7 +806,12 @@ const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocume
           const result = await uploadDocument(userId, file, type);
           const fileUrl = result.url || result;
           // Delete existing document of same type before inserting new one
-          const existingDoc = documents?.find(d => d.document_type === type || d.type === type);
+          // Also check for legacy id_front/id_back types
+          const legacyType = type === 'passport_front' ? 'id_front' : type === 'passport_back' ? 'id_back' : null;
+          const existingDoc = documents?.find(d =>
+            d.document_type === type || d.type === type ||
+            (legacyType && (d.document_type === legacyType || d.type === legacyType))
+          );
           if (existingDoc?.id) {
             try {
               await apolloClient.mutate({ mutation: DELETE_MAID_DOCUMENT, variables: { id: existingDoc.id } });
@@ -819,7 +838,7 @@ const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocume
 
   return (
     <SectionWrapper
-      id="identity" step={2} title="Identity Verification" subtitle="Photo & Documents"
+      id="identity" step={2} title="Identity Verification" subtitle="Photo & Passport"
       icon={Camera} isComplete={completedItems === totalItems} noEditButton
     >
       <div className="space-y-4">
@@ -833,17 +852,18 @@ const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocume
           {/* Face Photo */}
           <div className="space-y-2">
             <Label className="text-xs text-gray-500">Face Photo</Label>
-            <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden group">
-              {profile?.profile_photo_url ? (
-                <>
+            {profile?.profile_photo_url ? (
+              <div className="space-y-2">
+                <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
                   <img src={profile.profile_photo_url} alt="Face" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button size="sm" variant="secondary" onClick={() => handleUpload('face')} disabled={!!uploading}>
-                      {uploading === 'face' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Change'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleUpload('face')} disabled={!!uploading} className="w-full text-xs">
+                  {uploading === 'face' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Camera className="w-3.5 h-3.5 mr-1" />}
+                  Change Photo
+                </Button>
+              </div>
+            ) : (
+              <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden">
                 <button
                   onClick={() => handleUpload('face')}
                   disabled={!!uploading}
@@ -852,60 +872,62 @@ const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocume
                   {uploading === 'face' ? <Loader2 className="w-8 h-8 animate-spin" /> : <Camera className="w-8 h-8 mb-2" />}
                   <span className="text-xs">Upload Photo</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* ID Front */}
+          {/* Passport Photo Page */}
           <div className="space-y-2">
-            <Label className="text-xs text-gray-500">ID Front</Label>
-            <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden group">
-              {idDocs.front ? (
-                <>
-                  <img src={idDocs.front} alt="ID Front" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button size="sm" variant="secondary" onClick={() => handleUpload('id_front')} disabled={!!uploading}>
-                      {uploading === 'id_front' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Change'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
+            <Label className="text-xs text-gray-500">Passport Photo Page</Label>
+            {passportDocs.front ? (
+              <div className="space-y-2">
+                <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <img src={passportDocs.front} alt="Passport Photo Page" className="w-full h-full object-cover" />
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleUpload('passport_front')} disabled={!!uploading} className="w-full text-xs">
+                  {uploading === 'passport_front' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+                  Change Passport
+                </Button>
+              </div>
+            ) : (
+              <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden">
                 <button
-                  onClick={() => handleUpload('id_front')}
+                  onClick={() => handleUpload('passport_front')}
                   disabled={!!uploading}
                   className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-purple-500 transition-colors"
                 >
-                  {uploading === 'id_front' ? <Loader2 className="w-8 h-8 animate-spin" /> : <Upload className="w-8 h-8 mb-2" />}
-                  <span className="text-xs">Upload Front</span>
+                  {uploading === 'passport_front' ? <Loader2 className="w-8 h-8 animate-spin" /> : <Upload className="w-8 h-8 mb-2" />}
+                  <span className="text-xs">Upload Passport</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* ID Back */}
+          {/* Passport Visa Page */}
           <div className="space-y-2">
-            <Label className="text-xs text-gray-500">ID Back</Label>
-            <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden group">
-              {idDocs.back ? (
-                <>
-                  <img src={idDocs.back} alt="ID Back" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button size="sm" variant="secondary" onClick={() => handleUpload('id_back')} disabled={!!uploading}>
-                      {uploading === 'id_back' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Change'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
+            <Label className="text-xs text-gray-500">Passport Visa Page</Label>
+            {passportDocs.back ? (
+              <div className="space-y-2">
+                <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <img src={passportDocs.back} alt="Passport Visa Page" className="w-full h-full object-cover" />
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleUpload('passport_back')} disabled={!!uploading} className="w-full text-xs">
+                  {uploading === 'passport_back' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+                  Change Visa Page
+                </Button>
+              </div>
+            ) : (
+              <div className="relative aspect-[3/4] bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 overflow-hidden">
                 <button
-                  onClick={() => handleUpload('id_back')}
+                  onClick={() => handleUpload('passport_back')}
                   disabled={!!uploading}
                   className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-purple-500 transition-colors"
                 >
-                  {uploading === 'id_back' ? <Loader2 className="w-8 h-8 animate-spin" /> : <Upload className="w-8 h-8 mb-2" />}
-                  <span className="text-xs">Upload Back</span>
+                  {uploading === 'passport_back' ? <Loader2 className="w-8 h-8 animate-spin" /> : <Upload className="w-8 h-8 mb-2" />}
+                  <span className="text-xs">Upload Visa Page</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1519,7 +1541,14 @@ const MediaSection = ({ profile, documents, userId, onProfileUpdate, onDocuments
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'video/*';
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    document.body.appendChild(input);
+    const cleanup = () => { if (input.parentNode) input.parentNode.removeChild(input); };
+    input.addEventListener('cancel', cleanup);
     input.onchange = async (e) => {
+      cleanup();
       const file = e.target.files[0];
       if (!file) return;
       try {
@@ -1543,7 +1572,14 @@ const MediaSection = ({ profile, documents, userId, onProfileUpdate, onDocuments
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = true;
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    document.body.appendChild(input);
+    const cleanup = () => { if (input.parentNode) input.parentNode.removeChild(input); };
+    input.addEventListener('cancel', cleanup);
     input.onchange = async (e) => {
+      cleanup();
       const files = Array.from(e.target.files || []);
       if (files.length === 0) return;
       const maxNew = 5 - galleryPhotos.length;
@@ -1657,7 +1693,7 @@ const MediaSection = ({ profile, documents, userId, onProfileUpdate, onDocuments
                 </div>
                 <button
                   onClick={() => handleDeletePhoto(galleryPhotos[photoIndex]?.id)}
-                  className="absolute top-2 right-2 w-8 h-8 bg-red-500/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  className="absolute top-2 right-2 w-8 h-8 bg-red-500/80 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -2012,7 +2048,14 @@ const MaidProfilePageV2 = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    document.body.appendChild(input);
+    const cleanup = () => { if (input.parentNode) input.parentNode.removeChild(input); };
+    input.addEventListener('cancel', cleanup);
     input.onchange = async (e) => {
+      cleanup();
       const file = e.target.files[0];
       if (!file) return;
       try {

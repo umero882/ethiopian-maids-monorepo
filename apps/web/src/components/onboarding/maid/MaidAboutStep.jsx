@@ -21,7 +21,7 @@ const BIO_TEMPLATES = [
   {
     label: 'Friendly',
     template: (data) =>
-      `Hello! I'm a ${data.nationality || ''} ${data.profession || 'domestic helper'} who loves taking care of families. With ${data.experience_level || 'years of experience'}, I'm skilled in ${data.skills?.slice(0, 2).join(' and ') || 'household management'}. I'm ${data.marital_status?.toLowerCase() || ''}, reliable, and looking for a caring family in ${data.country || 'the GCC'}.`,
+      `Hello! I'm a ${data.nationality || ''} ${data.profession || 'domestic helper'} who loves taking care of families. With ${data.experience_level || 'years of experience'}, I'm skilled in ${data.skills?.slice(0, 2).join(' and ') || 'household management'}. I'm ${data.marital_status ? data.marital_status.toLowerCase() + ', ' : ''}reliable, and looking for a caring family in ${data.country || 'the GCC'}.`,
   },
   {
     label: 'Detailed',

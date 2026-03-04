@@ -48,11 +48,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { maidDocumentsService } from '@/services/maidDocumentsService';
 
 // Document type definitions - synced with mobile
+// passport_front/passport_back/id_front/id_back all satisfy the 'passport' requirement
+const PASSPORT_ALIASES = ['passport', 'passport_front', 'passport_back', 'id_front', 'id_back'];
 const DOCUMENT_TYPES = {
   passport: { name: 'Passport/ID', type: 'identification', required: true },
+  passport_front: { name: 'Passport Photo Page', type: 'identification', required: true },
+  passport_back: { name: 'Passport Visa Page', type: 'identification', required: true },
   visa: { name: 'Visa', type: 'identification', required: false },
-  id_front: { name: 'ID Front', type: 'identification', required: false },
-  id_back: { name: 'ID Back', type: 'identification', required: false },
+  id_front: { name: 'ID Front', type: 'identification', required: true },
+  id_back: { name: 'ID Back', type: 'identification', required: true },
   face: { name: 'Face Photo', type: 'identification', required: false },
   gallery_photo: { name: 'Gallery Photo', type: 'other', required: false },
   medical_certificate: { name: 'Medical Certificate', type: 'health', required: false },
@@ -175,7 +179,11 @@ const MaidDocumentsPage = () => {
       // Add placeholder entries for required documents that don't exist
       const existingTypes = new Set(transformedDocs.map((d) => d.documentType));
       requiredDocumentTypes.forEach((docType) => {
-        if (!existingTypes.has(docType)) {
+        // For 'passport', also check aliases (passport_front, passport_back, id_front, id_back)
+        const isSatisfied = docType === 'passport'
+          ? PASSPORT_ALIASES.some((alias) => existingTypes.has(alias))
+          : existingTypes.has(docType);
+        if (!isSatisfied) {
           transformedDocs.push({
             id: `placeholder-${docType}`,
             name: DOCUMENT_TYPES[docType].name,

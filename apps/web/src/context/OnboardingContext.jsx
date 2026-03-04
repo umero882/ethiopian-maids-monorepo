@@ -802,8 +802,7 @@ export const OnboardingProvider = ({ children }) => {
           salaryExpectations: parseSalaryToNumber(state.formData.expected_salary),
           workPreferences: state.formData.work_preferences || [],
           contractDuration: state.formData.contract_type || null,
-          livingArrangement: state.formData.accommodation_preference === 'Live-in' ||
-                             state.formData.accommodation_preference === 'Employer-provided accommodation'
+          livingArrangement: (state.formData.work_preferences || []).includes('Live-in')
                              ? 'live-in' : 'live-out',
 
           // Content (from MaidAboutStep & MaidVideoCVStep)
@@ -979,8 +978,7 @@ export const OnboardingProvider = ({ children }) => {
           preferred_salary_min: parseSalaryToNumber(state.formData.expected_salary),
           work_preferences: state.formData.work_preferences || [],
           contract_duration_preference: state.formData.contract_type || null,
-          live_in_preference: state.formData.accommodation_preference === 'Live-in' ||
-            state.formData.accommodation_preference === 'Employer-provided accommodation',
+          live_in_preference: (state.formData.work_preferences || []).includes('Live-in'),
           about_me: state.formData.about_me || '',
           profile_photo_url: profilePhotoUrl,
           introduction_video_url: videoUrl,
@@ -1131,8 +1129,7 @@ export const OnboardingProvider = ({ children }) => {
               salaryExpectations: parseSalaryToNumber(state.formData.expected_salary),
               workPreferences: state.formData.work_preferences || [],
               contractDuration: state.formData.contract_type || null,
-              livingArrangement: state.formData.accommodation_preference === 'Live-in' ||
-                state.formData.accommodation_preference === 'Employer-provided accommodation'
+              livingArrangement: (state.formData.work_preferences || []).includes('Live-in')
                 ? 'live-in' : 'live-out',
               aboutMe: state.formData.about_me || '',
               profilePictureUrl: profilePhotoUrl,
