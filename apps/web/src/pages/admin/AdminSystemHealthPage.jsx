@@ -118,6 +118,16 @@ const AdminSystemHealthPage = () => {
               }
             }
 
+            # Storage usage from maid_documents
+            maid_documents_aggregate {
+              aggregate {
+                count
+                sum {
+                  file_size
+                }
+              }
+            }
+
             # Maid profiles count
             maid_profiles_aggregate {
               aggregate {
@@ -149,9 +159,13 @@ const AdminSystemHealthPage = () => {
       const activeCount7d = data?.active_profiles_7d?.aggregate?.count || 0;
       const adminActivityCount = data?.admin_activity_logs_aggregate?.aggregate?.count || 0;
 
-      // Storage - file_size is in bytes, convert to MB
-      const totalFileSize = data?.agency_documents_aggregate?.aggregate?.sum?.file_size || 0;
-      const documentCount = data?.agency_documents_aggregate?.aggregate?.count || 0;
+      // Storage - file_size is in bytes, convert to MB (combine agency + maid documents)
+      const agencyFileSize = data?.agency_documents_aggregate?.aggregate?.sum?.file_size || 0;
+      const maidFileSize = data?.maid_documents_aggregate?.aggregate?.sum?.file_size || 0;
+      const totalFileSize = agencyFileSize + maidFileSize;
+      const agencyDocCount = data?.agency_documents_aggregate?.aggregate?.count || 0;
+      const maidDocCount = data?.maid_documents_aggregate?.aggregate?.count || 0;
+      const documentCount = agencyDocCount + maidDocCount;
       const usedSpaceMB = Math.round(totalFileSize / (1024 * 1024)); // Convert bytes to MB
 
       // Assume 10GB storage quota (can be configured)
@@ -193,7 +207,7 @@ const AdminSystemHealthPage = () => {
       // Update health data
       setHealthData({
         database: {
-          status: dbError ? 'error' : dbResponseTime < 100 ? 'healthy' : dbResponseTime < 300 ? 'warning' : 'error',
+          status: dbError ? 'error' : dbResponseTime < 500 ? 'healthy' : dbResponseTime < 1000 ? 'warning' : 'error',
           responseTime: dbResponseTime,
           connections: documentCount, // Show document count as a proxy metric
         },
@@ -368,7 +382,7 @@ const AdminSystemHealthPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatUptime(stats.systemUptime)}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">Based on {healthHistory.length} checks</p>
           </CardContent>
         </Card>
 
@@ -404,7 +418,7 @@ const AdminSystemHealthPage = () => {
                 <span className="text-sm font-medium">{healthData.database.responseTime}ms</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Documents Stored</span>
+                <span className="text-sm text-muted-foreground">Total Documents</span>
                 <span className="text-sm font-medium">
                   {healthData.database.connections?.toLocaleString() || '0'}
                 </span>
@@ -412,7 +426,8 @@ const AdminSystemHealthPage = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status</span>
                 <span className="text-sm font-medium">
-                  {healthData.database.status === 'healthy' ? 'Connected' : 'Issues Detected'}
+                  {healthData.database.status === 'healthy' ? 'Connected' :
+                   healthData.database.status === 'warning' ? 'Slow Response' : 'Issues Detected'}
                 </span>
               </div>
             </div>
@@ -502,7 +517,7 @@ const AdminSystemHealthPage = () => {
                 <CardTitle>Performance</CardTitle>
               </div>
               {getStatusBadge(
-                healthData.performance.avgLoadTime < 200 &&
+                healthData.performance.avgLoadTime < 500 &&
                 healthData.performance.errorRate < 1
                   ? 'healthy'
                   : 'warning'
@@ -526,7 +541,7 @@ const AdminSystemHealthPage = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status</span>
                 <span className="text-sm font-medium">
-                  {healthData.performance.avgLoadTime < 200 ? 'Excellent' : 'Needs Attention'}
+                  {healthData.performance.avgLoadTime < 500 ? 'Excellent' : 'Needs Attention'}
                 </span>
               </div>
             </div>
@@ -542,13 +557,13 @@ const AdminSystemHealthPage = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {healthData.database.responseTime > 100 && (
+            {healthData.database.responseTime > 500 && (
               <div className="flex items-start gap-3 p-3 border rounded-lg bg-yellow-50">
                 <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Database Performance</p>
                   <p className="text-xs text-muted-foreground">
-                    Database response time is above optimal levels. Consider optimizing queries or scaling resources.
+                    Database response time is above optimal levels ({healthData.database.responseTime}ms). Consider optimizing queries or scaling resources.
                   </p>
                 </div>
               </div>
@@ -578,7 +593,7 @@ const AdminSystemHealthPage = () => {
               </div>
             )}
 
-            {healthData.database.responseTime <= 100 &&
+            {healthData.database.responseTime <= 500 &&
              (healthData.storage.usedSpace / healthData.storage.totalSpace) <= 0.8 &&
              healthData.performance.errorRate <= 1 && (
               <div className="flex items-start gap-3 p-3 border rounded-lg bg-green-50">

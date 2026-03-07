@@ -91,7 +91,7 @@ class NewsAggregatorService {
     try {
       await this.fetchAllAnnouncements();
       this.startPeriodicUpdates();
-      console.log('[NewsAggregator] Service initialized successfully');
+      // Service initialized successfully
     } catch (error) {
       console.error('[NewsAggregator] Initialization failed:', error);
     }
@@ -151,7 +151,6 @@ class NewsAggregatorService {
       this.lastFetch = new Date();
       this.notifySubscribers();
 
-      console.log(`[NewsAggregator] Fetched ${this.cache.length} announcements`);
       return this.cache;
     } catch (error) {
       console.error('[NewsAggregator] Failed to fetch announcements:', error);
@@ -251,7 +250,7 @@ class NewsAggregatorService {
 
     // Fetch updates every hour
     this.updateIntervalId = setInterval(async () => {
-      console.log('[NewsAggregator] Running scheduled update...');
+      // Running scheduled update
       await this.fetchAllAnnouncements();
     }, this.updateInterval);
   }
@@ -301,7 +300,6 @@ class NewsAggregatorService {
    * Force refresh announcements
    */
   async refresh() {
-    console.log('[NewsAggregator] Manual refresh triggered');
     return await this.fetchAllAnnouncements();
   }
 

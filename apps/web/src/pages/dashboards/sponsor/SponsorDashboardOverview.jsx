@@ -117,7 +117,7 @@ const SponsorDashboardOverview = () => {
           // Show success banner
           setShowSuccessBanner(true);
         } else {
-          console.warn('No valid session after payment, user may need to login');
+          // No valid session after payment, user may need to login
         }
 
         // Remove the query parameter from URL
@@ -142,7 +142,6 @@ const SponsorDashboardOverview = () => {
       const dataPromise = Promise.all([
         // Fetch sponsor profile with proper error handling
         sponsorService.getSponsorProfile(user.id).catch(err => {
-          console.warn('Failed to load profile, using fallback:', err);
           return { data: null, error: err };
         }),
         // Fetch dashboard data via GraphQL
@@ -151,7 +150,6 @@ const SponsorDashboardOverview = () => {
           variables: { sponsorId: user.id },
           fetchPolicy: 'network-only'
         }).catch(err => {
-          console.warn('Failed to load dashboard data:', err);
           return { data: null };
         }),
       ]);
@@ -206,7 +204,7 @@ const SponsorDashboardOverview = () => {
               setRecommendedMaids(mappedData);
             }
           })
-          .catch(err => console.warn('Failed to load recommended maids:', err));
+          .catch(() => {});
       }, 500);
 
     } catch (error) {

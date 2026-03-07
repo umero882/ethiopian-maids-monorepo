@@ -144,8 +144,6 @@ const getPrimaryImageUrl = (maid) => {
   if (!maid || typeof maid !== 'object') return null;
 
   // Debug: log what we're receiving
-  console.log('[getPrimaryImageUrl] Maid:', maid.full_name || maid.name, 'profile_photo_url:', maid.profile_photo_url);
-
   if (maid.images && Array.isArray(maid.images) && maid.images.length > 0) {
     const primaryImage = maid.images.find(
       (img) => img && typeof img === 'object' && img.is_primary === true
@@ -160,7 +158,6 @@ const getPrimaryImageUrl = (maid) => {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     } else {
-      console.warn('[getPrimaryImageUrl] Invalid profile_photo_url (not a URL):', url);
       return null;
     }
   }

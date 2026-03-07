@@ -614,7 +614,6 @@ const MaidProfilePage = () => {
 
       try {
         // Fetch maid profile using GraphQL
-        console.log('[MaidProfilePage] Fetching profile for user:', user.id);
         const { data: result, errors } = await apolloClient.query({
           query: GET_MAID_PROFILE_FULL,
           variables: { userId: user.id },
@@ -626,16 +625,6 @@ const MaidProfilePage = () => {
         }
 
         const maidProfileData = result?.maid_profiles?.[0] || null;
-        console.log('[MaidProfilePage] Fetched maid profile data:', maidProfileData);
-        console.log('[MaidProfilePage] Key fields:', {
-          date_of_birth: maidProfileData?.date_of_birth,
-          education_level: maidProfileData?.education_level,
-          work_history: maidProfileData?.work_history,
-          work_history_type: typeof maidProfileData?.work_history,
-          work_history_isArray: Array.isArray(maidProfileData?.work_history),
-          contract_duration_preference: maidProfileData?.contract_duration_preference,
-          introduction_video_url: maidProfileData?.introduction_video_url,
-        });
 
         let profileData;
         if (maidProfileData) {
@@ -761,16 +750,9 @@ const MaidProfilePage = () => {
             profileData.currency = defaultCurrency;
           }
         } catch (e) {
-          console.warn('MaidProfilePage: default location detection failed');
+          // default location detection failed - continue with empty values
         }
 
-        console.log('[MaidProfilePage] Setting profile data:', {
-          dateOfBirth: profileData.dateOfBirth,
-          educationLevel: profileData.educationLevel,
-          workHistory: profileData.workHistory,
-          contractPreference: profileData.contractPreference,
-          introductionVideoUrl: profileData.introductionVideoUrl,
-        });
         setProfile(profileData);
         setFormData(profileData);
 
@@ -800,11 +782,10 @@ const MaidProfilePage = () => {
             if (dbDocuments.length > 0) {
               setUploadedDocuments(dbDocuments);
               setFormData(prev => ({ ...prev, additionalDocuments: dbDocuments }));
-              console.log('[MaidProfilePage] Loaded documents from database:', dbDocuments.length);
             }
           }
         } catch (docErr) {
-          console.warn('[MaidProfilePage] Failed to fetch documents:', docErr);
+          // Failed to fetch documents - continue without them
         }
 
         // Clear legacy localStorage cache if documents loaded from database
@@ -889,7 +870,6 @@ const MaidProfilePage = () => {
   const handleVideoCvChange = useCallback(async (blob) => {
     try {
       if (!blob || !user?.id) {
-        console.warn('Cannot upload video: missing blob or user ID');
         return;
       }
 
@@ -931,7 +911,6 @@ const MaidProfilePage = () => {
   const handleDocumentsChange = useCallback(async (docs) => {
     try {
       if (!user?.id) {
-        console.warn('Cannot upload documents: missing user ID');
         return;
       }
 
@@ -953,9 +932,8 @@ const MaidProfilePage = () => {
             mutation: DELETE_MAID_DOCUMENT,
             variables: { id: doc.id },
           });
-          console.log('[MaidProfilePage] Deleted document from database:', doc.id);
         } catch (deleteErr) {
-          console.warn('Failed to delete document from database:', deleteErr);
+          // Failed to delete document from database - continue
         }
       }
 

@@ -92,13 +92,6 @@ const AgencyJobCreatePage = () => {
         // Get all agency maids without filtering
         const { data, error } = await agencyService.getAgencyMaids({});
 
-        console.log('Fetched maids:', data);
-        console.log('Maids count:', data?.length);
-        if (data?.length > 0) {
-          console.log('First maid availability_status:', data[0].availability_status);
-          console.log('All maid statuses:', data.map(m => ({ name: m.full_name, status: m.availability_status })));
-        }
-
         if (error) {
           console.error('Error fetching maids:', error);
           return;

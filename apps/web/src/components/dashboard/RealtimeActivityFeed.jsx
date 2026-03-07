@@ -152,7 +152,7 @@ export function RealtimeActivityFeed() {
   const { unreadCount, updates, clearUpdates } = useDashboardSubscriptions({
     onUpdate: useCallback((update) => {
       // Could play a sound or show system notification here
-      console.log('New update:', update);
+      // new update received
     }, []),
   });
 

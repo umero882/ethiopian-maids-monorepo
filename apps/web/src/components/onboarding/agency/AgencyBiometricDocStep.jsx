@@ -29,11 +29,14 @@ const AgencyBiometricDocStep = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingSide, setUploadingSide] = useState(null);
 
+  const [canSkip, setCanSkip] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
   const backFileInputRef = useRef(null);
+  const faceFileInputRef = useRef(null);
 
   // Start camera with proper initialization
   const startCamera = useCallback(async () => {
@@ -66,7 +69,7 @@ const AgencyBiometricDocStep = () => {
         try {
           await videoRef.current.play();
         } catch (playErr) {
-          console.warn('Autoplay warning:', playErr);
+          // autoplay not available
         }
       }
 
@@ -203,6 +206,42 @@ const AgencyBiometricDocStep = () => {
       updateFormData({ idDocumentBack: null });
       if (backFileInputRef.current) backFileInputRef.current.value = '';
     }
+  };
+
+  // Handle face photo upload from file (fallback for when camera is unavailable)
+  const handleFacePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a valid image file (JPG, PNG, or WebP)');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      updateFormData({ facePhoto: event.target.result });
+      awardPoints(50, 'Face photo uploaded');
+      triggerCelebration('confetti-burst');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Enable skip if camera fails
+  useEffect(() => {
+    if (cameraError) {
+      setCanSkip(true);
+    }
+  }, [cameraError]);
+
+  // Handle skip
+  const handleSkip = () => {
+    nextStep();
   };
 
   const handleContinue = () => {
@@ -386,6 +425,28 @@ const AgencyBiometricDocStep = () => {
                         <><Camera className="w-4 h-4 mr-2" /> Open Camera</>
                       )}
                     </Button>
+                    {/* File upload fallback for face photo */}
+                    <div className="relative">
+                      <input
+                        ref={faceFileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFacePhotoUpload}
+                        className="sr-only"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => faceFileInputRef.current?.click()}
+                        className="w-full border-white/30 text-white hover:bg-white/10"
+                      >
+                        <Image className="w-4 h-4 mr-2" /> Upload Photo Instead
+                      </Button>
+                    </div>
+                    {cameraError && (
+                      <p className="text-xs text-gray-400 text-center">
+                        Camera not available? Use the upload button above to select a photo from your device.
+                      </p>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -422,10 +483,10 @@ const AgencyBiometricDocStep = () => {
       </StepCard>
 
       <StepNavigation
-        onNext={handleContinue}
+        onNext={isComplete ? handleContinue : (canSkip ? handleSkip : undefined)}
         onPrevious={previousStep}
-        isDisabled={!isComplete}
-        nextLabel={isComplete ? 'Continue' : 'Complete Both Steps'}
+        isDisabled={!isComplete && !canSkip}
+        nextLabel={isComplete ? 'Continue' : (canSkip ? 'Skip & Continue' : 'Complete Both Steps')}
       />
     </div>
   );

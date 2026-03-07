@@ -51,7 +51,7 @@ export function useGccLocations(overrides = null) {
       // If locale suggests AE, default to UAE
       if (/(-|_)AE$/i.test(lang) || /\bAE\b/i.test(lang)) return 'United Arab Emirates';
     } catch (e) {
-      console.warn('useGccLocations: locale detection failed');
+      // Locale detection failed - use default
     }
     return '';
   };

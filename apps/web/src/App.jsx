@@ -19,6 +19,10 @@ import { Toaster } from '@/components/ui/toaster';
 import { SkipNavigation } from '@/components/ui/SkipNavigation';
 import { ScreenReaderAnnouncements } from '@/components/ui/ScreenReaderAnnouncements';
 import OfflineBanner from '@/components/ui/OfflineBanner';
+import MaintenanceGate from '@/components/MaintenanceGate';
+import RegistrationGate from '@/components/RegistrationGate';
+import EmailVerificationGate from '@/components/EmailVerificationGate';
+import { SystemSettingsProvider } from '@/contexts/SystemSettingsContext';
 import performanceMonitor from '@/utils/performance';
 import logger from '@/utils/logger';
 import '@/styles/design-tokens.css';
@@ -207,6 +211,9 @@ const AdminSystemHealthPage = React.lazy(() =>
 const AdminSystemMaintenancePage = React.lazy(() =>
   import(/* webpackChunkName: "admin-panel" */ '@/pages/admin/AdminSystemMaintenancePage')
 );
+const AdminAIMonitorPage = React.lazy(() =>
+  import(/* webpackChunkName: "admin-panel" */ '@/pages/admin/AdminAIMonitorPage')
+);
 const AdminProfileSettingsPage = React.lazy(() =>
   import(/* webpackChunkName: "admin-panel" */ '@/pages/admin/AdminProfileSettingsPage')
 );
@@ -337,6 +344,7 @@ function App() {
     <ErrorBoundary>
       <AccessibilityProvider>
         <AuthProvider>
+          <SystemSettingsProvider>
           <PermissionProvider>
             <AdminAuthProvider>
               <ChatProvider>
@@ -345,6 +353,8 @@ function App() {
                 <OfflineBanner />
                 <SkipNavigation />
                 <ScreenReaderAnnouncements />
+              <MaintenanceGate>
+              <EmailVerificationGate>
               <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50'>
                   <ConditionalNavbar />
                   <ConditionalMarquee />
@@ -377,9 +387,11 @@ function App() {
                     <Route
                       path='/get-started'
                       element={
-                        <Suspense fallback={<PageLoader />}>
-                          <UnifiedOnboarding />
-                        </Suspense>
+                        <RegistrationGate>
+                          <Suspense fallback={<PageLoader />}>
+                            <UnifiedOnboarding />
+                          </Suspense>
+                        </RegistrationGate>
                       }
                     />
                     <Route
@@ -978,6 +990,16 @@ function App() {
                         }
                       />
                       <Route
+                        path='system/ai-monitor'
+                        element={
+                          <Suspense fallback={<PageLoader />}>
+                            <AdminProtectedRoute requiredPermission="system.read">
+                              <AdminAIMonitorPage />
+                            </AdminProtectedRoute>
+                          </Suspense>
+                        }
+                      />
+                      <Route
                         path='system/maintenance'
                         element={
                           <Suspense fallback={<PageLoader />}>
@@ -1066,12 +1088,15 @@ function App() {
                 <ConditionalFooter />
               </div>
               <ChatFab />
+              </EmailVerificationGate>
+              </MaintenanceGate>
             </Router>
             <Toaster />
                 </SubscriptionProvider>
               </ChatProvider>
             </AdminAuthProvider>
           </PermissionProvider>
+          </SystemSettingsProvider>
         </AuthProvider>
       </AccessibilityProvider>
     </ErrorBoundary>

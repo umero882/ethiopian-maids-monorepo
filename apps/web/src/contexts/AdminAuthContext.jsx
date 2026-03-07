@@ -289,6 +289,14 @@ export const AdminAuthProvider = ({ children }) => {
       setLoading(true);
 
       if (user) {
+        // Ensure we have a fresh token stored for Apollo client
+        try {
+          const token = await user.getIdToken();
+          localStorage.setItem(FIREBASE_TOKEN_KEY, token);
+        } catch {
+          // ignore - existing token will be used
+        }
+
         const adminProfile = await fetchAdminProfile(user);
         if (adminProfile) {
           setSession({ user });

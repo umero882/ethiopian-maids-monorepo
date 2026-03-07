@@ -816,7 +816,7 @@ const IdentitySection = ({ profile, documents, userId, onProfileUpdate, onDocume
             try {
               await apolloClient.mutate({ mutation: DELETE_MAID_DOCUMENT, variables: { id: existingDoc.id } });
             } catch (delErr) {
-              console.warn('[IdentitySection] Could not delete old doc:', delErr);
+              // Could not delete old doc - continue
             }
           }
           await apolloClient.mutate({
@@ -1788,8 +1788,6 @@ const MaidProfilePageV2 = () => {
 
   const fetchProfile = async (userId) => {
     setLoading(true);
-    console.log('[MaidProfile] fetchProfile called for userId:', userId);
-
     // Get a fresh token from Firebase Auth (also updates localStorage for Apollo).
     // This is more reliable than getStoredToken() on page refresh because
     // the force-refreshed token from AuthContext may not be in localStorage yet.
@@ -1800,7 +1798,6 @@ const MaidProfilePageV2 = () => {
 
     // If still no token, wait briefly for auth to settle (max 3 attempts)
     if (!token) {
-      console.warn('[MaidProfile] No auth token yet, waiting for auth...');
       for (let attempt = 0; attempt < 3 && !token; attempt++) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         token = await getIdToken();
@@ -1814,8 +1811,6 @@ const MaidProfilePageV2 = () => {
       setLoading(false);
       return;
     }
-    console.log('[MaidProfile] Token found, length:', token.length);
-
     try {
       const result = await apolloClient.query({
         query: GET_MAID_PROFILE,
@@ -1823,19 +1818,11 @@ const MaidProfilePageV2 = () => {
         fetchPolicy: 'network-only',
       });
 
-      console.log('[MaidProfile] Apollo result:', JSON.stringify({
-        hasData: !!result.data,
-        maidProfiles: result.data?.maid_profiles?.length || 0,
-        maidDocs: result.data?.maid_documents?.length || 0,
-        errors: result.errors?.map(e => e.message),
-      }));
-
       // Check for GraphQL errors (not thrown with errorPolicy: 'all')
       if (result.errors?.length > 0) {
         console.error('[MaidProfile] GraphQL errors:', result.errors);
         const errMsg = result.errors[0]?.message || '';
         if (errMsg.includes('permission') || errMsg.includes('not found in type') || !result.data?.maid_profiles) {
-          console.warn('[MaidProfile] Permission error, trying direct fetch...');
           await fetchProfileDirect(userId, token);
           return;
         }
@@ -1843,12 +1830,6 @@ const MaidProfilePageV2 = () => {
 
       if (result.data?.maid_profiles?.[0]) {
         const profileData = result.data.maid_profiles[0];
-        console.log('[MaidProfile] Profile loaded:', JSON.stringify({
-          full_name: profileData.full_name,
-          nationality: profileData.nationality,
-          skills: profileData.skills?.length || 0,
-          completion: profileData.profile_completion_percentage,
-        }));
         const galleryPhotos = getGalleryPhotosFromDocs(result.data.maid_documents);
         setProfile({
           ...profileData,
@@ -1856,7 +1837,6 @@ const MaidProfilePageV2 = () => {
         });
         setDocuments(result.data.maid_documents || []);
       } else {
-        console.warn('[MaidProfile] No maid profile found via Apollo, trying direct fetch...');
         await fetchProfileDirect(userId, token);
       }
     } catch (error) {
@@ -1897,7 +1877,6 @@ const MaidProfilePageV2 = () => {
         }
       }
     `;
-    console.log('[MaidProfile] Direct fetch to:', HASURA_ENDPOINT);
     const response = await fetch(HASURA_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -1907,15 +1886,6 @@ const MaidProfilePageV2 = () => {
       body: JSON.stringify({ query, variables: { userId } }),
     });
     const result = await response.json();
-    console.log('[MaidProfile] Direct fetch result:', JSON.stringify({
-      hasData: !!result.data,
-      maidProfiles: result.data?.maid_profiles?.length || 0,
-      errors: result.errors?.map(e => e.message),
-      firstProfile: result.data?.maid_profiles?.[0] ? {
-        full_name: result.data.maid_profiles[0].full_name,
-        nationality: result.data.maid_profiles[0].nationality,
-      } : null,
-    }));
     if (result.data?.maid_profiles?.[0]) {
       const profileData = result.data.maid_profiles[0];
       const galleryPhotos = getGalleryPhotosFromDocs(result.data.maid_documents || []);
@@ -1925,7 +1895,7 @@ const MaidProfilePageV2 = () => {
       });
       setDocuments(result.data.maid_documents || []);
     } else {
-      console.warn('[MaidProfile] Direct fetch - no profile found. Errors:', result.errors);
+      // Direct fetch - no profile found
     }
   };
 

@@ -68,8 +68,7 @@ export const detectUserCountry = async () => {
       currency: COUNTRY_CURRENCY_MAP[data.country_code] || 'AED',
     };
   } catch (error) {
-    console.warn('Country detection failed, defaulting to UAE:', error);
-    // Default to UAE since our Stripe is configured for AED
+    // Country detection failed, defaulting to UAE
     return {
       countryCode: 'AE',
       countryName: 'United Arab Emirates',
@@ -159,7 +158,7 @@ export const convertCurrency = async (priceInAED, targetCurrency) => {
     const rate = rates[targetCurrency];
 
     if (!rate) {
-      console.warn(`Exchange rate not found for ${targetCurrency}, using fallback`);
+      // Exchange rate not found, using fallback
       const fallbackRates = getFallbackRates();
       const fallbackRate = fallbackRates[targetCurrency] || fallbackRates.USD;
       return priceInAED * fallbackRate;
@@ -207,7 +206,7 @@ export const getUserCurrency = async () => {
     try {
       return JSON.parse(savedCurrency);
     } catch (error) {
-      console.warn('Invalid saved currency, detecting new one');
+      // Invalid saved currency, detecting new one
     }
   }
 
@@ -296,9 +295,9 @@ export const getConvertedPrice = async (priceInAED, targetCurrency = null) => {
 export const preloadExchangeRates = async () => {
   try {
     await fetchExchangeRates();
-    console.log('Exchange rates preloaded successfully');
+    // Exchange rates preloaded successfully
   } catch (error) {
-    console.warn('Failed to preload exchange rates:', error);
+    // Failed to preload exchange rates
   }
 };
 

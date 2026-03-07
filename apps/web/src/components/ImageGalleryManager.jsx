@@ -103,7 +103,7 @@ const ImageGalleryManager = ({
   const handleFileUpload = useCallback(
     async (files) => {
       if (!files || files.length === 0) {
-        console.warn('No files provided to handleFileUpload');
+        // no files provided
         return;
       }
 
@@ -118,16 +118,6 @@ const ImageGalleryManager = ({
         });
         return;
       }
-
-      // Log file information for debugging
-      /* console.log(
-        'Processing files:',
-        fileArray.map((f) => ({
-          name: f.name,
-          type: f.type,
-          size: f.size,
-        }))
-      ); */
 
       setIsProcessing(true);
 

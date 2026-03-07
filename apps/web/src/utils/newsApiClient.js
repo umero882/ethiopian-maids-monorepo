@@ -118,7 +118,7 @@ class NewsAPIClient {
     if (NEWS_CONFIG.ERROR_CONFIG.FALLBACK_TO_CACHE) {
       const cached = this.getFromCache(requestId, true); // Allow stale cache
       if (cached) {
-        console.warn(`Using stale cache for ${source} due to API failure`);
+        // Using stale cache due to API failure
         return cached;
       }
     }

@@ -537,9 +537,7 @@ export const useDocumentUpload = (agencyId) => {
           await deleteObject(storageRef);
         } catch (storageError) {
           // Ignore if file doesn't exist
-          if (storageError.code !== 'storage/object-not-found') {
-            console.warn('Storage deletion error:', storageError);
-          }
+          // Ignore storage deletion errors unless file actually exists
         }
       }
 

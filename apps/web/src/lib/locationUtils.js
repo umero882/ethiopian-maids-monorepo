@@ -48,7 +48,7 @@ export const getBrowserRegionCode = () => {
       if (parts.length > 1 && parts[1].length === 2) return parts[1].toUpperCase();
     }
   } catch (e) {
-    console.warn('locationUtils: failed to detect browser region');
+    // Failed to detect browser region - fall through to default
   }
   return '';
 };

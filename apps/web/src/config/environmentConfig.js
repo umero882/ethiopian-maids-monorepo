@@ -188,8 +188,6 @@ class EnvironmentConfig {
 
   loadAndValidate() {
     try {
-      console.log('Loading environment configuration...');
-
       // Load all environment variables
       Object.entries(requiredEnvVars).forEach(([key, schema]) => {
         try {
@@ -290,7 +288,6 @@ class EnvironmentConfig {
   }
 
   setFallbackConfiguration() {
-    console.warn('Setting fallback configuration for development...');
     this.config = {
       VITE_HASURA_ENDPOINT:
         import.meta.env.VITE_HASURA_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql',
@@ -313,21 +310,9 @@ class EnvironmentConfig {
   }
 
   logValidationResults() {
-    if (this.isValid) {
-      console.log('Environment configuration is valid');
-    } else {
+    if (!this.isValid) {
       console.error('Environment configuration has errors:');
       this.errors.forEach((error) => console.error(error));
-    }
-
-    if (this.warnings.length > 0) {
-      console.warn('Environment configuration warnings:');
-      this.warnings.forEach((warning) => console.warn(warning));
-    }
-
-    // Log loaded configuration in development
-    if (this.isDevelopment()) {
-      console.log('Loaded configuration:', this.getSafeConfig());
     }
   }
 
@@ -446,7 +431,6 @@ class EnvironmentConfig {
     const key = `VITE_ENABLE_${feature.toUpperCase()}`;
     if (this.config.hasOwnProperty(key)) {
       this.config[key] = enabled;
-      console.log(`Feature flag updated: ${feature} = ${enabled}`);
     }
   }
 

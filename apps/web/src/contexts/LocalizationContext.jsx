@@ -150,7 +150,7 @@ export const LocalizationProvider = ({ children }) => {
       const fallbackValue = key.split('.').reduce((obj, k) => obj?.[k], englishTranslations);
 
       if (fallbackValue === undefined) {
-        console.warn(`Translation missing for key: ${key}`);
+        // Translation missing for this key - returning key as fallback
         return key; // Return the key itself as fallback
       }
 

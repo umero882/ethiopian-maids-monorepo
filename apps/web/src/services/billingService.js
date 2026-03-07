@@ -4,9 +4,9 @@ import stripeBillingService from './stripeBillingService.graphql';
 /**
  * Billing Service - Legacy Wrapper
  *
- * ⚠️ DEPRECATED: This service contains mock implementations and is being phased out.
+ * DEPRECATED: This service contains mock implementations and is being phased out.
  *
- * ✅ REAL STRIPE INTEGRATION NOW AVAILABLE:
+ * REAL STRIPE INTEGRATION NOW AVAILABLE:
  * - Use stripeBillingService for all new implementations
  * - Real Stripe price IDs configured in /config/stripeConfig.js
  * - Production-ready webhook handling in /services/stripeWebhookHandler.js
@@ -39,10 +39,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Updated subscription details
    */
   changePlan: async (subscriptionId, newPlanId, shouldProrate = true) => {
-    /* console.log(
-      `Changing subscription ${subscriptionId} to plan ${newPlanId} (prorate: ${shouldProrate})`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -73,10 +69,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Cancellation details
    */
   cancelSubscription: async (subscriptionId, cancelAtPeriodEnd = true) => {
-    /* console.log(
-      `Canceling subscription ${subscriptionId} (at period end: ${cancelAtPeriodEnd})`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -163,10 +155,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Updated customer
    */
   setDefaultPaymentMethod: async (customerId, paymentMethodId) => {
-    /* console.log(
-      `Setting default payment method ${paymentMethodId} for customer ${customerId}`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -185,10 +173,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Removal confirmation
    */
   removePaymentMethod: async (customerId, paymentMethodId) => {
-    /* console.log(
-      `Removing payment method ${paymentMethodId} for customer ${customerId}`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -207,10 +191,6 @@ export const billingService = {
    * @returns {Promise<Array>} - List of invoices
    */
   getInvoices: async (customerId, limit = 10) => {
-    /* console.log(
-      `Getting invoices for customer ${customerId} (limit: ${limit})`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -256,10 +236,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Tax calculation details
    */
   calculateTax: async (customerId, amount, location) => {
-    /* console.log(
-      `Calculating tax for customer ${customerId} (amount: ${amount}, location: ${JSON.stringify(location)})`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -303,10 +279,6 @@ export const billingService = {
    * @deprecated Use stripeBillingService.createCheckoutSession() instead
    */
   createCheckoutSession: async (userId, planId, successUrl, cancelUrl) => {
-    console.warn(
-      '⚠️ billingService.createCheckoutSession is deprecated. Use stripeBillingService.createCheckoutSession() instead.'
-    );
-
     // Redirect to real Stripe service
     return await stripeBillingService.createCheckoutSession(
       userId,
@@ -321,10 +293,6 @@ export const billingService = {
    * @deprecated Use stripeBillingService.createPortalSession() instead
    */
   createPortalSession: async (customerId, returnUrl) => {
-    console.warn(
-      '⚠️ billingService.createPortalSession is deprecated. Use stripeBillingService.createPortalSession() instead.'
-    );
-
     // Redirect to real Stripe service
     return await stripeBillingService.createPortalSession(
       customerId,
@@ -339,10 +307,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Retry details
    */
   retryFailedPayment: async (invoiceId, attemptCount = 0) => {
-    /* console.log(
-      `Retrying payment for invoice ${invoiceId} (attempt ${attemptCount + 1})`
-    ); */
-
     // Determine retry delay using exponential backoff
     const retryDelays = [1, 24, 72, 168]; // Hours: 1 hour, 1 day, 3 days, 7 days
     const delayHours =
@@ -386,10 +350,6 @@ export const billingService = {
    * @returns {Promise<Object>} - Revenue report
    */
   generateRevenueReport: async (startDate, endDate, interval = 'month') => {
-    /* console.log(
-      `Generating revenue report from ${startDate} to ${endDate} (interval: ${interval})`
-    ); */
-
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {

@@ -32,11 +32,10 @@ const getCachedBlobUrl = async (url) => {
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       blobUrlCache.set(url, blobUrl);
-      console.log('[VoicePlayer] Found cached voice:', url.substring(0, 50));
       return blobUrl;
     }
   } catch (error) {
-    console.warn('[VoicePlayer] Cache read error:', error);
+    // Cache read error - silently fall through
   }
 
   return null;
@@ -46,8 +45,6 @@ const getCachedBlobUrl = async (url) => {
  * Download and cache voice file
  */
 const downloadAndCache = async (url, onProgress) => {
-  console.log('[VoicePlayer] Downloading voice to cache...');
-
   try {
     const response = await fetch(url);
 
@@ -87,9 +84,8 @@ const downloadAndCache = async (url, onProgress) => {
         headers: { 'Content-Type': 'audio/webm' }
       });
       await cache.put(url, cacheResponse);
-      console.log('[VoicePlayer] Voice cached successfully');
     } catch (cacheError) {
-      console.warn('[VoicePlayer] Cache write error:', cacheError);
+      // Cache write error - continue without caching
     }
 
     // Store in memory cache
@@ -132,7 +128,6 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
         const preloadAudio = new Audio();
         preloadAudio.preload = 'metadata';
         preloadAudio.src = preloadUrl;
-        console.log('[VoicePlayer] Preloading audio metadata');
       }
     };
     initAudio();
@@ -192,7 +187,6 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
         setIsLoading(false);
         return;
       } catch (err) {
-        console.warn('[VoicePlayer] Audio element stale, recreating...', err);
         audioRef.current = null;
       }
     }
@@ -211,11 +205,9 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
                               url.includes('.firebasestorage.app');
 
         if (isFirebaseUrl) {
-          console.log('[VoicePlayer] Using direct Firebase URL (CORS-safe for audio element)');
           playUrl = url;
         } else {
           // For non-Firebase URLs, try to cache
-          console.log('[VoicePlayer] Downloading voice message...');
           try {
             playUrl = await downloadAndCache(url, setDownloadProgress);
             setLocalUrl(playUrl);
@@ -227,8 +219,6 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
         }
       }
     }
-
-    console.log('[VoicePlayer] Playing from:', playUrl.substring(0, 50));
 
     // Create new audio element
     const audio = new Audio();
@@ -251,7 +241,6 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
     });
 
     audio.addEventListener('canplaythrough', () => {
-      console.log('[VoicePlayer] Audio ready to play');
       setIsLoading(false);
     });
 
@@ -261,18 +250,9 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
       setError('Failed to load audio');
       // Reset and try direct URL if cached version failed
       if (playUrl !== url && localUrl) {
-        console.log('[VoicePlayer] Retrying with direct URL...');
         setLocalUrl(null);
         blobUrlCache.delete(url);
       }
-    });
-
-    audio.addEventListener('loadstart', () => {
-      console.log('[VoicePlayer] Load started');
-    });
-
-    audio.addEventListener('waiting', () => {
-      console.log('[VoicePlayer] Buffering...');
     });
 
     // Only set crossOrigin if using a blob URL (cached)
@@ -296,7 +276,6 @@ const VoicePlayer = ({ url, duration, waveformData, isOwn }) => {
     // Set timeout to prevent infinite loading
     const loadTimeout = setTimeout(() => {
       if (isLoading) {
-        console.warn('[VoicePlayer] Load timeout, trying direct play...');
         setIsLoading(false);
       }
     }, 10000); // 10 second timeout

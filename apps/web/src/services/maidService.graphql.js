@@ -182,7 +182,6 @@ export const graphqlMaidService = {
   async addToFavorites(userId, maidId) {
     try {
       log.debug('[GraphQL] Adding to favorites:', { userId, maidId });
-      console.log('[GraphQL] Adding to favorites - userId:', userId, 'maidId:', maidId);
 
       const result = await apolloClient.mutate({
         mutation: AddToFavoritesDocument,
@@ -191,8 +190,6 @@ export const graphqlMaidService = {
           maidId
         },
       });
-
-      console.log('[GraphQL] Mutation result:', result);
 
       if (result.errors && result.errors.length > 0) {
         console.error('[GraphQL] Mutation errors:', result.errors);

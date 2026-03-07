@@ -2354,6 +2354,50 @@ CREATE TABLE IF NOT EXISTS public."work_experience" (
 );
 ALTER TABLE public."work_experience" ADD PRIMARY KEY ("id");
 
+-- Table: crash_reports
+CREATE TABLE IF NOT EXISTS public."crash_reports" (
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" text DEFAULT NULL,
+    "error_type" text NOT NULL,
+    "error_message" text NOT NULL,
+    "error_stack" text DEFAULT NULL,
+    "component_name" text DEFAULT NULL,
+    "page_url" text DEFAULT NULL,
+    "user_agent" text DEFAULT NULL,
+    "app_version" text DEFAULT NULL,
+    "severity" text NOT NULL DEFAULT 'error',
+    "metadata" jsonb DEFAULT '{}'::jsonb,
+    "resolved" boolean DEFAULT false,
+    "created_at" timestamp with time zone DEFAULT now()
+);
+ALTER TABLE public."crash_reports" ADD PRIMARY KEY ("id");
+CREATE INDEX idx_crash_reports_error_type ON public."crash_reports" ("error_type");
+CREATE INDEX idx_crash_reports_severity ON public."crash_reports" ("severity");
+CREATE INDEX idx_crash_reports_created_at ON public."crash_reports" ("created_at" DESC);
+CREATE INDEX idx_crash_reports_resolved ON public."crash_reports" ("resolved");
+
+-- Table: customer_feedback
+CREATE TABLE IF NOT EXISTS public."customer_feedback" (
+    "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" text NOT NULL,
+    "user_type" text DEFAULT NULL,
+    "feedback_type" text NOT NULL DEFAULT 'general',
+    "category" text DEFAULT NULL,
+    "rating" integer DEFAULT NULL,
+    "message" text NOT NULL,
+    "page_url" text DEFAULT NULL,
+    "user_agent" text DEFAULT NULL,
+    "status" text NOT NULL DEFAULT 'new',
+    "admin_notes" text DEFAULT NULL,
+    "resolved_at" timestamp with time zone DEFAULT NULL,
+    "created_at" timestamp with time zone DEFAULT now(),
+    "updated_at" timestamp with time zone DEFAULT now()
+);
+ALTER TABLE public."customer_feedback" ADD PRIMARY KEY ("id");
+CREATE INDEX idx_customer_feedback_user_id ON public."customer_feedback" ("user_id");
+CREATE INDEX idx_customer_feedback_status ON public."customer_feedback" ("status");
+CREATE INDEX idx_customer_feedback_created_at ON public."customer_feedback" ("created_at" DESC);
+
 -- Foreign Key Constraints
 ALTER TABLE public."admin_activity_logs" ADD CONSTRAINT "admin_activity_logs_admin_id_fkey" 
     FOREIGN KEY ("admin_id") REFERENCES public."admin_users"("id");

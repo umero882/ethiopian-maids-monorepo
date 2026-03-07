@@ -51,32 +51,6 @@ export function checkAllConfigurations() {
  */
 export function logConfigurationStatus() {
   const config = checkAllConfigurations();
-
-  console.group('🔧 Configuration Status');
-
-  // Firebase Configuration
-  console.group('🔥 Firebase');
-  console.log(
-    'Status:',
-    config.firebase.isConfigured ? '✅ Configured' : '❌ Not Configured'
-  );
-  console.groupEnd();
-
-  // Hasura Configuration
-  console.group('📊 Hasura GraphQL');
-  console.log(
-    'Status:',
-    config.hasura.isConfigured ? '✅ Configured' : '❌ Not Configured'
-  );
-  console.groupEnd();
-
-  // Mock Data
-  console.group('🎭 Mock Data');
-  console.log('Enabled:', config.mockData.enabled);
-  console.groupEnd();
-
-  console.groupEnd();
-
   return config;
 }
 

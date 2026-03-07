@@ -47,6 +47,13 @@ import {
   ensureProfileExists,
 } from './profile/saveOnboardingProfile';
 
+// Import handlers - Notifications (Telegram)
+import { adminNotifyHandler } from './notifications/adminNotify';
+
+// Import handlers - Notifications (Email & WhatsApp)
+import { sendNotificationEmailHandler } from './notifications/sendNotificationEmail';
+import { sendWhatsAppNotificationHandler } from './notifications/sendWhatsAppNotification';
+
 // Import handlers - Jobs
 import { manageJob } from './jobs/createJob';
 
@@ -231,6 +238,184 @@ export const profileEnsureExists = functions.https.onCall(ensureProfileExists);
  * Bypasses Hasura JWT permission issues for the jobs table.
  */
 export const jobManage = functions.https.onCall(manageJob);
+
+// =====================================================
+// ADMIN NOTIFICATIONS (Telegram)
+// =====================================================
+
+/**
+ * Callable: Send admin notification via Telegram
+ * Used by frontend for client-side events (bookings, interviews, errors).
+ */
+export const adminNotify = functions.https.onCall(adminNotifyHandler);
+
+/**
+ * Callable: Send email notification via SendGrid (admin only)
+ */
+export const notificationSendEmail = functions.https.onCall(sendNotificationEmailHandler);
+
+/**
+ * Callable: Send WhatsApp notification via Meta Cloud API (admin only)
+ */
+export const notificationSendWhatsApp = functions.https.onCall(sendWhatsAppNotificationHandler);
+
+/**
+ * Scheduled: Error digest every 6 hours
+ * Queries error_logs for recent errors and sends a summary to Telegram.
+ */
+export const scheduledErrorDigest = functions.pubsub
+  .schedule('every 6 hours')
+  .onRun(async () => {
+    const { sendTelegramMessage, sendMonitorTelegramMessage } = await import('./notifications/telegramService');
+    const { formatErrorDigest } = await import('./notifications/adminMessages');
+    const { GraphQLClient, gql } = await import('graphql-request');
+
+    const endpoint = functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
+    const adminSecret = functions.config().hasura?.admin_secret || process.env.HASURA_ADMIN_SECRET;
+
+    if (!endpoint || !adminSecret) {
+      console.warn('[ErrorDigest] Hasura config not set, skipping');
+      return null;
+    }
+
+    const client = new GraphQLClient(endpoint, {
+      headers: { 'x-hasura-admin-secret': adminSecret },
+    });
+
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+    try {
+      const GET_RECENT_ERRORS = gql`
+        query GetRecentErrors($since: timestamptz!) {
+          error_logs(where: { created_at: { _gte: $since } }, order_by: { created_at: desc }) {
+            id
+            title
+            message
+            created_at
+          }
+          error_logs_aggregate(where: { created_at: { _gte: $since } }) {
+            aggregate {
+              count
+            }
+          }
+        }
+      `;
+
+      const data = await client.request<{
+        error_logs: Array<{ title: string; message: string }>;
+        error_logs_aggregate: { aggregate: { count: number } };
+      }>(GET_RECENT_ERRORS, { since: sixHoursAgo });
+
+      const totalErrors = data.error_logs_aggregate.aggregate.count;
+
+      if (totalErrors === 0) {
+        console.log('[ErrorDigest] No errors in the last 6 hours');
+        return null;
+      }
+
+      // Group by title and count
+      const titleCounts: Record<string, number> = {};
+      data.error_logs.forEach((e) => {
+        titleCounts[e.title] = (titleCounts[e.title] || 0) + 1;
+      });
+
+      const topErrors = Object.entries(titleCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([title, count]) => ({ title, count }));
+
+      const digestMsg = formatErrorDigest({
+        totalErrors,
+        period: 'Last 6 hours',
+        topErrors,
+      });
+      await sendTelegramMessage(digestMsg);
+      await sendMonitorTelegramMessage(digestMsg);
+
+      console.log(`[ErrorDigest] Sent digest: ${totalErrors} errors`);
+    } catch (error) {
+      console.error('[ErrorDigest] Failed:', error);
+    }
+
+    return null;
+  });
+
+// =====================================================
+// ADMIN AI MONITOR (Scheduled Watchdog)
+// =====================================================
+
+/**
+ * Scheduled: Daily briefing at 8 AM UAE (4 AM UTC)
+ * Sends a comprehensive summary of platform stats to Telegram.
+ */
+export const monitorDailyBriefing = functions.pubsub
+  .schedule('every day 04:00')
+  .timeZone('Asia/Dubai')
+  .onRun(async () => {
+    const { runDailyBriefing } = await import('./monitoring/adminAiMonitor');
+    await runDailyBriefing();
+    return null;
+  });
+
+/**
+ * Scheduled: Stale registration check every 12 hours
+ * Alerts on users who registered 24h+ ago but haven't completed onboarding.
+ */
+export const monitorStaleRegistrations = functions.pubsub
+  .schedule('every 12 hours')
+  .onRun(async () => {
+    const { runStaleRegistrationCheck } = await import('./monitoring/adminAiMonitor');
+    await runStaleRegistrationCheck();
+    return null;
+  });
+
+/**
+ * Scheduled: Site health check every hour
+ * Pings Hasura and checks error rate spikes. Only alerts when unhealthy.
+ */
+export const monitorSiteHealth = functions.pubsub
+  .schedule('every 1 hours')
+  .onRun(async () => {
+    const { runSiteHealthCheck } = await import('./monitoring/adminAiMonitor');
+    await runSiteHealthCheck();
+    return null;
+  });
+
+/**
+ * Scheduled: Revenue report every 24 hours
+ * Reports active subscriptions, expiring subs, cancellations, and revenue.
+ */
+export const monitorRevenue = functions.pubsub
+  .schedule('every 24 hours')
+  .onRun(async () => {
+    const { runRevenueReport } = await import('./monitoring/adminAiMonitor');
+    await runRevenueReport();
+    return null;
+  });
+
+/**
+ * Scheduled: Security monitor every 6 hours
+ * Scans admin_activity_logs for suspicious actions. Only alerts if found.
+ */
+export const monitorSecurity = functions.pubsub
+  .schedule('every 6 hours')
+  .onRun(async () => {
+    const { runSecurityMonitor } = await import('./monitoring/adminAiMonitor');
+    await runSecurityMonitor();
+    return null;
+  });
+
+/**
+ * Scheduled: Monitor maintenance daily at 3 AM UTC
+ * Auto-archives resolved items > 7 days, auto-deletes archived items > 30 days.
+ */
+export const monitorMaintenance = functions.pubsub
+  .schedule('every day 03:00')
+  .onRun(async () => {
+    const { runMonitorMaintenance } = await import('./monitoring/adminAiMonitor');
+    await runMonitorMaintenance();
+    return null;
+  });
 
 // =====================================================
 // HEALTH CHECK

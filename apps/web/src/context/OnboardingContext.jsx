@@ -131,6 +131,7 @@ export const OnboardingProvider = ({ children }) => {
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const saveTimeoutRef = useRef(null);
   const isCompletingRef = useRef(false);
+  const [completionError, setCompletionError] = useState(null);
   const { play: playSound } = useGameSounds();
   const storage = getStorage();
 
@@ -464,7 +465,6 @@ export const OnboardingProvider = ({ children }) => {
       const storageRef = ref(storage, `${folder}/${uid}/${fileName}`);
       const snapshot = await uploadBytes(storageRef, file);
       const downloadUrl = await getDownloadURL(snapshot.ref);
-      console.log(`✅ File uploaded to ${folder}:`, downloadUrl);
       return downloadUrl;
     } catch (error) {
       console.error(`❌ Error uploading file to ${folder}:`, error);
@@ -569,18 +569,10 @@ export const OnboardingProvider = ({ children }) => {
   const completeOnboarding = useCallback(async () => {
     // Guard against double execution (e.g., double-click or re-render)
     if (isCompletingRef.current) {
-      console.warn('⚠️ completeOnboarding already in progress, skipping duplicate call');
       return;
     }
     isCompletingRef.current = true;
-
-    console.log('🎉 Starting onboarding completion...', {
-      userType: state.userType,
-      userId: user?.id,
-      firebaseUser: auth?.currentUser?.uid,
-      hasEmail: !!state.account.email,
-      hasPassword: !!state.account.password,
-    });
+    setCompletionError(null);
 
     // ================================================================
     // CRITICAL FIX: Create Firebase Auth account if not authenticated
@@ -590,8 +582,6 @@ export const OnboardingProvider = ({ children }) => {
     let currentUserId = user?.id || auth?.currentUser?.uid;
 
     if (!currentUserId) {
-      console.log('🔑 No Firebase user found — creating account now...');
-
       if (!state.account.email || !state.account.password) {
         console.error('❌ Cannot create account: missing email or password');
         isCompletingRef.current = false;
@@ -614,8 +604,6 @@ export const OnboardingProvider = ({ children }) => {
         const firebaseUser = userCredential.user;
         currentUserId = firebaseUser.uid;
 
-        console.log('✅ Firebase account created:', currentUserId);
-
         // Set display name
         if (state.formData.full_name) {
           await firebaseUpdateProfile(firebaseUser, {
@@ -628,9 +616,19 @@ export const OnboardingProvider = ({ children }) => {
         localStorage.setItem(FIREBASE_TOKEN_KEY, idToken);
 
         // Wait for AuthContext to pick up the new user via onAuthStateChanged
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Use a polling approach instead of a fixed timeout to ensure auth state propagates
+        const waitForAuth = async (maxWaitMs = 5000) => {
+          const start = Date.now();
+          while (Date.now() - start < maxWaitMs) {
+            if (auth.currentUser && auth.currentUser.uid) {
+              return true;
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+          return !!auth.currentUser?.uid;
+        };
+        await waitForAuth();
 
-        console.log('✅ Firebase token stored, auth state should propagate');
       } catch (accountError) {
         console.error('❌ Failed to create Firebase account:', accountError);
         isCompletingRef.current = false;
@@ -673,23 +671,25 @@ export const OnboardingProvider = ({ children }) => {
       // STEP 0: Set Firebase JWT claims FIRST (before any GraphQL mutations)
       // This ensures the JWT token has the correct Hasura role for database writes
       try {
-        console.log('🔑 Setting Firebase JWT claims for role:', state.userType);
         await setUserTypeClaim(state.userType);
-        // Wait a moment for token to propagate
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('✅ JWT claims set, token refreshed');
+        // Force refresh the token to pick up new claims, then store it
+        if (auth.currentUser) {
+          const freshToken = await auth.currentUser.getIdToken(true);
+          localStorage.setItem(FIREBASE_TOKEN_KEY, freshToken);
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       } catch (claimError) {
-        console.warn('⚠️ Could not set JWT claims via Cloud Function:', claimError.message);
+        // Could not set JWT claims via Cloud Function - try fallback
         // FALLBACK: Force refresh the token to pick up any claims set by authOnUserCreated
         // The authOnUserCreated trigger sets default 'user' claims which still allows writes
         try {
           if (auth.currentUser) {
             const refreshedToken = await auth.currentUser.getIdToken(true);
             localStorage.setItem(FIREBASE_TOKEN_KEY, refreshedToken);
-            console.log('✅ Token force-refreshed (using existing claims from authOnUserCreated)');
           }
         } catch (tokenRefreshError) {
-          console.warn('⚠️ Could not refresh token:', tokenRefreshError.message);
+          // Could not refresh token
         }
       }
 
@@ -715,17 +715,14 @@ export const OnboardingProvider = ({ children }) => {
       };
 
       if (state.formData.facePhoto) {
-        console.log('📸 Uploading profile photo...');
         profilePhotoUrl = await uploadFileToStorage(state.formData.facePhoto, 'profile-photos', userId);
       }
 
       if (state.formData.videoCV) {
-        console.log('🎬 Uploading video CV...');
         videoUrl = await uploadFileToStorage(state.formData.videoCV, 'video-cvs', userId);
       }
 
       if (state.formData.idDocument) {
-        console.log('📄 Uploading ID document...');
         idDocumentUrl = await uploadFileToStorage(state.formData.idDocument, 'id-documents', userId);
       }
 
@@ -762,7 +759,6 @@ export const OnboardingProvider = ({ children }) => {
               }
             }
           }
-          console.log(`✅ Uploaded ${galleryPhotoUrls.length} gallery photos`);
         }
 
         // 3. Prepare complete maid profile data with proper field mapping
@@ -827,16 +823,9 @@ export const OnboardingProvider = ({ children }) => {
 
         // 4. Store gallery photos and documents in maid_documents table (separate from profile)
         // This will be handled by the document service if needed
-        console.log('📸 Gallery photos to be stored:', galleryPhotoUrls.length);
-        console.log('📄 ID Document URL:', idDocumentUrl);
-        console.log('📄 CV Document URL:', cvDocumentUrl);
-
-        console.log('📝 Complete maid profile data:', maidProfileData);
-
         // 3. Save to maid_profiles via AuthContext
         if (createOrUpdateMaidProfile) {
           await createOrUpdateMaidProfile(userId, maidProfileData);
-          console.log('✅ Maid profile saved via createOrUpdateMaidProfile');
 
           // FIX: ALSO update the basic profiles table to ensure login works correctly
           // The profiles table is queried on login - it must have the core data
@@ -848,10 +837,8 @@ export const OnboardingProvider = ({ children }) => {
               avatar_url: profilePhotoUrl,
               user_type: 'maid', // Ensure user type is correctly set
             });
-            console.log('✅ Basic profile also updated for login compatibility');
           }
         } else {
-          console.warn('⚠️ createOrUpdateMaidProfile not available, falling back to updateProfile');
           // Fallback: at least update the basic profile
           if (updateProfile) {
             await updateProfile({
@@ -866,8 +853,6 @@ export const OnboardingProvider = ({ children }) => {
 
       } else if (state.userType === 'sponsor') {
         // ==================== SPONSOR PROFILE ====================
-        console.log('📝 Processing sponsor profile data...');
-
         // Upload sponsor files
         let sponsorPhotoUrl = null;
         let sponsorIdDocUrl = null;
@@ -892,13 +877,10 @@ export const OnboardingProvider = ({ children }) => {
 
         if (updateProfile) {
           await updateProfile(sponsorProfileData);
-          console.log('✅ Sponsor profile saved via updateProfile');
         }
 
       } else if (state.userType === 'agency') {
         // ==================== AGENCY PROFILE ====================
-        console.log('📝 Processing agency profile data...');
-
         // Upload agency files
         let agencyRepPhotoUrl = null;
         let tradeLicenseUrl = null;
@@ -908,32 +890,36 @@ export const OnboardingProvider = ({ children }) => {
           agencyRepPhotoUrl = await uploadFileToStorage(state.formData.facePhoto, 'profile-photos');
         }
 
+        // idDocument from biometric step is the authorized person's ID document
+        if (state.formData.idDocument) {
+          investorIdUrl = await uploadFileToStorage(state.formData.idDocument, 'investor-ids');
+        } else if (state.formData.investorId) {
+          investorIdUrl = await uploadFileToStorage(state.formData.investorId, 'investor-ids');
+        }
+
+        // tradeLicense may be uploaded separately or not collected during onboarding
         if (state.formData.tradeLicense) {
           tradeLicenseUrl = await uploadFileToStorage(state.formData.tradeLicense, 'trade-licenses');
         }
 
-        if (state.formData.investorId) {
-          investorIdUrl = await uploadFileToStorage(state.formData.investorId, 'investor-ids');
-        }
-
         const agencyProfileData = {
-          full_name: state.formData.authorizedPersonName || state.formData.full_name,
-          phone: state.account.phone,
-          country: state.formData.countriesOfOperation?.[0] || '',
+          full_name: state.formData.agencyName || state.formData.full_name,
+          phone: state.formData.contact_phone || state.account.phone,
+          country: state.formData.country || '',
           avatar_url: agencyRepPhotoUrl,
           // Agency-specific fields
           agency_name: state.formData.agencyName || '',
           trade_license_number: state.formData.tradeLicenseNumber || '',
           trade_license_url: tradeLicenseUrl,
           investor_id_url: investorIdUrl,
-          countries_of_operation: state.formData.countriesOfOperation || [],
-          cities_of_operation: state.formData.citiesOfOperation || [],
-          contact_phone: state.formData.contactPhone || state.account.phone,
-          contact_email: state.formData.contactEmail || '',
-          authorized_person_name: state.formData.authorizedPersonName || '',
-          authorized_person_position: state.formData.authorizedPersonTitle || '',
-          services_offered: state.formData.servicesOffered || [],
-          about_agency: state.formData.aboutAgency || '',
+          countries_of_operation: state.formData.source_countries || [],
+          cities_of_operation: state.formData.city ? [state.formData.city] : [],
+          contact_phone: state.formData.contact_phone || state.account.phone,
+          contact_email: state.formData.contact_email || '',
+          authorized_person_name: state.formData.rep_name || '',
+          authorized_person_position: state.formData.rep_position || '',
+          services_offered: state.formData.specializations || state.formData.services || [],
+          about_agency: state.formData.agency_description || '',
           support_hours: state.formData.supportHours || '',
           emergency_contact: state.formData.emergencyContact || '',
           consents_accepted: true,
@@ -947,7 +933,6 @@ export const OnboardingProvider = ({ children }) => {
 
         if (updateProfile) {
           await updateProfile(agencyProfileData);
-          console.log('✅ Agency profile saved via updateProfile');
         }
       }
 
@@ -1058,28 +1043,31 @@ export const OnboardingProvider = ({ children }) => {
           agencyName: state.formData.agencyName || '',
           full_name: state.formData.agencyName || state.formData.full_name || '',
           tradeLicenseNumber: state.formData.tradeLicenseNumber || '',
-          countryOfRegistration: state.formData.countriesOfOperation?.[0] || '',
-          country: state.formData.countriesOfOperation?.[0] || '',
-          contactPhone: state.formData.contactPhone || state.account.phone || '',
-          officialEmail: state.formData.contactEmail || '',
-          headOfficeAddress: state.formData.address || '',
-          operatingCities: state.formData.citiesOfOperation || [],
-          operatingRegions: state.formData.countriesOfOperation || [],
-          servicesOffered: state.formData.servicesOffered || [],
-          aboutAgency: state.formData.aboutAgency || '',
+          countryOfRegistration: state.formData.country || '',
+          country: state.formData.country || '',
+          city: state.formData.city || '',
+          contactPhone: state.formData.contact_phone || state.account.phone || '',
+          officialEmail: state.formData.contact_email || '',
+          headOfficeAddress: state.formData.office_address || '',
+          operatingCities: state.formData.city ? [state.formData.city] : [],
+          operatingRegions: state.formData.source_countries || [],
+          servicesOffered: state.formData.specializations || state.formData.services || [],
+          aboutAgency: state.formData.agency_description || '',
           supportHoursStart: state.formData.supportHoursStart || '09:00',
           supportHoursEnd: state.formData.supportHoursEnd || '17:00',
           emergencyContactPhone: state.formData.emergencyContact || '',
-          authorizedPersonName: state.formData.authorizedPersonName || '',
-          authorizedPersonPosition: state.formData.authorizedPersonTitle || '',
-          authorizedPersonPhone: state.formData.authorizedPersonPhone || '',
-          authorizedPersonEmail: state.formData.authorizedPersonEmail || '',
+          authorizedPersonName: state.formData.rep_name || '',
+          authorizedPersonPosition: state.formData.rep_position || '',
+          authorizedPersonPhone: state.formData.rep_phone || '',
+          authorizedPersonEmail: state.formData.rep_email || '',
           logo: profilePhotoUrl,
+          tradeLicenseDocumentUrl: tradeLicenseUrl,
+          authorizedPersonIdDocumentUrl: investorIdUrl,
         };
         basicProfileData = {
-          full_name: state.formData.authorizedPersonName || state.formData.full_name || '',
-          phone: state.account.phone || '',
-          country: state.formData.countriesOfOperation?.[0] || '',
+          full_name: state.formData.agencyName || state.formData.full_name || '',
+          phone: state.formData.contact_phone || state.account.phone || '',
+          country: state.formData.country || '',
           avatar_url: profilePhotoUrl,
         };
       }
@@ -1090,22 +1078,18 @@ export const OnboardingProvider = ({ children }) => {
       let savedViaCloudFunction = false;
 
       try {
-        console.log('☁️ Attempting to save via Cloud Function (admin secret)...');
         const cfResult = await saveOnboardingProfileViaFunction({
           userType: state.userType,
           profileData,
           basicProfileData,
         });
-        console.log('✅ Cloud Function save succeeded:', cfResult);
         savedViaCloudFunction = true;
       } catch (cfError) {
-        console.warn('⚠️ Cloud Function save failed, falling back to direct GraphQL:', cfError.message);
+        // Cloud Function save failed, fall back to direct GraphQL
       }
 
       // FALLBACK: If Cloud Function failed, try the direct GraphQL mutations
       if (!savedViaCloudFunction) {
-        console.log('🔄 Falling back to direct GraphQL mutations...');
-
         if (state.userType === 'maid') {
           if (createOrUpdateMaidProfile) {
             // Re-build maid data with camelCase names for AuthContext function
@@ -1144,7 +1128,6 @@ export const OnboardingProvider = ({ children }) => {
               onboarding_completed_at: new Date().toISOString(),
             };
             await createOrUpdateMaidProfile(userId, maidProfileData);
-            console.log('✅ Maid profile saved via direct mutation');
           }
         } else if (state.userType === 'sponsor') {
           if (createOrUpdateSponsorProfile) {
@@ -1200,17 +1183,6 @@ export const OnboardingProvider = ({ children }) => {
               profile_completed_at: new Date().toISOString(),
             };
 
-            // DEBUG: Log the exact data being sent to mutation
-            console.log('📊 Sponsor profile data for fallback save:', JSON.stringify({
-              full_name: sponsorProfileData.full_name,
-              household_size: sponsorProfileData.household_size,
-              salary_budget_min: sponsorProfileData.salary_budget_min,
-              salary_budget_max: sponsorProfileData.salary_budget_max,
-              preferred_nationality: sponsorProfileData.preferred_nationality,
-              onboarding_completed: sponsorProfileData.onboarding_completed,
-              live_in_required: sponsorProfileData.live_in_required,
-            }));
-
             const mutationResult = await createOrUpdateSponsorProfile(userId, sponsorProfileData);
 
             if (!mutationResult || !mutationResult.id) {
@@ -1219,12 +1191,10 @@ export const OnboardingProvider = ({ children }) => {
               // Throw to trigger the error toast so user knows to retry
               throw new Error('Profile save returned null. Please try logging out and back in, then retry.');
             }
-            console.log('✅ Sponsor profile saved via direct mutation:', mutationResult);
           }
         } else if (state.userType === 'agency') {
           if (createOrUpdateAgencyProfile) {
             await createOrUpdateAgencyProfile(userId, profileData);
-            console.log('✅ Agency profile saved via direct mutation');
           }
         }
 
@@ -1252,21 +1222,32 @@ export const OnboardingProvider = ({ children }) => {
               },
             },
           });
-          console.log('✅ Basic profiles table updated (fallback path)');
         } catch (profilesTableError) {
-          console.warn('⚠️ Could not update profiles table:', profilesTableError.message);
+          // Could not update profiles table in fallback path
         }
       }
 
       // ================================================================
       // STEP 4: Set registration_complete flag (if not already done by CF)
       // ================================================================
-      if (!savedViaCloudFunction && updateRegistrationStatus) {
+      if (!savedViaCloudFunction) {
         try {
-          await updateRegistrationStatus(true);
-          console.log('✅ Registration status set to complete');
+          // Use direct Apollo mutation instead of AuthContext function
+          // (AuthContext.user may not be populated yet during onboarding)
+          const SET_REG_COMPLETE = gql`
+            mutation SetRegistrationComplete($id: String!, $now: timestamptz!) {
+              update_profiles_by_pk(pk_columns: {id: $id}, _set: {registration_complete: true, updated_at: $now}) {
+                id
+                registration_complete
+              }
+            }
+          `;
+          await apolloClient.mutate({
+            mutation: SET_REG_COMPLETE,
+            variables: { id: userId, now: new Date().toISOString() },
+          });
         } catch (regError) {
-          console.warn('⚠️ Could not set registration status:', regError.message);
+          // Could not set registration status
         }
       }
 
@@ -1274,13 +1255,10 @@ export const OnboardingProvider = ({ children }) => {
       if (refreshUserProfile) {
         try {
           await refreshUserProfile();
-          console.log('✅ User profile refreshed in AuthContext');
         } catch (refreshError) {
-          console.warn('⚠️ Could not refresh user profile:', refreshError.message);
+          // Could not refresh user profile
         }
       }
-
-      console.log('✅ Onboarding completed successfully!');
 
       // Show success toast
       toast({
@@ -1291,6 +1269,7 @@ export const OnboardingProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Error during onboarding completion:', error);
       isCompletingRef.current = false; // Reset guard so user can retry
+      setCompletionError(error.message || 'An unexpected error occurred. Please try again.');
 
       // FIX: Show clear error message and DO NOT mark as complete on failure
       toast({
@@ -1302,7 +1281,6 @@ export const OnboardingProvider = ({ children }) => {
       // FIX: DO NOT mark registration as complete on failure
       // DO NOT clear draft - keep the data for retry
       // DO NOT navigate away - let user retry
-      console.log('⚠️ Onboarding failed - data preserved in localStorage for retry');
       return; // STOP - don't proceed to dashboard
     }
 
@@ -1318,8 +1296,6 @@ export const OnboardingProvider = ({ children }) => {
       : state.userType === 'agency'
       ? '/dashboard/agency'
       : '/dashboard';
-
-    console.log('🚀 Navigating to dashboard:', dashboardPath);
 
     // Navigate to user-specific dashboard after celebration
     setTimeout(() => {
@@ -1386,6 +1362,7 @@ export const OnboardingProvider = ({ children }) => {
     // Computed
     getProgressPercentage,
     canProceed,
+    completionError,
   };
 
   return (

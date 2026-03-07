@@ -328,7 +328,6 @@ const UnifiedMaidForm = ({
   React.useEffect(() => {
     // Skip draft restoration for new/add forms
     if (skipDraftRestore) {
-      console.log('📝 UnifiedMaidForm: Skipping draft restore (fresh form)');
       return;
     }
 
@@ -390,7 +389,7 @@ const UnifiedMaidForm = ({
     try {
       localStorage.removeItem(draftKey);
     } catch (e) {
-      console.warn('UnifiedMaidForm: unable to clear draft');
+      // silently ignore draft clear failures
     }
   };
   // Saved timestamp for autosave indicator
@@ -523,7 +522,7 @@ const UnifiedMaidForm = ({
           try {
             URL.revokeObjectURL(prevUrl);
           } catch (e) {
-            console.warn('UnifiedMaidForm: failed to revoke blob URL');
+            // silently ignore blob URL revoke failures
           }
         }
         return {
@@ -543,7 +542,7 @@ const UnifiedMaidForm = ({
         try {
           URL.revokeObjectURL(prevUrl);
         } catch (e) {
-          console.warn('UnifiedMaidForm: failed to revoke blob URL');
+          // silently ignore blob URL revoke failures
         }
       }
       return { ...prev, [field]: { file: null, previewUrl: '', watermarked: false } };
@@ -868,7 +867,7 @@ const UnifiedMaidForm = ({
         try {
           URL.revokeObjectURL(u);
         } catch (e) {
-          console.warn('UnifiedMaidForm: failed to revoke blob URL');
+          // silently ignore blob URL revoke failures
         }
       });
     };

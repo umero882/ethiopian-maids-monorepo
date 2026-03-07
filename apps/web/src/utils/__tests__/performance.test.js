@@ -253,14 +253,10 @@ describe('PerformanceMonitor', () => {
         throw new Error('Measure failed');
       });
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       monitor.measure('failingMeasure', 'nonexistent', 'marks');
 
-      expect(consoleSpy).toHaveBeenCalledWith('Performance measure failed:', expect.any(Error));
+      // Should silently handle the error without crashing
       expect(monitor.metrics.has('measure_failingMeasure')).toBe(false);
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -321,13 +317,8 @@ describe('PerformanceMonitor', () => {
         throw new Error('Disconnect failed');
       });
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-      monitor.cleanup();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Error disconnecting performance observer:', expect.any(Error));
-
-      consoleSpy.mockRestore();
+      // Should handle cleanup errors gracefully without crashing
+      expect(() => monitor.cleanup()).not.toThrow();
     });
   });
 

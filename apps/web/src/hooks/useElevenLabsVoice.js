@@ -114,9 +114,6 @@ export const useElevenLabsVoice = () => {
         typeof window !== 'undefined' &&
         !window.customElements?.get('elevenlabs-convai')
       ) {
-        console.warn(
-          '⚠️ ElevenLabs ConvAI custom element not yet registered, waiting...'
-        );
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Final check after waiting

@@ -6,7 +6,8 @@
     "codegen": "dotenv -- graphql-codegen --config codegen.yml",
     "codegen:watch": "dotenv -- graphql-codegen --config codegen.yml --watch",
     "codegen:relay": "dotenv -- graphql-codegen --config codegen-relay.yml",
-    "codegen:all": "pnpm codegen && pnpm codegen:relay"
+    "codegen:all": "pnpm codegen && pnpm codegen:relay",
+    "prepare": "husky"
   },
   "private": true,
   "devDependencies": {

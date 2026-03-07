@@ -2072,6 +2072,117 @@
         },
         {
           "table": {
+            "name": "crash_reports",
+            "schema": "public"
+          },
+          "insert_permissions": [
+            {
+              "role": "admin",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "id",
+                  "user_id",
+                  "error_type",
+                  "error_message",
+                  "error_stack",
+                  "component_name",
+                  "page_url",
+                  "user_agent",
+                  "app_version",
+                  "severity",
+                  "metadata",
+                  "resolved",
+                  "created_at"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "maid",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "error_type",
+                  "error_message",
+                  "error_stack",
+                  "component_name",
+                  "page_url",
+                  "user_agent",
+                  "app_version",
+                  "severity",
+                  "metadata"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "sponsor",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "error_type",
+                  "error_message",
+                  "error_stack",
+                  "component_name",
+                  "page_url",
+                  "user_agent",
+                  "app_version",
+                  "severity",
+                  "metadata"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "agency",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "error_type",
+                  "error_message",
+                  "error_stack",
+                  "component_name",
+                  "page_url",
+                  "user_agent",
+                  "app_version",
+                  "severity",
+                  "metadata"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "admin",
+              "permission": {
+                "columns": [
+                  "id",
+                  "user_id",
+                  "error_type",
+                  "error_message",
+                  "error_stack",
+                  "component_name",
+                  "page_url",
+                  "user_agent",
+                  "app_version",
+                  "severity",
+                  "metadata",
+                  "resolved",
+                  "created_at"
+                ],
+                "filter": {}
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
             "name": "credit_transactions",
             "schema": "public"
           },
@@ -2087,6 +2198,113 @@
               "using": {
                 "foreign_key_constraint_on": "user_id"
               }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "customer_feedback",
+            "schema": "public"
+          },
+          "insert_permissions": [
+            {
+              "role": "admin",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "id",
+                  "user_id",
+                  "user_type",
+                  "feedback_type",
+                  "category",
+                  "rating",
+                  "message",
+                  "page_url",
+                  "user_agent",
+                  "status",
+                  "admin_notes",
+                  "resolved_at",
+                  "created_at",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "maid",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "user_type",
+                  "feedback_type",
+                  "category",
+                  "rating",
+                  "message",
+                  "page_url",
+                  "user_agent"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "sponsor",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "user_type",
+                  "feedback_type",
+                  "category",
+                  "rating",
+                  "message",
+                  "page_url",
+                  "user_agent"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "agency",
+              "permission": {
+                "check": {},
+                "columns": [
+                  "user_id",
+                  "user_type",
+                  "feedback_type",
+                  "category",
+                  "rating",
+                  "message",
+                  "page_url",
+                  "user_agent"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "admin",
+              "permission": {
+                "columns": [
+                  "id",
+                  "user_id",
+                  "user_type",
+                  "feedback_type",
+                  "category",
+                  "rating",
+                  "message",
+                  "page_url",
+                  "user_agent",
+                  "status",
+                  "admin_notes",
+                  "resolved_at",
+                  "created_at",
+                  "updated_at"
+                ],
+                "filter": {}
+              },
+              "comment": ""
             }
           ]
         },

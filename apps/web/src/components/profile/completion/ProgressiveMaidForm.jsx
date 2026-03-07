@@ -179,7 +179,7 @@ const ProgressiveMaidForm = ({
         localStorage.setItem(draftKey, JSON.stringify(formData));
         setLastSavedAt(new Date());
       } catch (error) {
-        console.warn('Failed to save form draft:', error);
+        // silently ignore draft save failure
       }
     }, 1000);
     return () => clearTimeout(timer);
@@ -349,7 +349,7 @@ const ProgressiveMaidForm = ({
         }));
 
       } catch (error) {
-        console.warn('Error generating About Me text:', error);
+        // About Me text generation failed, use fallback
         // Fallback to basic template
         const basicTemplate = `I am a dedicated domestic worker committed to providing excellent household services. I take pride in maintaining a clean, safe, and comfortable home environment for families. My goal is to support busy families by managing household tasks with reliability and care. I am trustworthy, respectful, and always eager to meet each family's unique needs and preferences.`;
 

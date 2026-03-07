@@ -184,24 +184,24 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
   // Fetch subscription from database - using useCallback to stabilize reference
   const fetchSubscription = useCallback(async () => {
     if (!user?.id) {
-      console.log('[SubscriptionContext] No user ID, skipping fetch');
       return;
     }
 
-    console.log('[SubscriptionContext] Fetching subscription for user:', user.id);
+    // Gate: Don't fetch if the user hasn't completed registration yet
+    // This prevents Hasura JWT claims errors during onboarding
+    if (!user?.registrationComplete && !user?.userType) {
+      return;
+    }
 
     try {
       setLoading(true);
       const subscription = await subscriptionService.getActiveSubscription(user.id);
-
-      console.log('[SubscriptionContext] Subscription fetched:', subscription);
 
       if (subscription) {
         setDbSubscription(subscription);
 
         // Update local state from database
         const planType = subscriptionService.getPlanType(subscription);
-        console.log('[SubscriptionContext] Setting plan type to:', planType);
         setSubscriptionPlan(planType);
 
         setSubscriptionDetails({
@@ -214,11 +214,8 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
           status: subscription.status,
           features: subscription.features,
         });
-
-        console.log('[SubscriptionContext] Subscription state updated successfully');
       } else {
         // User is on free plan
-        console.log('[SubscriptionContext] No subscription found, setting FREE plan');
         setDbSubscription(null);
         setSubscriptionPlan(SUBSCRIPTION_PLANS.FREE);
       }
@@ -232,13 +229,11 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
 
   // Fetch subscription on mount or when user changes
   useEffect(() => {
-    console.log('[SubscriptionContext] useEffect triggered, user.id:', user?.id);
     fetchSubscription();
   }, [fetchSubscription]);
 
   // Expose refresh function to allow manual subscription refresh
   const refreshSubscription = useCallback(async () => {
-    console.log('[SubscriptionContext] refreshSubscription called');
     await fetchSubscription();
   }, [fetchSubscription]);
 

@@ -148,7 +148,7 @@ const MaidOverview = () => {
           );
           hasPassportDoc = PASSPORT_ALIASES.some(alias => docTypes.has(alias));
         } catch (docErr) {
-          console.warn('Error fetching maid documents:', docErr);
+          // silently ignore maid documents fetch error
         }
 
         let profileData;

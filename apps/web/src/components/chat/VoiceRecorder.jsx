@@ -91,8 +91,6 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel, maxDuration = 180 }) => 
         mimeType = 'audio/ogg';
       }
 
-      console.log('[VoiceRecorder] Using mimeType:', mimeType);
-
       // MediaRecorder for actual recording
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType,
@@ -133,7 +131,6 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel, maxDuration = 180 }) => 
       // Start waveform sampling
       sampleWaveform();
 
-      console.log('[VoiceRecorder] Recording started');
     } catch (error) {
       console.error('[VoiceRecorder] Failed to start recording:', error);
       onCancel();
@@ -184,7 +181,6 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel, maxDuration = 180 }) => 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
-    console.log('[VoiceRecorder] Recording stopped');
   }, []);
 
   const handleCancel = useCallback(() => {

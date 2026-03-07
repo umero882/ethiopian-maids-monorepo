@@ -160,7 +160,7 @@ class PerformanceMonitor {
           this.recordMetric(`measure_${name}`, measure.duration);
         }
       } catch (e) {
-        console.warn('Performance measure failed:', e);
+        // performance measure failed
       }
     }
   }
@@ -244,7 +244,7 @@ class PerformanceMonitor {
           observer.disconnect();
         }
       } catch (e) {
-        console.warn('Error disconnecting performance observer:', e);
+        // silently ignore observer disconnect error
       }
     });
     this.observers = [];
@@ -254,7 +254,7 @@ class PerformanceMonitor {
       try {
         this.eventCleanup();
       } catch (e) {
-        console.warn('Error cleaning up event listeners:', e);
+        // silently ignore event listener cleanup error
       }
       this.eventCleanup = null;
     }

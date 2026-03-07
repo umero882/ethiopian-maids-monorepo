@@ -49,7 +49,7 @@ const ProfileCompletionGate = ({
         setIsComplete(progress.progressPercentage === 100 && user?.registration_complete);
       }
     } catch (error) {
-      console.warn('Error loading profile progress:', error);
+      // Error loading profile progress - silently handled
     }
   }, [user]);
 

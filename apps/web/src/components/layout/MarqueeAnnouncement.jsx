@@ -52,21 +52,19 @@ const MarqueeAnnouncement = () => {
       const v = localStorage.getItem(STORAGE_KEY);
       if (v === 'true') setDismissed(true);
     } catch (e) {
-      console.warn('Marquee: unable to read dismissal flag');
+      // silently ignore storage read failure
     }
   }, []);
 
   // Force animation to start
   useEffect(() => {
     if (marqueeRef.current && !dismissed && announcements.length > 0) {
-      console.log('[MarqueeAnnouncement] Starting animation with', announcements.length, 'items');
       // Force reflow to ensure animation starts
       marqueeRef.current.style.animation = 'none';
       marqueeRef.current.offsetHeight; // Force reflow
       setTimeout(() => {
         if (marqueeRef.current) {
           marqueeRef.current.style.animation = 'marqueeScroll 60s linear infinite';
-          console.log('[MarqueeAnnouncement] Animation started');
         }
       }, 50);
     }
@@ -112,7 +110,7 @@ const MarqueeAnnouncement = () => {
               onClick={() => {
                 setDismissed(true);
                 try { localStorage.setItem(STORAGE_KEY, 'true'); } catch (e) {
-                  console.warn('Marquee: unable to persist dismissal');
+                  // silently ignore storage write failure
                 }
               }}
               aria-label='Dismiss announcements'

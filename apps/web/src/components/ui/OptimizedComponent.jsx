@@ -60,7 +60,7 @@ export const useExpensiveComputation = (computeFn, deps, options = {}) => {
 
     // Log if computation takes longer than 50ms
     if (endTime - startTime > 50) {
-      console.warn(`Expensive computation took ${endTime - startTime}ms`);
+      // expensive computation detected
     }
 
     return result;
@@ -93,7 +93,7 @@ export const createLazyComponent = (importFn, options = {}) => {
       } catch (error) {
         attempts++;
         if (attempts < retryCount) {
-          console.warn(`Component load failed, retrying... (${attempts}/${retryCount})`);
+          // retry after load failure
           // Wait before retrying (exponential backoff)
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
           return loadWithRetry();
@@ -125,7 +125,7 @@ export const usePerformanceMonitor = (componentName) => {
     const renderTime = endTime - startTime;
 
     if (renderTime > 100) {
-      console.warn(`${componentName} took ${renderTime}ms to render`);
+      // slow render detected
     }
   });
 
@@ -136,7 +136,7 @@ export const usePerformanceMonitor = (componentName) => {
       const actionEnd = performance.now();
 
       if (actionEnd - actionStart > 50) {
-        console.warn(`${componentName}.${actionName} took ${actionEnd - actionStart}ms`);
+        // slow action detected
       }
 
       return result;

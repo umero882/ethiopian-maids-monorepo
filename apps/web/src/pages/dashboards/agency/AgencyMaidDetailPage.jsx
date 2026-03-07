@@ -373,14 +373,10 @@ const AgencyMaidDetailPage = () => {
       // Store in maids/{maidId}/documents/ folder structure
       const filePath = `maids/${id}/documents/${fileName}`;
 
-      console.log('Uploading document to Firebase...', { filePath, fileName: file.name });
-
       // Upload to Firebase Storage with progress tracking
       const { url: documentUrl } = await uploadFile(file, filePath, (progress) => {
         setUploadProgress(progress);
       });
-
-      console.log('Document uploaded to Firebase:', documentUrl);
 
       // Save document metadata to database
       const { data: insertData, errors } = await apolloClient.mutate({
@@ -403,8 +399,6 @@ const AgencyMaidDetailPage = () => {
         console.error('Error saving document to database:', errors);
         throw new Error(errors[0]?.message || 'Failed to save document');
       }
-
-      console.log('Document saved to database:', insertData);
 
       // Refresh documents list
       await fetchDocuments(id);

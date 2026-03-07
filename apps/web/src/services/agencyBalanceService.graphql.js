@@ -224,7 +224,7 @@ export const graphqlAgencyBalanceService = {
         return dbFee;
       }
     } catch (error) {
-      console.warn('Error fetching platform fee requirement:', error);
+      // Error fetching platform fee requirement
     }
 
     // Fallback to GCC defaults (equivalent to 500 AED)

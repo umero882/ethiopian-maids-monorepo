@@ -45,7 +45,7 @@ const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:5173
 
 // Validate Firebase Auth is initialized
 if (!auth) {
-  console.error('❌ Firebase Auth is not initialized');
+  console.error('Firebase Auth is not initialized');
   console.error('Check your Firebase configuration in firebaseClient.js');
   throw new Error('Firebase Auth not initialized for Identity module');
 }
@@ -71,7 +71,6 @@ const emailService = new SendGridEmailService({
 // Simple event bus (can be replaced with a more sophisticated implementation)
 const eventBus = {
   publish: (event) => {
-    console.log(`[Event] ${event.type}`, event.payload);
     // In production, this could publish to a message queue, webhook, etc.
   },
 };
@@ -204,27 +203,3 @@ export {
   emailService,
   eventBus,
 };
-
-// =============================================================================
-// STATUS CHECK
-// =============================================================================
-
-console.log('✅ Identity Module initialized (Firebase + Hasura)');
-console.log('📦 Use-cases available:', Object.keys({
-  registerUser,
-  signIn,
-  signOut,
-  getUser,
-  verifyUserEmail,
-  requestPasswordReset,
-  resetPassword,
-  updateUser,
-}).join(', '));
-
-// Log configuration status (without revealing secrets)
-console.log('🔧 Configuration:');
-console.log('  - Firebase Auth:', auth ? 'initialized' : 'not initialized');
-console.log('  - Hasura GraphQL: configured');
-console.log('  - SendGrid configured:', !!SENDGRID_API_KEY);
-console.log('  - From Email:', SENDGRID_FROM_EMAIL);
-console.log('  - App Base URL:', APP_BASE_URL);

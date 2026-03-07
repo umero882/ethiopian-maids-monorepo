@@ -244,6 +244,7 @@ const AdminContentProfilesPage = () => {
       }));
     } catch (err) {
       logger.error('Failed to fetch stats:', err);
+      console.error('[AdminContentProfiles] Stats fetch error:', err?.message || err);
     }
   }, []);
 
@@ -296,7 +297,7 @@ const AdminContentProfilesPage = () => {
         variables: {
           limit: itemsPerPage,
           offset: (currentPage - 1) * itemsPerPage,
-          where: Object.keys(where).length > 0 ? where : undefined
+          where: Object.keys(where).length > 0 ? where : {}
         },
         fetchPolicy: 'network-only'
       });
@@ -318,7 +319,8 @@ const AdminContentProfilesPage = () => {
       setTotalCount(data?.profiles_aggregate?.aggregate?.count || 0);
     } catch (err) {
       logger.error('Failed to fetch profiles:', err);
-      setError(err.message);
+      console.error('[AdminContentProfiles] Profiles fetch error:', err?.message || err);
+      setError(err.message || 'Unknown error');
       toast({
         title: 'Error',
         description: 'Failed to load profiles. Please try again.',

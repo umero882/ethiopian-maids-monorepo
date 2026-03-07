@@ -137,7 +137,7 @@ const AgencyDocumentsPage = () => {
         setDocuments(docsData || []);
         setComplianceChecklist(complianceData || []);
       } catch (legacyError) {
-        console.warn('Legacy documents system not available:', legacyError.message);
+        // Legacy documents system not available
         setDocuments([]);
         setComplianceChecklist([]);
       }

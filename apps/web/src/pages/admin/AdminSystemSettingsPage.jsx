@@ -4,17 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AlertTriangle,
   Save,
@@ -26,7 +18,10 @@ import {
   Clock,
   Globe,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Calendar,
+  Bell,
+  Send,
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { apolloClient } from '@ethio/api-client';
@@ -47,13 +42,29 @@ const GET_SYSTEM_SETTINGS = gql`
 `;
 
 const UPSERT_SYSTEM_SETTING = gql`
-  mutation UpsertSystemSetting($setting_key: String!, $setting_value: String!, $updated_at: timestamptz!) {
+  mutation UpsertSystemSetting($setting_key: String!, $setting_value: jsonb!, $updated_at: timestamptz!) {
     insert_system_settings_one(
       object: { setting_key: $setting_key, setting_value: $setting_value, updated_at: $updated_at }
-      on_conflict: { constraint: system_settings_pkey, update_columns: [setting_value, updated_at] }
+      on_conflict: { constraint: system_settings_setting_key_key, update_columns: [setting_value, updated_at] }
     ) {
       setting_key
       setting_value
+    }
+  }
+`;
+
+const GET_ALL_USER_IDS = gql`
+  query GetAllUserIds {
+    profiles(where: { is_active: { _eq: true } }) {
+      id
+    }
+  }
+`;
+
+const CREATE_BULK_NOTIFICATIONS = gql`
+  mutation CreateBulkNotifications($data: [notifications_insert_input!]!) {
+    insert_notifications(objects: $data) {
+      affected_rows
     }
   }
 `;
@@ -65,6 +76,7 @@ const AdminSystemSettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [notifying, setNotifying] = useState(false);
 
   const settingsConfig = [
     {
@@ -107,8 +119,8 @@ const AdminSystemSettingsPage = () => {
           label: 'Max Upload Size (MB)',
           description: 'Maximum file size for uploads in megabytes',
           icon: Upload,
-          transform: (value) => Math.round(value / 1048576), // bytes to MB
-          reverseTransform: (value) => value * 1048576 // MB to bytes
+          transform: (value) => Math.max(0, Math.round(value / 1048576)), // bytes to MB
+          reverseTransform: (value) => Math.max(0, value) * 1048576 // MB to bytes
         }
       ]
     },
@@ -174,21 +186,7 @@ const AdminSystemSettingsPage = () => {
 
       const settingsMap = {};
       settingsData.forEach(setting => {
-        try {
-          // Parse JSON values, handle both JSON and plain strings
-          let value = setting.setting_value;
-          if (typeof value === 'string') {
-            try {
-              value = JSON.parse(value);
-            } catch {
-              // If parsing fails, keep as string
-            }
-          }
-          settingsMap[setting.setting_key] = value;
-        } catch (parseError) {
-          log.warn(`Failed to parse setting ${setting.setting_key}:`, parseError);
-          settingsMap[setting.setting_key] = setting.setting_value;
-        }
+        settingsMap[setting.setting_key] = setting.setting_value;
       });
 
       setSettings(settingsMap);
@@ -209,11 +207,58 @@ const AdminSystemSettingsPage = () => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
 
-    // Check if settings have changed
     const hasChanges = Object.keys(newSettings).some(k => {
       return JSON.stringify(newSettings[k]) !== JSON.stringify(originalSettings[k]);
     });
     setIsDirty(hasChanges);
+  };
+
+  // Send in-app notifications to all active users
+  const sendMaintenanceNotifications = async (type) => {
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_ALL_USER_IDS,
+        fetchPolicy: 'network-only',
+      });
+
+      const userIds = data?.profiles?.map(p => p.id) || [];
+      if (userIds.length === 0) return 0;
+
+      const platformName = settings.platform_name || 'Ethiopian Maids';
+      const scheduledEnd = settings.maintenance_scheduled_end;
+
+      let title, message;
+      if (type === 'maintenance_started') {
+        title = 'Scheduled Maintenance';
+        message = `${platformName} is undergoing scheduled maintenance. ${scheduledEnd ? `Expected back online: ${new Date(scheduledEnd).toLocaleString()}.` : 'We\'ll be back shortly.'} Thank you for your patience.`;
+      } else {
+        title = 'We\'re Back Online!';
+        message = `${platformName} maintenance is complete. All services are now restored. Thank you for your patience!`;
+      }
+
+      const notifications = userIds.map(userId => ({
+        user_id: userId,
+        type: 'system_announcement',
+        title,
+        message,
+        priority: type === 'maintenance_started' ? 'high' : 'medium',
+        link: '/',
+      }));
+
+      // Insert in batches of 100
+      for (let i = 0; i < notifications.length; i += 100) {
+        const batch = notifications.slice(i, i + 100);
+        await apolloClient.mutate({
+          mutation: CREATE_BULK_NOTIFICATIONS,
+          variables: { data: batch },
+        });
+      }
+
+      return userIds.length;
+    } catch (error) {
+      log.error('Failed to send maintenance notifications:', error);
+      throw error;
+    }
   };
 
   const saveSettings = async () => {
@@ -250,7 +295,7 @@ const AdminSystemSettingsPage = () => {
           mutation: UPSERT_SYSTEM_SETTING,
           variables: {
             setting_key: key,
-            setting_value: JSON.stringify(value),
+            setting_value: value,
             updated_at: new Date().toISOString()
           }
         });
@@ -267,22 +312,47 @@ const AdminSystemSettingsPage = () => {
         }, {})
       });
 
-      setOriginalSettings({ ...settings });
-      setIsDirty(false);
+      // Auto-notify users on maintenance mode changes
+      const maintenanceJustEnabled = changedSettings.includes('maintenance_mode') && settings.maintenance_mode && !originalSettings.maintenance_mode;
+      const maintenanceJustDisabled = changedSettings.includes('maintenance_mode') && !settings.maintenance_mode && originalSettings.maintenance_mode;
 
-      toast({
-        title: 'Settings Saved',
-        description: `Successfully updated ${changedSettings.length} setting(s).`,
-      });
-
-      // Show warning for sensitive settings
-      if (changedSettings.includes('maintenance_mode') && settings.maintenance_mode) {
+      if (maintenanceJustEnabled) {
+        try {
+          const count = await sendMaintenanceNotifications('maintenance_started');
+          toast({
+            title: 'Maintenance Mode Enabled',
+            description: `Platform is in maintenance mode. ${count} user(s) notified.`,
+            variant: 'destructive',
+          });
+        } catch {
+          toast({
+            title: 'Maintenance Mode Enabled',
+            description: 'Platform is in maintenance mode. Failed to send user notifications.',
+            variant: 'destructive',
+          });
+        }
+      } else if (maintenanceJustDisabled) {
+        try {
+          const count = await sendMaintenanceNotifications('maintenance_ended');
+          toast({
+            title: 'Site Back Online',
+            description: `Maintenance mode disabled. ${count} user(s) notified that the site is back online.`,
+          });
+        } catch {
+          toast({
+            title: 'Site Back Online',
+            description: 'Maintenance mode disabled. Failed to send user notifications.',
+          });
+        }
+      } else {
         toast({
-          title: 'Maintenance Mode Enabled',
-          description: 'The platform is now in maintenance mode. Users will not be able to access the platform.',
-          variant: 'destructive',
+          title: 'Settings Saved',
+          description: `Successfully updated ${changedSettings.length} setting(s).`,
         });
       }
+
+      setOriginalSettings({ ...settings });
+      setIsDirty(false);
 
     } catch (error) {
       log.error('Error saving settings:', error);
@@ -293,6 +363,27 @@ const AdminSystemSettingsPage = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Manual notify button for sending notifications without toggling maintenance
+  const handleManualNotify = async (type) => {
+    setNotifying(true);
+    try {
+      const count = await sendMaintenanceNotifications(type);
+      toast({
+        title: 'Notifications Sent',
+        description: `${count} user(s) have been notified.`,
+      });
+      await logAdminActivity('maintenance_notification_sent', 'settings', type, { users_notified: count });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to send notifications.',
+        variant: 'destructive',
+      });
+    } finally {
+      setNotifying(false);
     }
   };
 
@@ -391,6 +482,31 @@ const AdminSystemSettingsPage = () => {
     }
   };
 
+  // Convert ISO string to datetime-local input value
+  const toLocalDatetime = (isoString) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    // Format: YYYY-MM-DDTHH:MM
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  // Convert datetime-local input value to ISO string
+  const fromLocalDatetime = (value) => {
+    if (!value) return null;
+    return new Date(value).toISOString();
+  };
+
+  const isScheduleActive = () => {
+    const start = settings.maintenance_scheduled_start;
+    const end = settings.maintenance_scheduled_end;
+    if (!start && !end) return false;
+    const now = new Date();
+    if (start && new Date(start) > now) return false;
+    if (end && new Date(end) < now) return false;
+    return true;
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -441,19 +557,20 @@ const AdminSystemSettingsPage = () => {
       </div>
 
       {/* Warning for maintenance mode */}
-      {settings.maintenance_mode && (
+      {(settings.maintenance_mode || isScheduleActive()) && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Warning:</strong> Maintenance mode is currently enabled.
-            The platform is inaccessible to regular users.
+            <strong>Warning:</strong> {settings.maintenance_mode
+              ? 'Maintenance mode is currently enabled. The platform is inaccessible to regular users.'
+              : 'Scheduled maintenance is currently active. The platform is inaccessible to regular users.'}
           </AlertDescription>
         </Alert>
       )}
 
       {/* Settings Sections */}
       <div className="space-y-6">
-        {settingsConfig.map((section, index) => (
+        {settingsConfig.map((section) => (
           <Card key={section.section}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -474,6 +591,135 @@ const AdminSystemSettingsPage = () => {
             </CardContent>
           </Card>
         ))}
+
+        {/* Maintenance Schedule Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Maintenance Schedule
+            </CardTitle>
+            <CardDescription>
+              Schedule maintenance windows. The site will automatically show a maintenance page during the scheduled time.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="maintenance_scheduled_start" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Start Date & Time
+                </Label>
+                <Input
+                  id="maintenance_scheduled_start"
+                  type="datetime-local"
+                  value={toLocalDatetime(settings.maintenance_scheduled_start)}
+                  onChange={(e) => updateSetting('maintenance_scheduled_start', fromLocalDatetime(e.target.value))}
+                  disabled={!canAccess('system', 'write')}
+                />
+                <p className="text-sm text-muted-foreground">When maintenance begins</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maintenance_scheduled_end" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  End Date & Time
+                </Label>
+                <Input
+                  id="maintenance_scheduled_end"
+                  type="datetime-local"
+                  value={toLocalDatetime(settings.maintenance_scheduled_end)}
+                  onChange={(e) => updateSetting('maintenance_scheduled_end', fromLocalDatetime(e.target.value))}
+                  disabled={!canAccess('system', 'write')}
+                />
+                <p className="text-sm text-muted-foreground">When maintenance ends (shown to users)</p>
+              </div>
+            </div>
+
+            {/* Schedule status */}
+            {(settings.maintenance_scheduled_start || settings.maintenance_scheduled_end) && (
+              <div className={`flex items-center gap-2 text-sm p-3 rounded-lg ${isScheduleActive() ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+                <Calendar className="h-4 w-4" />
+                {isScheduleActive() ? (
+                  <span><strong>Active now</strong> — Site is in scheduled maintenance</span>
+                ) : settings.maintenance_scheduled_start && new Date(settings.maintenance_scheduled_start) > new Date() ? (
+                  <span><strong>Upcoming</strong> — Maintenance scheduled for {new Date(settings.maintenance_scheduled_start).toLocaleString()}</span>
+                ) : (
+                  <span><strong>Expired</strong> — This schedule has passed</span>
+                )}
+              </div>
+            )}
+
+            {/* Clear schedule button */}
+            {(settings.maintenance_scheduled_start || settings.maintenance_scheduled_end) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  updateSetting('maintenance_scheduled_start', null);
+                  updateSetting('maintenance_scheduled_end', null);
+                }}
+                disabled={!canAccess('system', 'write')}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Clear Schedule
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* User Notifications Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Maintenance Notifications
+            </CardTitle>
+            <CardDescription>
+              Send in-app notifications to all users. Notifications are sent automatically when toggling maintenance mode.
+              Use these buttons to send manual notifications.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+              <span>Notifications are automatically sent when you enable or disable maintenance mode via the toggle above.</span>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Manual Notifications</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleManualNotify('maintenance_started')}
+                  disabled={notifying || !canAccess('system', 'write')}
+                  className="flex-1"
+                >
+                  {notifying ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  Notify: Maintenance Starting
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleManualNotify('maintenance_ended')}
+                  disabled={notifying || !canAccess('system', 'write')}
+                  className="flex-1"
+                >
+                  {notifying ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                  )}
+                  Notify: Site Back Online
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Save Changes Banner */}

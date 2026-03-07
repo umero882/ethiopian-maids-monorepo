@@ -615,7 +615,7 @@ export const getPlacementFeePaymentLink = (amount, agencyId = '') => {
   const baseUrl = STRIPE_PAYMENT_LINKS.placementFee?.[amountKey];
 
   if (!baseUrl) {
-    console.warn(`No payment link found for amount: ${amount} AED`);
+    // No payment link found for this amount
     return null;
   }
 

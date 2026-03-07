@@ -60,8 +60,6 @@ const ALL_CURRENT_COUNTRIES = CURRENT_COUNTRY_OPTIONS.flatMap(group => group.opt
 
 const AgencyEditMaidPage = () => {
   const { id } = useParams();
-  console.log('✏️ AgencyEditMaidPage MOUNTED - Editing maid ID:', id);
-
   const navigate = useNavigate();
   const [maid, setMaid] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -127,10 +125,6 @@ const AgencyEditMaidPage = () => {
             variant: 'destructive',
           });
         } else {
-          console.log('=== MAID DATA LOADED ===');
-          console.log('Full maid data:', data);
-          console.log('profile_photo_url:', data.profile_photo_url);
-
           setMaid(data);
           // Initialize form data with maid data
           setFormData({
@@ -147,7 +141,6 @@ const AgencyEditMaidPage = () => {
           const existingPhoto = data.profile_photo_url || data.profileImageUrl ||
             (data.images && data.images.length > 0 ?
               (data.images.find(img => img.is_primary)?.file_url || data.images[0]?.file_url) : null);
-          console.log('existingPhoto resolved to:', existingPhoto);
           if (existingPhoto && (existingPhoto.startsWith('https://') || existingPhoto.startsWith('http://'))) {
             // Only set if it's a real URL, not a blob URL
             if (!existingPhoto.startsWith('blob:')) {
@@ -256,7 +249,6 @@ const AgencyEditMaidPage = () => {
 
   const handleUploadPhoto = async () => {
     if (!photoFile) {
-      console.warn('No photo file selected');
       return;
     }
 
@@ -280,13 +272,6 @@ const AgencyEditMaidPage = () => {
       // Store in maids/{maidId}/photos/ folder structure
       const filePath = `maids/${id}/photos/${fileName}`;
 
-      console.log('Starting photo upload...', {
-        maidId: id,
-        fileName: photoFile.name,
-        fileSize: photoFile.size,
-        filePath
-      });
-
       // Upload to Firebase Storage (signature: file, path, onProgress)
       const result = await uploadFile(photoFile, filePath);
       const publicUrl = result?.url;
@@ -295,10 +280,7 @@ const AgencyEditMaidPage = () => {
         throw new Error('Upload succeeded but no URL returned');
       }
 
-      console.log('Photo uploaded to Firebase:', publicUrl);
-
       // Update maid profile with new photo URL
-      console.log('Updating maid profile with photo URL...');
       const { data: updateData, error: updateError } = await agencyService.updateAgencyMaid(id, {
         profile_photo_url: publicUrl,
       });
@@ -307,8 +289,6 @@ const AgencyEditMaidPage = () => {
         console.error('Database update error:', updateError);
         throw updateError;
       }
-
-      console.log('Maid profile updated successfully:', updateData);
 
       // Update both preview and uploaded URL
       setPhotoPreview(publicUrl);
@@ -343,7 +323,6 @@ const AgencyEditMaidPage = () => {
       let finalPhotoUrl = uploadedPhotoUrl;
 
       if (photoFile) {
-        console.log('[handleSubmit] Pending photo file detected, uploading first...');
         try {
           const fileExt = photoFile.name.split('.').pop();
           const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -354,7 +333,6 @@ const AgencyEditMaidPage = () => {
           finalPhotoUrl = result?.url;
 
           if (finalPhotoUrl) {
-            console.log('[handleSubmit] Photo uploaded successfully:', finalPhotoUrl);
             setUploadedPhotoUrl(finalPhotoUrl);
             setPhotoPreview(finalPhotoUrl);
             setPhotoFile(null);
@@ -375,8 +353,6 @@ const AgencyEditMaidPage = () => {
         // Only include finalPhotoUrl which is the actual Firebase Storage URL
         ...(finalPhotoUrl && { profile_photo_url: finalPhotoUrl }),
       };
-
-      console.log('[handleSubmit] Submitting with profile_photo_url:', finalPhotoUrl);
 
       const { data, error } = await agencyService.updateAgencyMaid(
         id,

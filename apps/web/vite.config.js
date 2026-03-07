@@ -189,8 +189,6 @@ export default defineConfig(({ mode }) => {
       '@ethio/domain-profiles': path.resolve(__dirname, '../../packages/domain/profiles/src/index.ts'),
       '@ethio/domain-jobs': path.resolve(__dirname, '../../packages/domain/jobs/src/index.ts'),
       '@ethio/domain-communications': path.resolve(__dirname, '../../packages/domain/communications/src/index.ts'),
-      '@ethio/domain-payments': path.resolve(__dirname, '../../packages/domain/payments/src/index.ts'),
-      '@ethio/domain-chat': path.resolve(__dirname, '../../packages/domain/chat/src/index.ts'),
       // Application packages
       '@ethio/app-identity': path.resolve(__dirname, '../../packages/app/identity/src/index.ts'),
       '@ethio/app-profiles': path.resolve(__dirname, '../../packages/app/profiles/src/index.ts'),
@@ -201,13 +199,6 @@ export default defineConfig(({ mode }) => {
       '@ethio/infra-web-profiles': path.resolve(__dirname, '../../packages/infra/web/profiles/src/index.ts'),
       '@ethio/infra-web-jobs': path.resolve(__dirname, '../../packages/infra/web/jobs/src/index.ts'),
       '@ethio/infra-web-communications': path.resolve(__dirname, '../../packages/infra/web/communications/src/index.ts'),
-      // Legacy local packages (deprecated - kept for backward compatibility)
-      '@ethio-maids/domain-dashboard': path.resolve(__dirname, './packages/domain/dashboard/index.js'),
-      '@ethio-maids/domain-profiles': path.resolve(__dirname, './packages/domain/profiles/index.js'),
-      '@ethio-maids/app-dashboard-agency': path.resolve(__dirname, './packages/app/dashboard-agency/index.js'),
-      '@ethio-maids/app-profiles-agency': path.resolve(__dirname, './packages/app/profiles-agency/index.js'),
-      '@ethio-maids/infra-dashboard-agency': path.resolve(__dirname, './packages/infra/dashboard-agency/index.js'),
-      '@ethio-maids/infra-profiles-agency': path.resolve(__dirname, './packages/infra/profiles-agency/index.js'),
     },
   },
   esbuild: isProduction ? {

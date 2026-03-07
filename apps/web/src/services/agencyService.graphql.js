@@ -1196,11 +1196,6 @@ export const graphqlAgencyService = {
       }
       updates.updated_at = new Date().toISOString();
 
-      console.log('[updateAgencyMaid] Input maidData:', maidData);
-      console.log('[updateAgencyMaid] profile_photo_url in input:', maidData.profile_photo_url);
-      console.log('[updateAgencyMaid] Final updates payload:', updates);
-      console.log('[updateAgencyMaid] profile_photo_url in updates:', updates.profile_photo_url);
-
       log.debug('[GraphQL] Update payload:', updates);
 
       const { data, errors } = await apolloClient.mutate({
@@ -1280,9 +1275,6 @@ export const graphqlAgencyService = {
         return { data: null, error: { message: 'Maid profile not found' } };
       }
 
-      console.log('[getAgencyMaidById] Raw maid from DB:', maid);
-      console.log('[getAgencyMaidById] profile_photo_url from DB:', maid.profile_photo_url);
-
       // Map database fields to form field names for UI compatibility
       const normalizedMaid = {
         ...maid,
@@ -1294,9 +1286,6 @@ export const graphqlAgencyService = {
         currentCountry: maid.current_location,
         cityState: maid.state_province,
       };
-
-      console.log('[getAgencyMaidById] Normalized maid:', normalizedMaid);
-      console.log('[getAgencyMaidById] profile_photo_url in normalized:', normalizedMaid.profile_photo_url);
 
       log.info('[GraphQL] Agency maid retrieved successfully');
       return { data: normalizedMaid, error: null };

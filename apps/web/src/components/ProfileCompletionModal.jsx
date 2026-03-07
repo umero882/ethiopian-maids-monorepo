@@ -53,13 +53,6 @@ const ProfileCompletionModal = ({
 
   // Define user type specific information
   const getUserTypeInfo = () => {
-    // Add debugging to track user type detection
-    /* console.log('🔍 ProfileCompletionModal - User type detection:', {
-      userType: user.userType,
-      user_type: user.user_type,
-      fullUser: user,
-    }); */
-
     // Check both userType and user_type for compatibility
     const detectedUserType = user.userType || user.user_type;
 
@@ -102,10 +95,7 @@ const ProfileCompletionModal = ({
           ],
         };
       default:
-        console.warn(
-          '⚠️ ProfileCompletionModal - Unknown user type, using default:',
-          detectedUserType
-        );
+        // unknown user type, using default
         return {
           icon: User,
           title: 'Complete Your Profile',

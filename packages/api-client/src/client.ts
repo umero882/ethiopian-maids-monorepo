@@ -1,8 +1,9 @@
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, FieldPolicy } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, FieldPolicy, Observable } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { RetryLink } from '@apollo/client/link/retry';
 import { createClient } from 'graphql-ws';
 import { relayStylePagination } from '@apollo/client/utilities';
 import { performanceLink } from './utils/performance';
@@ -79,10 +80,23 @@ if (typeof __DEV__ !== 'undefined' && __DEV__) {
 let authToken: string = '';
 
 /**
+ * Callback to refresh the auth token (set by the app's auth provider)
+ */
+let tokenRefreshCallback: (() => Promise<string | null>) | null = null;
+
+/**
  * Set the auth token (call this from your auth provider)
  */
 export function setAuthToken(token: string): void {
   authToken = token;
+}
+
+/**
+ * Register a callback to refresh the auth token on 401 errors.
+ * The callback should return the new token or null if refresh fails.
+ */
+export function setTokenRefreshCallback(callback: () => Promise<string | null>): void {
+  tokenRefreshCallback = callback;
 }
 
 // Firebase token storage key (must match firebaseClient.js)
@@ -142,26 +156,113 @@ const authLink = setContext((_, { headers }) => {
 
 /**
  * Error link - handles GraphQL and network errors
- * Compatible with both web and React Native
+ * Automatically refreshes token on 401 and retries the failed operation
  */
-const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+let isRefreshing = false;
+let pendingRequests: Array<() => void> = [];
+
+const resolvePendingRequests = () => {
+  pendingRequests.forEach((callback) => callback());
+  pendingRequests = [];
+};
+
+const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) => {
-      // Downgrade non-nullable null errors to warnings (common during data issues)
+    for (const err of graphQLErrors) {
+      const { message, locations, path, extensions } = err;
+
+      // Handle JWT expired / unauthorized errors
+      const isAuthError =
+        (extensions as any)?.code === 'invalid-jwt' ||
+        (extensions as any)?.code === 'access-denied' ||
+        message?.includes('JWTExpired') ||
+        message?.includes('Could not verify JWT');
+
+      if (isAuthError && tokenRefreshCallback) {
+        if (!isRefreshing) {
+          isRefreshing = true;
+
+          return new Observable((observer) => {
+            tokenRefreshCallback!()
+              .then((newToken) => {
+                if (newToken) {
+                  // Update the stored token
+                  if (typeof window !== 'undefined' && window.localStorage) {
+                    window.localStorage.setItem(FIREBASE_TOKEN_KEY, newToken);
+                  }
+                  // Update operation headers with new token
+                  const oldHeaders = operation.getContext().headers;
+                  operation.setContext({
+                    headers: {
+                      ...oldHeaders,
+                      authorization: `Bearer ${newToken}`,
+                    },
+                  });
+                }
+                isRefreshing = false;
+                resolvePendingRequests();
+              })
+              .then(() => {
+                // Retry the failed request
+                const subscriber = {
+                  next: observer.next.bind(observer),
+                  error: observer.error.bind(observer),
+                  complete: observer.complete.bind(observer),
+                };
+                forward(operation).subscribe(subscriber);
+              })
+              .catch((refreshError) => {
+                isRefreshing = false;
+                pendingRequests = [];
+                console.error('[Auth] Token refresh failed:', refreshError);
+                observer.error(refreshError);
+              });
+          });
+        } else {
+          // Queue this request until the token is refreshed
+          return new Observable((observer) => {
+            pendingRequests.push(() => {
+              const subscriber = {
+                next: observer.next.bind(observer),
+                error: observer.error.bind(observer),
+                complete: observer.complete.bind(observer),
+              };
+              forward(operation).subscribe(subscriber);
+            });
+          });
+        }
+      }
+
+      // Downgrade non-nullable null errors to warnings
       if (message?.includes('null value found for non-nullable type')) {
         console.warn(
           `[GraphQL warning]: Non-null field returned null. Operation: ${operation.operationName}, Message: ${message}`
         );
-      } else {
+      } else if (!isAuthError) {
         console.error(
           `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
         );
       }
-    });
+    }
   }
   if (networkError) {
     console.error(`[Network error]: ${networkError}`);
   }
+});
+
+/**
+ * Retry link - automatic retry with exponential backoff for transient network errors
+ */
+const retryLink = new RetryLink({
+  delay: {
+    initial: 300,
+    max: 5000,
+    jitter: true,
+  },
+  attempts: {
+    max: 3,
+    retryIf: (error) => !!error && !error.message?.includes('access-denied'),
+  },
 });
 
 /**
@@ -208,9 +309,11 @@ const wsLink = new GraphQLWsLink(
  */
 
 // HTTP link chain using ApolloLink.from() for Apollo 4 compatibility
+// Order: performance -> error (with token refresh) -> retry -> auth -> http
 const httpLinkChain = ApolloLink.from([
   performanceLink,
   errorLink,
+  retryLink,
   authLink,
   httpLink,
 ]);

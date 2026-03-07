@@ -5,6 +5,13 @@
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import { GraphQLClient, gql } from 'graphql-request';
+import { sendTelegramMessage, sendMonitorTelegramMessage } from '../notifications/telegramService';
+import {
+  formatSubscriptionCreated,
+  formatSubscriptionCanceled,
+  formatPaymentReceived,
+  formatPaymentFailed,
+} from '../notifications/adminMessages';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
@@ -225,6 +232,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     try {
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
       await syncSubscription(subscription, userId);
+
+      // Notify admin of new subscription
+      const amount = subscription.items.data[0]?.price.unit_amount || 0;
+      const currency = subscription.items.data[0]?.price.currency || 'aed';
+      const subCreatedMsg = formatSubscriptionCreated({
+        userId,
+        planName: subscription.metadata?.planName || subscription.metadata?.plan_tier || null,
+        planType: subscription.metadata?.planTier || 'subscription',
+        amount,
+        currency,
+        status: subscription.status,
+        subscriptionId: subscription.id,
+      });
+      await sendTelegramMessage(subCreatedMsg);
+      await sendMonitorTelegramMessage(subCreatedMsg);
     } catch (e) {
       console.error('Error syncing subscription from checkout:', e);
     }
@@ -347,6 +369,16 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
     });
     // Don't throw - we want to acknowledge the webhook was received
   }
+
+  // Notify admin of cancellation
+  const userId = getUserIdFromMetadata(subscription.metadata);
+  const subCanceledMsg = formatSubscriptionCanceled({
+    userId: userId || 'unknown',
+    planName: subscription.metadata?.planName || subscription.metadata?.plan_tier || null,
+    subscriptionId: subscription.id,
+  });
+  await sendTelegramMessage(subCanceledMsg);
+  await sendMonitorTelegramMessage(subCanceledMsg);
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
@@ -368,6 +400,27 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   console.log('Invoice payment failed:', invoice.id);
+
+  // Resolve userId from subscription metadata
+  let userId: string | null = null;
+  if (invoice.subscription) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+      userId = getUserIdFromMetadata(subscription.metadata);
+    } catch (e) {
+      console.error('Error fetching subscription for failed invoice:', e);
+    }
+  }
+
+  const payFailedMsg = formatPaymentFailed({
+    userId: userId || 'unknown',
+    amount: invoice.amount_due,
+    currency: invoice.currency,
+    invoiceId: invoice.id,
+    reason: invoice.last_finalization_error?.message || 'Payment declined',
+  });
+  await sendTelegramMessage(payFailedMsg);
+  await sendMonitorTelegramMessage(payFailedMsg);
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
@@ -394,6 +447,17 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     });
 
     console.log(`Payment ${paymentIntent.id} recorded for user ${userId}`);
+
+    // Notify admin of successful payment
+    const payReceivedMsg = formatPaymentReceived({
+      userId,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      paymentIntentId: paymentIntent.id,
+      paymentMethod: paymentIntent.payment_method_types[0] || 'card',
+    });
+    await sendTelegramMessage(payReceivedMsg);
+    await sendMonitorTelegramMessage(payReceivedMsg);
   } catch (error) {
     console.error('Error recording payment:', error);
   }

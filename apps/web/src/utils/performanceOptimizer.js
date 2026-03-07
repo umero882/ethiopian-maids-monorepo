@@ -126,9 +126,7 @@ export class PerformanceMonitor {
 
       // Log slow operations
       if (metric.duration > 1000) {
-        console.warn(
-          `⚠️ Slow operation: ${label} took ${metric.duration.toFixed(2)}ms`
-        );
+        // slow operation detected
       }
     }
   }
@@ -348,15 +346,11 @@ export const MemoryManager = {
   monitorMemory: () => {
     if ('memory' in performance) {
       const memory = performance.memory;
-      /* console.log('📊 Memory Usage:', {
-        used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
-        total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-        limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB',
-      }); */
+      // memory usage monitoring (silent)
 
       // Warn if memory usage is high
       if (memory.usedJSHeapSize / memory.jsHeapSizeLimit > 0.8) {
-        console.warn('⚠️ High memory usage detected');
+        // high memory usage detected
       }
     }
   },

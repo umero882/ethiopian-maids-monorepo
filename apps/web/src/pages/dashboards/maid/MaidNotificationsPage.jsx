@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -50,6 +50,37 @@ import { gql } from '@apollo/client';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 import EmptyState from '@/components/ui/EmptyState';
+
+// GraphQL Query - fallback when subscription fails
+const GET_NOTIFICATIONS_QUERY = gql`
+  query GetUserNotifications($userId: String!, $limit: Int = 50) {
+    notifications(
+      where: {
+        user_id: { _eq: $userId }
+        _or: [
+          { expires_at: { _is_null: true } }
+          { expires_at: { _gt: "now()" } }
+        ]
+      }
+      order_by: { created_at: desc }
+      limit: $limit
+    ) {
+      id
+      type
+      title
+      message
+      link
+      action_url
+      related_id
+      related_type
+      read
+      read_at
+      priority
+      created_at
+      expires_at
+    }
+  }
+`;
 
 // GraphQL Mutations
 const MARK_NOTIFICATION_READ = gql`
@@ -131,6 +162,11 @@ const MaidNotificationsPage = () => {
     systemAnnouncements: false,
   });
 
+  // Fallback query state (used when subscription fails)
+  const [queryNotifications, setQueryNotifications] = useState([]);
+  const [queryLoading, setQueryLoading] = useState(false);
+  const [queryFetched, setQueryFetched] = useState(false);
+
   // Use real-time subscription for notifications
   const {
     data: subscriptionData,
@@ -140,6 +176,49 @@ const MaidNotificationsPage = () => {
     variables: { userId: user?.id },
     skip: !user?.id,
   });
+
+  // Fallback: fetch via query on mount and when subscription fails
+  const fetchNotificationsQuery = useCallback(async () => {
+    if (!user?.id) return;
+    setQueryLoading(true);
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_NOTIFICATIONS_QUERY,
+        variables: { userId: user.id, limit: 50 },
+        fetchPolicy: 'network-only',
+      });
+      setQueryNotifications(data?.notifications || []);
+      setQueryFetched(true);
+    } catch (err) {
+      console.error('Failed to fetch notifications via query:', err);
+    } finally {
+      setQueryLoading(false);
+    }
+  }, [user?.id]);
+
+  // Always fetch via query on mount as immediate fallback
+  useEffect(() => {
+    if (user?.id && !queryFetched) {
+      fetchNotificationsQuery();
+    }
+  }, [user?.id, queryFetched, fetchNotificationsQuery]);
+
+  // Re-fetch via query when subscription errors occur
+  useEffect(() => {
+    if (subscriptionError && user?.id) {
+      fetchNotificationsQuery();
+    }
+  }, [subscriptionError, user?.id, fetchNotificationsQuery]);
+
+  // Poll every 60 seconds as fallback if subscription is not connected
+  useEffect(() => {
+    if (!user?.id) return;
+    const isSubConnected = !subscriptionError && !subscriptionLoading && subscriptionData?.notifications;
+    if (isSubConnected) return; // subscription working, no need to poll
+
+    const interval = setInterval(fetchNotificationsQuery, 60000);
+    return () => clearInterval(interval);
+  }, [user?.id, subscriptionError, subscriptionLoading, subscriptionData, fetchNotificationsQuery]);
 
   // Icon mapping for notification types
   const getNotificationIcon = (type) => {
@@ -195,9 +274,13 @@ const MaidNotificationsPage = () => {
     return colorMap[prefix] || colorMap.default;
   };
 
-  // Format notifications from subscription data
+  // Format notifications from subscription data, with query fallback
   const notifications = useMemo(() => {
-    const rawNotifications = subscriptionData?.notifications || [];
+    // Prefer subscription data if available, otherwise use query fallback
+    const subNotifications = subscriptionData?.notifications;
+    const rawNotifications = (subNotifications && subNotifications.length > 0)
+      ? subNotifications
+      : queryNotifications;
     return rawNotifications.map((notification) => ({
       id: notification.id,
       type: notification.type || 'default',
@@ -208,7 +291,7 @@ const MaidNotificationsPage = () => {
       link: notification.link || notification.action_url,
       priority: notification.priority || 'medium',
     }));
-  }, [subscriptionData?.notifications]);
+  }, [subscriptionData?.notifications, queryNotifications]);
 
   // Format the notification time
   const formatNotificationTime = (timeString) => {
@@ -375,7 +458,7 @@ const MaidNotificationsPage = () => {
 
   // Connection status
   const isConnected = !subscriptionError && !subscriptionLoading;
-  const isLoading = subscriptionLoading;
+  const isLoading = subscriptionLoading && queryLoading && !queryFetched;
 
   if (!user) {
     return null;

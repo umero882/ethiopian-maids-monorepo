@@ -347,7 +347,7 @@ const SponsorProfilePage = () => {
         const stored = localStorage.getItem(`sponsor_extra_${user.id}`);
         if (stored) extra = JSON.parse(stored);
       } catch (e) {
-        console.warn('Failed to load extra fields from localStorage:', e);
+        // Failed to load extra fields from localStorage
       }
 
       if (error) {
@@ -450,7 +450,7 @@ const SponsorProfilePage = () => {
           facePhotoUrl = await getDownloadURL(storageRef);
           setFacePhoto(facePhotoUrl); // Update state to URL so next save doesn't re-upload
         } catch (e) {
-          console.warn('Failed to upload face photo:', e);
+          // Face photo upload failed
         }
       }
 
@@ -464,7 +464,7 @@ const SponsorProfilePage = () => {
           idFrontUrl = await getDownloadURL(storageRef);
           setIdFront({ ...idFront, preview: idFrontUrl }); // Update state to URL
         } catch (e) {
-          console.warn('Failed to upload ID front:', e);
+          // ID front upload failed
         }
       }
 
@@ -478,7 +478,7 @@ const SponsorProfilePage = () => {
           idBackUrl = await getDownloadURL(storageRef);
           setIdBack({ ...idBack, preview: idBackUrl }); // Update state to URL
         } catch (e) {
-          console.warn('Failed to upload ID back:', e);
+          // ID back upload failed
         }
       }
 
@@ -501,7 +501,7 @@ const SponsorProfilePage = () => {
       try {
         localStorage.setItem(`sponsor_extra_${user.id}`, JSON.stringify(extraFields));
       } catch (e) {
-        console.warn('Failed to save extra fields to localStorage:', e);
+        // Failed to save extra fields to localStorage
       }
 
       return data;

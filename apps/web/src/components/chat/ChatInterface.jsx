@@ -144,23 +144,17 @@ const ChatInterface = ({ isOpen, onClose }) => {
     setIsRecordingVoice(false);
 
     try {
-      console.log('[ChatInterface] Uploading voice message...', {
-        duration: recording.duration,
-        waveformLength: recording.waveformData.length,
-      });
-
       const uploadResult = await uploadVoice(
         recording.blob,
         user.id,
         activeConversation.id,
         recording.duration,
         recording.waveformData,
-        (progress) => console.log('[ChatInterface] Voice upload progress:', progress)
+        () => {}
       );
 
       const content = formatVoiceMessage(uploadResult);
       await sendMessage(activeConversation.id, content, 'audio');
-      console.log('[ChatInterface] Voice message sent successfully');
     } catch (error) {
       console.error('[ChatInterface] Voice upload failed:', error);
     } finally {

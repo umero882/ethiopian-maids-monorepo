@@ -40,13 +40,6 @@ export async function uploadVoice(
   const fileName = `voice_${timestamp}.${ext}`;
   const filePath = `chat/${conversationId}/voice/${userId}_${fileName}`;
 
-  console.log('[voiceUpload] Starting voice upload:', {
-    filePath,
-    size: blob.size,
-    mimeType,
-    duration,
-  });
-
   try {
     const result = await uploadFile(filePath, blob, {
       onProgress,
@@ -58,8 +51,6 @@ export async function uploadVoice(
         uploadedAt: new Date().toISOString(),
       },
     });
-
-    console.log('[voiceUpload] Upload complete:', result.url.substring(0, 50));
 
     return {
       url: result.url,

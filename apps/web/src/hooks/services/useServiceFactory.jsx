@@ -27,9 +27,9 @@ try {
     getMessageService: () => null,
     getNotificationService: () => null,
   };
-  console.warn('[ServiceFactory] Using stub implementation. @ethio/app package not available.');
+  // using stub implementation - @ethio/app package not available
 } catch (e) {
-  console.warn('[ServiceFactory] Failed to load @ethio/app:', e);
+  // failed to load @ethio/app
 }
 
 // Context for ServiceFactory state

@@ -63,7 +63,7 @@ const VideoCV = ({
   useEffect(() => {
     if (stream && videoRef.current && recordingState !== 'recorded') {
       videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(console.warn);
+      videoRef.current.play().catch(() => {});
     }
   }, [stream, recordingState]);
 
@@ -95,7 +95,7 @@ const VideoCV = ({
         try {
           await videoRef.current.play();
         } catch (playError) {
-          console.warn('Video play failed:', playError);
+          // video play failed
         }
       }
 

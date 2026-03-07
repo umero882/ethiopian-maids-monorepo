@@ -38,7 +38,8 @@ import {
   AlertTriangle,
   TrendingUp,
   ChevronDown,
-  ClipboardCheck
+  ClipboardCheck,
+  BrainCircuit,
 } from 'lucide-react';
 import { AdminNotificationCenter } from './notifications/AdminNotificationCenter';
 
@@ -121,6 +122,7 @@ const AdminLayout = () => {
         { title: 'Settings', href: '/admin/system/settings', icon: Settings },
         { title: 'Activity Logs', href: '/admin/system/logs', icon: Activity },
         { title: 'Health Monitor', href: '/admin/system/health', icon: Database },
+        { title: 'AI Monitor', href: '/admin/system/ai-monitor', icon: BrainCircuit },
         { title: 'Maintenance', href: '/admin/system/maintenance', icon: AlertTriangle }
       ]
     }

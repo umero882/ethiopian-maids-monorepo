@@ -18,9 +18,9 @@ const clearAllMaidDrafts = () => {
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    console.log('🧹 Cleared all maid form drafts:', keysToRemove.length);
+    // Cleared maid form drafts
   } catch (e) {
-    console.warn('Could not clear drafts:', e);
+    // Could not clear drafts
   }
 };
 

@@ -28,7 +28,7 @@ export function sanitizeAvatarUrl(avatarUrl, options = {}) {
     try {
       const currentOrigin = window.location.origin;
       if (!trimmed.startsWith(`blob:${currentOrigin}`)) {
-        console.warn('Blob URL from different port detected, using fallback:', trimmed);
+        // Blob URL from different port, use fallback
         return null; // Use fallback (initials)
       }
     } catch (error) {
@@ -53,7 +53,7 @@ export function sanitizeAvatarUrl(avatarUrl, options = {}) {
   }
 
   // Otherwise, treat as potentially broken URL
-  console.warn('Unrecognized avatar URL format:', trimmed);
+  // unrecognized avatar URL format
   return null;
 }
 
@@ -146,7 +146,7 @@ export function revokeBlobUrl(blobUrl) {
     try {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.warn('Failed to revoke blob URL:', error);
+      // silently ignore blob URL revoke failure
     }
   }
 }
@@ -189,7 +189,7 @@ export async function isUrlAccessible(url) {
     const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
     return true; // If no error thrown, URL is accessible
   } catch (error) {
-    console.warn('URL not accessible:', url);
+    // URL not accessible
     return false;
   }
 }

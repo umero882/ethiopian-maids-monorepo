@@ -53,15 +53,6 @@ const AgencySponsorsPage = () => {
   // Note: AuthContext uses userType (camelCase), not user_type (snake_case)
   const isAgencyUser = user?.userType?.toLowerCase() === 'agency' || user?.user_type?.toLowerCase() === 'agency';
   const canCreate = isAgencyUser ? true : canCreateFromPermissions;
-  console.log('🔍 Permission Debug:', {
-    userType: user?.userType,
-    user_type: user?.user_type,
-    isAgencyUser,
-    canCreateFromPermissions,
-    canEditFromPermissions,
-    finalCanCreate: canCreate,
-    finalCanEdit: isAgencyUser ? true : canEditFromPermissions
-  });
   const canEdit = isAgencyUser ? true : canEditFromPermissions;
   const [sponsors, setSponsors] = useState([]);
   const [filteredSponsors, setFilteredSponsors] = useState([]);
@@ -173,11 +164,9 @@ const AgencySponsorsPage = () => {
   };
 
   const openAddDialog = () => {
-    console.log('🔵 openAddDialog called, canCreate:', canCreate);
     setNewSponsor({ name: '', email: '', phone: '', location: '', sponsor_type: 'individual' });
     setEmailError('');
     setIsAddOpen(true);
-    console.log('✅ Dialog state set to open, isAddOpen should be true');
   };
 
   const submitAddSponsor = async () => {

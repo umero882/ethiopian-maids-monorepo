@@ -13,19 +13,19 @@ const DESCRIPTION_TEMPLATES = [
     id: 'professional',
     name: 'Professional',
     icon: '💼',
-    template: (data) => `${data.agency_name || '[Agency Name]'} is a licensed ${data.agency_type === 'recruitment' ? 'recruitment' : 'domestic services'} agency specializing in connecting qualified domestic workers with families across the GCC region. With ${data.years_in_business === '10+' ? 'over a decade' : data.years_in_business || 'years'} of experience, we are committed to providing vetted, trained, and reliable candidates. Our rigorous screening process ensures only the best candidates join our network. Contact us today for your staffing needs.`,
+    template: (data) => `${data.agencyName || '[Agency Name]'} is a licensed ${data.agency_type === 'recruitment' ? 'recruitment' : 'domestic services'} agency specializing in connecting qualified domestic workers with families across the GCC region. With ${data.years_in_business === '10+' ? 'over a decade' : data.years_in_business || 'years'} of experience, we are committed to providing vetted, trained, and reliable candidates. Our rigorous screening process ensures only the best candidates join our network. Contact us today for your staffing needs.`,
   },
   {
     id: 'friendly',
     name: 'Friendly',
     icon: '😊',
-    template: (data) => `Welcome to ${data.agency_name || '[Agency Name]'}! We're a team passionate about matching wonderful families with amazing domestic helpers. Based in ${data.city || '[City]'}, ${data.country || '[Country]'}, we take pride in our personalized approach to recruitment. Every candidate we recommend has been carefully interviewed and verified. Let us help you find the perfect addition to your household!`,
+    template: (data) => `Welcome to ${data.agencyName || '[Agency Name]'}! We're a team passionate about matching wonderful families with amazing domestic helpers. Based in ${data.citiesOfOperation?.[0] || '[City]'}, ${data.countriesOfOperation?.[0] || '[Country]'}, we take pride in our personalized approach to recruitment. Every candidate we recommend has been carefully interviewed and verified. Let us help you find the perfect addition to your household!`,
   },
   {
     id: 'detailed',
     name: 'Detailed',
     icon: '📋',
-    template: (data) => `${data.agency_name || '[Agency Name]'} is a fully licensed and registered agency operating in ${data.country || '[Country]'}. Our comprehensive services include candidate sourcing, visa processing, medical coordination, and post-placement support. We specialize in ${data.source_countries?.length > 0 ? `workers from ${data.source_countries.length} countries` : 'international recruitment'} and maintain the highest standards of professional ethics. License No: ${data.license_number || '[License Number]'}. Available 7 days a week for consultations.`,
+    template: (data) => `${data.agencyName || '[Agency Name]'} is a fully licensed and registered agency operating in ${data.countriesOfOperation?.[0] || '[Country]'}. Our comprehensive services include candidate sourcing, visa processing, medical coordination, and post-placement support. We specialize in ${data.countriesOfOperation?.length > 1 ? `workers from ${data.countriesOfOperation.length} countries` : 'international recruitment'} and maintain the highest standards of professional ethics. License No: ${data.tradeLicenseNumber || '[License Number]'}. Available 7 days a week for consultations.`,
   },
 ];
 

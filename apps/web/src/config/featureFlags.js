@@ -101,11 +101,6 @@ export const featureFlags = {
  */
 if (import.meta.env.DEV) {
   log.info('GraphQL Migration Complete - All services using GraphQL');
-  console.group('Feature Flags - GraphQL Migration');
-  Object.entries(GRAPHQL_FLAGS).forEach(([service, state]) => {
-    console.log(`  ${service}: ${state} (100%)`);
-  });
-  console.groupEnd();
 }
 
 export default featureFlags;

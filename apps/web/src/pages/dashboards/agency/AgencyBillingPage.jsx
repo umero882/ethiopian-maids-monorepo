@@ -93,7 +93,6 @@ const AgencyBillingPage = () => {
       const sessionId = searchParams.get('session_id');
 
       if (success === 'true' && userId) {
-        console.log('[AgencyBilling] Detected successful payment return, syncing subscription...');
         setIsSyncing(true);
         setSyncMessage('Activating your subscription...');
 
@@ -277,11 +276,6 @@ Thank you for your business!
     if (!selectedInvoice) return;
 
     try {
-      console.log('Refund request:', {
-        invoice: selectedInvoice,
-        reason: refundForm.reason,
-        details: refundForm.details
-      });
       setIsRefundDialogOpen(false);
       setSelectedInvoice(null);
       setRefundForm({ reason: '', details: '' });

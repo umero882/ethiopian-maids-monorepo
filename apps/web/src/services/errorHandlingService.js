@@ -2,6 +2,7 @@ import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 import { auth } from '@/lib/firebaseClient';
 import { toast } from '@/components/ui/use-toast';
+import { adminTelegramNotify } from './adminNotificationService';
 
 /**
  * Production Error Handling and Monitoring Service
@@ -137,6 +138,15 @@ class ErrorHandlingService {
     // Show user-friendly message for critical errors
     if (this.isCriticalError(error)) {
       this.showUserErrorMessage(title, error);
+
+      // Send critical error to admin via Telegram (fire-and-forget)
+      adminTelegramNotify.siteError({
+        type: context?.type || title,
+        message: errorData.message,
+        url: errorData.url,
+        userId: errorData.userId,
+        stack: errorData.stack?.substring(0, 300),
+      });
     }
 
     return errorData;
@@ -155,10 +165,6 @@ class ErrorHandlingService {
       userId: this.getCurrentUserId(),
     };
 
-    if (!this.isProduction) {
-      console.warn(`${title}:`, message, context);
-    }
-
     // Store warning for analysis
     this.errorQueue.push({ ...warningData, level: 'warning' });
   }
@@ -167,9 +173,6 @@ class ErrorHandlingService {
    * Log info (general information)
    */
   logInfo(title, message, context = {}) {
-    if (!this.isProduction) {
-    }
-
     // In production, only log important info events
     if (this.isProduction && this.isImportantInfo(title)) {
       this.errorQueue.push({

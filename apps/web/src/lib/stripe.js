@@ -28,7 +28,7 @@ export const setStripePublishableKey = (key) => {
     stripePromise = loadStripe(key);
     /* console.log('✅ Stripe key updated:', key.substring(0, 20) + '...'); */
   } else {
-    console.warn('⚠️ Invalid Stripe publishable key provided.');
+    // Invalid key - silently ignore
   }
 };
 

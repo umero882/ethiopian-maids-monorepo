@@ -3,7 +3,7 @@
  * Real-time notification center using GraphQL subscriptions
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Check, CheckCheck, X, AlertCircle, Info, CheckCircle, MessageSquare, Briefcase, Calendar, Settings, Clock, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +12,8 @@ import {
   useUnreadNotificationCount,
 } from '@/hooks/services';
 import { useAuth } from '@/contexts/AuthContext';
+import { apolloClient } from '@ethio/api-client';
+import { gql } from '@apollo/client';
 import { graphqlNotificationService } from '@/services/notificationService.graphql';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -285,6 +287,56 @@ function NotificationItem({ notification, onMarkAsRead, onDismiss, onClick }) {
   );
 }
 
+// Fallback query for when subscription doesn't work
+const GET_NOTIFICATIONS_FALLBACK = gql`
+  query GetNotificationsFallback($userId: String!, $limit: Int = 20) {
+    notifications(
+      where: {
+        user_id: { _eq: $userId }
+        _or: [
+          { expires_at: { _is_null: true } }
+          { expires_at: { _gt: "now()" } }
+        ]
+      }
+      order_by: { created_at: desc }
+      limit: $limit
+    ) {
+      id
+      type
+      title
+      message
+      link
+      action_url
+      related_id
+      related_type
+      read
+      read_at
+      priority
+      created_at
+      expires_at
+    }
+  }
+`;
+
+const GET_UNREAD_COUNT_FALLBACK = gql`
+  query GetUnreadCountFallback($userId: String!) {
+    notifications_aggregate(
+      where: {
+        user_id: { _eq: $userId }
+        read: { _eq: false }
+        _or: [
+          { expires_at: { _is_null: true } }
+          { expires_at: { _gt: "now()" } }
+        ]
+      }
+    ) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
 /**
  * NotificationCenter - Main component
  */
@@ -293,8 +345,42 @@ export function NotificationCenter() {
   const [localNotifications, setLocalNotifications] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [fallbackNotifications, setFallbackNotifications] = useState([]);
+  const [fallbackUnreadCount, setFallbackUnreadCount] = useState(0);
+  const [fallbackFetched, setFallbackFetched] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Fallback query fetch
+  const fetchFallback = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const [notifResult, countResult] = await Promise.all([
+        apolloClient.query({
+          query: GET_NOTIFICATIONS_FALLBACK,
+          variables: { userId: user.id, limit: 20 },
+          fetchPolicy: 'network-only',
+        }),
+        apolloClient.query({
+          query: GET_UNREAD_COUNT_FALLBACK,
+          variables: { userId: user.id },
+          fetchPolicy: 'network-only',
+        }),
+      ]);
+      setFallbackNotifications(notifResult.data?.notifications || []);
+      setFallbackUnreadCount(countResult.data?.notifications_aggregate?.aggregate?.count || 0);
+      setFallbackFetched(true);
+    } catch (err) {
+      console.error('[NotificationCenter] Fallback query failed:', err);
+    }
+  }, [user?.id]);
+
+  // Always fetch on mount as fallback
+  useEffect(() => {
+    if (user?.id && !fallbackFetched) {
+      fetchFallback();
+    }
+  }, [user?.id, fallbackFetched, fetchFallback]);
 
   // Real-time subscription for notifications
   const { notifications: subscriptionNotifications, loading } = useNotificationSubscription({
@@ -315,11 +401,33 @@ export function NotificationCenter() {
     }, []),
   });
 
-  // Sync subscription data with local state
-  const notifications = localNotifications.length > 0 ? localNotifications : subscriptionNotifications;
+  // Use subscription data if available, otherwise fallback to query
+  const subscriptionHasData = subscriptionNotifications && subscriptionNotifications.length > 0;
+  const notifications = localNotifications.length > 0
+    ? localNotifications
+    : subscriptionHasData
+      ? subscriptionNotifications
+      : fallbackNotifications;
 
-  // Real-time unread count
-  const { count: unreadCount } = useUnreadNotificationCount();
+  // Real-time unread count (with fallback)
+  const { count: subUnreadCount } = useUnreadNotificationCount();
+  const unreadCount = subUnreadCount > 0 ? subUnreadCount : fallbackUnreadCount;
+
+  // Poll fallback every 60s if subscription isn't delivering data
+  useEffect(() => {
+    if (!user?.id) return;
+    if (subscriptionHasData) return; // subscription works, no polling needed
+
+    const interval = setInterval(fetchFallback, 60000);
+    return () => clearInterval(interval);
+  }, [user?.id, subscriptionHasData, fetchFallback]);
+
+  // Refresh fallback when dropdown is opened
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      fetchFallback();
+    }
+  }, [isOpen, user?.id, fetchFallback]);
 
   const handleMarkAsRead = useCallback(async (notificationId) => {
     if (isUpdating) return;
@@ -478,7 +586,7 @@ export function NotificationCenter() {
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Close notifications"
+          <Button variant="ghost" size="icon"
           aria-label="View notifications" className="relative">
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (

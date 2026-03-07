@@ -75,7 +75,7 @@ class ProductionMonitor {
       });
       observer.observe({ type, buffered: true });
     } catch (error) {
-      console.warn(`Performance observer not supported for ${type}:`, error);
+      // Performance observer not supported for this type
     }
   }
 

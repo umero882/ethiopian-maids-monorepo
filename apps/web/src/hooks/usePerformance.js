@@ -19,11 +19,7 @@ export const useRenderPerformance = (componentName) => {
 
       // Log performance in development
       if (process.env.NODE_ENV === 'development' && renderTime > 16) {
-        console.warn(
-          `🐌 Slow render detected in ${componentName}:`,
-          `${renderTime.toFixed(2)}ms`,
-          `(Renders: ${renderCountRef.current})`
-        );
+        // slow render detected
       }
     };
   });
@@ -184,9 +180,7 @@ export const useExpensiveCalculation = (calculate, dependencies, shouldRecalcula
     if (process.env.NODE_ENV === 'development') {
       const calculationTime = endTime - startTime;
       if (calculationTime > 5) {
-        /* console.log(
-          `💭 Expensive calculation took ${calculationTime.toFixed(2)}ms`
-        ); */
+        // expensive calculation detected
       }
     }
 
@@ -238,7 +232,7 @@ export const useMemoryMonitor = (componentName) => {
 
   const startMonitoring = useCallback(() => {
     if (!('memory' in performance)) {
-      console.warn('Memory API not supported');
+      // Memory API not supported
       return;
     }
 
@@ -256,9 +250,7 @@ export const useMemoryMonitor = (componentName) => {
       // Warn if memory usage is high
       const usagePercent = (info.used / info.limit) * 100;
       if (usagePercent > 80) {
-        console.warn(
-          `🚨 High memory usage in ${componentName}: ${usagePercent.toFixed(1)}%`
-        );
+        // high memory usage detected
       }
     }, 5000); // Check every 5 seconds
   }, [componentName]);

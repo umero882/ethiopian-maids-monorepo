@@ -58,7 +58,7 @@ export const useRealtimeData = (table, filters = {}, options = {}) => {
             break;
 
           default:
-            console.warn('Unknown real-time event type:', eventType);
+            // unknown real-time event type
         }
 
         return updatedData;

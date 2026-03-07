@@ -555,16 +555,13 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
         !userId ||
         conversationsLoading
       ) {
-        console.log('[Messages] Skipping - maidId:', maidIdFromUrl, 'handled:', maidConversationHandledRef.current, 'userId:', userId, 'loading:', conversationsLoading);
         return;
       }
 
       maidConversationHandledRef.current = maidIdFromUrl;
-      console.log('[Messages] Starting conversation with maid:', maidIdFromUrl, 'user:', userId);
 
       try {
         // First, check if conversation already exists in loaded conversations
-        console.log('[Messages] Checking for existing conversation in loaded list...');
         const existingInList = conversations.find(c =>
           (c.participant1_id === userId && c.participant2_id === maidIdFromUrl) ||
           (c.participant1_id === maidIdFromUrl && c.participant2_id === userId)
@@ -575,29 +572,23 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
         if (existingInList) {
           // Found in loaded list, select it directly
           conversationId = existingInList.id;
-          console.log('[Messages] Found existing conversation in list:', conversationId);
           setSelectedConversation(existingInList);
           setSearchParams({}, { replace: true });
           return;
         }
 
         // Query database for existing conversation
-        console.log('[Messages] Checking database for existing conversation...');
         const { data: existingData } = await findConversation({
           variables: { userId1: userId, userId2: maidIdFromUrl },
         });
 
         if (!isMounted) return;
 
-        console.log('[Messages] Find conversation result:', existingData);
-
         if (existingData?.conversations?.length > 0) {
           // Conversation exists in database
           conversationId = existingData.conversations[0].id;
-          console.log('[Messages] Found existing conversation in DB:', conversationId);
         } else {
           // Create new conversation
-          console.log('[Messages] Creating new conversation...');
           const { data: newConvData } = await createConversationMutation({
             variables: {
               data: {
@@ -612,11 +603,8 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
 
           if (!isMounted) return;
 
-          console.log('[Messages] Create conversation result:', newConvData);
-
           if (newConvData?.insert_conversations_one) {
             conversationId = newConvData.insert_conversations_one.id;
-            console.log('[Messages] Created new conversation:', conversationId);
 
             toast({
               title: 'Conversation Started',
@@ -627,21 +615,16 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
 
         if (conversationId && isMounted) {
           // Refetch conversations to get the full list
-          console.log('[Messages] Refetching conversations...');
           const { data: refetchedData } = await refetchConversations();
 
           if (!isMounted) return;
-
-          console.log('[Messages] Refetched conversations:', refetchedData?.conversations?.length);
 
           const updatedConversations = refetchedData?.conversations || [];
           const targetConv = updatedConversations.find(c => c.id === conversationId);
 
           if (targetConv) {
-            console.log('[Messages] Selecting conversation:', targetConv);
             setSelectedConversation(targetConv);
           } else {
-            console.log('[Messages] Conversation not found in list, setting directly');
             // If not found in list, create a minimal conversation object
             setSelectedConversation({
               id: conversationId,
@@ -942,7 +925,6 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
             selectedConversation.id,
             `/messages?conversation=${selectedConversation.id}`
           );
-          console.log('[Messages] Notification created/updated for recipient:', recipientId);
         } catch (notifError) {
           // Don't fail the message send if notification creation fails
           console.error('[Messages] Failed to create notification:', notifError);
@@ -1009,7 +991,7 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
         selectedConversation.id,
         recording.duration,
         recording.waveformData,
-        (progress) => console.log('[UnifiedMessagesPage] Voice upload progress:', progress)
+        () => {}
       );
 
       const content = formatVoiceMessage(uploadResult);

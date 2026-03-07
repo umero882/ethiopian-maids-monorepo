@@ -4,6 +4,7 @@
  */
 
 import { createLogger } from '@/utils/logger';
+import { getSystemSetting } from '@/contexts/SystemSettingsContext';
 
 const log = createLogger('Security');
 
@@ -95,11 +96,12 @@ export class SecurityUtils {
    * Validate file upload
    */
   static validateFile(file) {
-    // Check file size
-    if (file.size > SECURITY_CONFIG.FILE_UPLOAD.MAX_SIZE) {
+    // Check file size — use dynamic setting if available, fallback to config
+    const maxSize = getSystemSetting('max_upload_size') || SECURITY_CONFIG.FILE_UPLOAD.MAX_SIZE;
+    if (file.size > maxSize) {
       return {
         valid: false,
-        message: `File size must be less than ${SECURITY_CONFIG.FILE_UPLOAD.MAX_SIZE / (1024 * 1024)}MB`
+        message: `File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`
       };
     }
 
@@ -197,7 +199,7 @@ export class SecurityUtils {
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.warn('🛡️ Security Event:', logData);
+      // Security event logged in development
     }
 
     // In production, this could send to a monitoring service
@@ -221,13 +223,7 @@ export function initializeSecurity() {
     }
 
     // Basic console warning
-    if (process.env.NODE_ENV === 'production') {
-      console.warn(
-        '%c🛡️ SECURITY WARNING',
-        'color: red; font-size: 20px; font-weight: bold;',
-        '\nDo not paste any code here! This could compromise your account.'
-      );
-    }
+    // Production console security warning intentionally removed
 
     log.info('🛡️ Security initialization completed');
     return true;

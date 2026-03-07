@@ -90,10 +90,10 @@ const AdminAdminsPage = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const itemsPerPage = 20;
 
-  // GraphQL query for admins
+  // GraphQL query for admins - uses admin_users table (not profiles)
   const GET_ADMINS = gql`
-    query GetAdmins($limit: Int!, $offset: Int!, $where: profiles_bool_exp) {
-      profiles(
+    query GetAdmins($limit: Int!, $offset: Int!, $where: admin_users_bool_exp) {
+      admin_users(
         limit: $limit
         offset: $offset
         where: $where
@@ -105,9 +105,13 @@ const AdminAdminsPage = () => {
         phone
         avatar_url
         created_at
-        user_type
+        role
+        department
+        is_active
+        permissions
+        last_login_at
       }
-      profiles_aggregate(where: $where) {
+      admin_users_aggregate(where: $where) {
         aggregate {
           count
         }
@@ -121,8 +125,8 @@ const AdminAdminsPage = () => {
       setLoading(true);
       setError(null);
 
-      // Build where clause
-      const where = { user_type: { _eq: 'admin' } };
+      // Build where clause for admin_users table
+      const where = {};
 
       if (searchTerm) {
         where._or = [
@@ -130,6 +134,14 @@ const AdminAdminsPage = () => {
           { email: { _ilike: `%${searchTerm}%` } },
           { phone: { _ilike: `%${searchTerm}%` } }
         ];
+      }
+
+      if (roleFilter !== 'all') {
+        where.role = { _eq: roleFilter };
+      }
+
+      if (statusFilter !== 'all') {
+        where.is_active = { _eq: statusFilter === 'active' };
       }
 
       const { data, errors } = await apolloClient.query({
@@ -144,26 +156,25 @@ const AdminAdminsPage = () => {
 
       if (errors) throw new Error(errors[0]?.message || 'Failed to fetch admins');
 
-      // Transform data
-      const transformedData = (data?.profiles || []).map(profile => ({
-        id: profile.id,
-        email: profile.email,
-        full_name: profile.full_name || 'Unknown Admin',
-        phone: profile.phone || 'N/A',
-        avatar_url: profile.avatar_url,
-        created_at: profile.created_at,
-        // Admin-specific data (defaults since admin_profiles may not exist)
-        role: 'admin',
-        department: 'General',
-        permissions: [],
-        is_active: true,
-        last_login_at: null,
+      // Transform data from admin_users table
+      const transformedData = (data?.admin_users || []).map(admin => ({
+        id: admin.id,
+        email: admin.email,
+        full_name: admin.full_name || 'Unknown Admin',
+        phone: admin.phone || 'N/A',
+        avatar_url: admin.avatar_url,
+        created_at: admin.created_at,
+        role: admin.role || 'admin',
+        department: admin.department || 'General',
+        permissions: admin.permissions || [],
+        is_active: admin.is_active,
+        last_login_at: admin.last_login_at,
         total_actions: 0,
         last_action_at: null,
       }));
 
       setAdminsData(transformedData);
-      setTotalCount(data?.profiles_aggregate?.aggregate?.count || 0);
+      setTotalCount(data?.admin_users_aggregate?.aggregate?.count || 0);
 
       await logAdminActivity('admins_page_view', 'admin_users', 'admins');
 

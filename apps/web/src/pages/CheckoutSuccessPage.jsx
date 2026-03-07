@@ -48,7 +48,7 @@ export default function CheckoutSuccessPage() {
               ? decodeURIComponent(returnUrl)
               : `ethiopianmaids://payment/success?plan=${plan || 'pro'}&session_id=${sessionId || ''}`;
 
-            console.log('[CheckoutSuccess] Redirecting to mobile app:', mobileDeepLink);
+            // Redirecting to mobile app via deep link
 
             // Try to open the mobile app
             window.location.href = mobileDeepLink;

@@ -172,8 +172,6 @@ class StripeBillingService {
         cancelUrl: params.cancelUrl || defaultCancelUrl,
       };
 
-      console.log('stripeBillingService - Request body:', JSON.stringify(requestBody, null, 2));
-
       // Check current auth
       const currentUser = auth.currentUser;
       if (!currentUser) {
@@ -237,8 +235,6 @@ class StripeBillingService {
    */
   async getSubscriptionStatus(userId) {
     try {
-      console.log('getSubscriptionStatus called with userId:', userId);
-
       // Check subscriptions table via GraphQL
       const { data: queryData } = await apolloClient.query({
         query: GET_USER_SUBSCRIPTION,
@@ -247,8 +243,6 @@ class StripeBillingService {
       });
 
       const subscriptionData = queryData?.subscriptions?.[0];
-
-      console.log('Database query result:', subscriptionData);
 
       const result = {
         hasActiveSubscription: !!subscriptionData,
@@ -261,8 +255,6 @@ class StripeBillingService {
           billing_period: subscriptionData.billing_period
         } : null,
       };
-
-      console.log('Subscription status result:', result);
 
       return result;
     } catch (error) {

@@ -32,7 +32,7 @@ class FormErrorBoundary extends React.Component {
       const formData = this.extractFormData();
       this.setState({ preservedFormData: formData });
     } catch (e) {
-      console.warn('Could not preserve form data:', e);
+      // Could not preserve form data
     }
 
     // Show toast notification
@@ -59,7 +59,7 @@ class FormErrorBoundary extends React.Component {
       try {
         Object.assign(formData, JSON.parse(savedData));
       } catch (e) {
-        console.warn('Could not parse saved form data');
+        // Could not parse saved form data
       }
     }
 
@@ -89,7 +89,7 @@ class FormErrorBoundary extends React.Component {
           variant: 'default',
         });
       } catch (e) {
-        console.warn('Could not save form data to localStorage');
+        // Could not save form data to localStorage
       }
     }
 

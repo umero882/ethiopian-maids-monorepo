@@ -6,12 +6,12 @@
  * Each section corresponds to one onboarding step.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { agencyService } from '@/services/agencyService';
 import { toast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -212,10 +212,10 @@ const VerificationBadge = ({ status }) => {
   );
 };
 
-const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) => {
-  const fileInputRef = useRef(null);
+let docCardIdCounter = 0;
+const DocumentCard = ({ label, url, verificationStatus, onUpload }) => {
+  const [inputId] = useState(() => `doc-upload-${++docCardIdCounter}`);
   const hasDoc = !!url;
-  const triggerUpload = () => fileInputRef.current?.click();
   return (
     <div className={cn(
       'border rounded-lg p-4 space-y-2',
@@ -227,7 +227,7 @@ const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) =
           <VerificationBadge status={verificationStatus} />
         )}
       </div>
-      <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={onUpload} className="hidden" />
+      <input id={inputId} type="file" accept="image/*,.pdf" onChange={onUpload} className="sr-only" />
       {hasDoc ? (
         <div className="flex items-center gap-2">
           <div className="w-16 h-16 rounded-md overflow-hidden border bg-gray-50 flex items-center justify-center">
@@ -238,27 +238,24 @@ const DocumentCard = ({ label, url, verificationStatus, isEditing, onUpload }) =
             )}
           </div>
           <div className="flex-1 text-xs text-gray-500">Document uploaded</div>
-          {isEditing && (
-            <Button variant="outline" size="sm" onClick={triggerUpload}>
-              <Upload className="h-3 w-3 mr-1" /> Replace
-            </Button>
-          )}
+          <label
+            htmlFor={inputId}
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'sm' }),
+              'cursor-pointer'
+            )}
+          >
+            <Upload className="h-3 w-3 mr-1" /> Replace
+          </label>
         </div>
       ) : (
-        isEditing ? (
-          <div
-            onClick={triggerUpload}
-            className="flex flex-col items-center justify-center py-4 cursor-pointer text-gray-400 hover:text-gray-500 transition-colors"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerUpload(); }}
-          >
-            <Upload className="h-8 w-8 mb-1" />
-            <span className="text-xs">Click to upload</span>
-          </div>
-        ) : (
-          <p className="text-xs text-gray-400 italic py-2">No document uploaded</p>
-        )
+        <label
+          htmlFor={inputId}
+          className="flex flex-col items-center justify-center py-4 cursor-pointer text-gray-400 hover:text-gray-500 transition-colors"
+        >
+          <Upload className="h-8 w-8 mb-1" />
+          <span className="text-xs">Click to upload</span>
+        </label>
       )}
     </div>
   );
@@ -360,7 +357,7 @@ const AgencyProfilePage = () => {
         const stored = localStorage.getItem(`agency_extra_${user.id}`);
         if (stored) extra = JSON.parse(stored);
       } catch (e) {
-        console.warn('Failed to load extra fields from localStorage:', e);
+        // Failed to load extra fields from localStorage
       }
 
       if (error) {
@@ -422,7 +419,7 @@ const AgencyProfilePage = () => {
   };
 
   const handleChange = (field, value) => {
-    setProfileData({ ...profileData, [field]: value });
+    setProfileData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => { const u = { ...prev }; delete u[field]; return u; });
     }
@@ -433,11 +430,13 @@ const AgencyProfilePage = () => {
   };
 
   const toggleArrayItem = (field, item) => {
-    const arr = profileData[field] || [];
-    const newArr = arr.includes(item)
-      ? arr.filter((i) => i !== item)
-      : [...arr, item];
-    handleChange(field, newArr);
+    setProfileData(prev => {
+      const arr = prev[field] || [];
+      const newArr = arr.includes(item)
+        ? arr.filter((i) => i !== item)
+        : [...arr, item];
+      return { ...prev, [field]: newArr };
+    });
   };
 
   const toggleServiceCountry = (country) => {
@@ -494,7 +493,7 @@ const AgencyProfilePage = () => {
           logoUrl = await uploadToStorage(logoFile, `agencies/${user.id}/logo.${logoFile.name.split('.').pop()}`);
           setLogoPreview(logoUrl);
         } catch (e) {
-          console.warn('Failed to upload logo:', e);
+          // Logo upload failed
         }
       }
 
@@ -504,7 +503,7 @@ const AgencyProfilePage = () => {
           tradeLicenseUrl = await uploadToStorage(tradeLicenseFile, `agencies/${user.id}/trade_license.${tradeLicenseFile.name.split('.').pop()}`);
           setTradeLicensePreview(tradeLicenseUrl);
         } catch (e) {
-          console.warn('Failed to upload trade license:', e);
+          // Trade license upload failed
         }
       }
 
@@ -514,7 +513,7 @@ const AgencyProfilePage = () => {
           repIdUrl = await uploadToStorage(repIdFile, `agencies/${user.id}/rep_id.${repIdFile.name.split('.').pop()}`);
           setRepIdPreview(repIdUrl);
         } catch (e) {
-          console.warn('Failed to upload representative ID:', e);
+          // Representative ID upload failed
         }
       }
 
@@ -554,7 +553,7 @@ const AgencyProfilePage = () => {
       try {
         localStorage.setItem(`agency_extra_${user.id}`, JSON.stringify(extraFields));
       } catch (e) {
-        console.warn('Failed to save extra fields to localStorage:', e);
+        // Failed to save extra fields to localStorage
       }
 
       return data;
@@ -588,6 +587,8 @@ const AgencyProfilePage = () => {
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
+    // Reset input so selecting the same file again triggers onChange
+    e.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Invalid file', description: 'Upload an image file', variant: 'destructive' });
@@ -597,14 +598,56 @@ const AgencyProfilePage = () => {
       toast({ title: 'Too large', description: 'Max 5MB', variant: 'destructive' });
       return;
     }
+    if (!isEditing) {
+      autoSaveDocument(file, 'logo_url');
+      return;
+    }
     const reader = new FileReader();
     reader.onloadend = () => setLogoPreview(reader.result);
     reader.readAsDataURL(file);
     setLogoFile(file);
   };
 
+  // Auto-save a single document directly to Firebase Storage + DB (used outside edit mode)
+  const autoSaveDocument = async (file, field) => {
+    try {
+      toast({ title: 'Uploading...', description: `Uploading ${field === 'trade_license_document' ? 'trade license' : field === 'authorized_person_id_document' ? 'representative ID' : 'logo'}...` });
+      const { storage } = await import('@/lib/firebaseClient');
+      const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      const ext = file.name.split('.').pop();
+      const storagePath = field === 'trade_license_document'
+        ? `agencies/${user.id}/trade_license.${ext}`
+        : field === 'authorized_person_id_document'
+        ? `agencies/${user.id}/rep_id.${ext}`
+        : `agencies/${user.id}/logo.${ext}`;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(storageRef);
+      // Save URL to DB
+      await agencyService.updateAgencyProfile({ [field]: downloadUrl });
+      // Update local state
+      if (field === 'trade_license_document') {
+        setTradeLicensePreview(downloadUrl);
+        setTradeLicenseFile(null);
+      } else if (field === 'authorized_person_id_document') {
+        setRepIdPreview(downloadUrl);
+        setRepIdFile(null);
+      } else if (field === 'logo_url') {
+        setLogoPreview(downloadUrl);
+        setLogoFile(null);
+      }
+      setProfileData(prev => ({ ...prev, [field]: downloadUrl }));
+      toast({ title: 'Uploaded', description: 'Document saved successfully' });
+    } catch (err) {
+      console.error('Auto-save document failed:', err);
+      toast({ title: 'Upload failed', description: err.message || 'Please try again', variant: 'destructive' });
+    }
+  };
+
   const handleDocUpload = (field) => (e) => {
     const file = e.target.files[0];
+    // Reset input so selecting the same file again triggers onChange
+    e.target.value = '';
     if (!file) return;
     const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
     if (!allowed.includes(file.type)) {
@@ -613,6 +656,11 @@ const AgencyProfilePage = () => {
     }
     if (file.size > 10 * 1024 * 1024) {
       toast({ title: 'Too large', description: 'Max 10MB', variant: 'destructive' });
+      return;
+    }
+    if (!isEditing) {
+      // Auto-save immediately when not in edit mode
+      autoSaveDocument(file, field);
       return;
     }
     const reader = new FileReader();
@@ -694,12 +742,10 @@ const AgencyProfilePage = () => {
                   </div>
                 )}
               </div>
-              {isEditing && (
-                <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="h-6 w-6 text-white" />
-                  <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-                </label>
-              )}
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-6 w-6 text-white" />
+                <input type="file" accept="image/*" onChange={handleLogoChange} className="sr-only" />
+              </label>
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -772,7 +818,7 @@ const AgencyProfilePage = () => {
                 value={extraFields.agency_type}
                 isEditing={isEditing}
               >
-                <Select value={extraFields.agency_type} onValueChange={(v) => handleExtraChange('agency_type', v)}>
+                <Select value={extraFields.agency_type || undefined} onValueChange={(v) => handleExtraChange('agency_type', v)}>
                   <SelectTrigger><SelectValue placeholder="Select agency type" /></SelectTrigger>
                   <SelectContent>
                     {AGENCY_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -786,7 +832,7 @@ const AgencyProfilePage = () => {
                 isEditing={isEditing}
               >
                 <Select
-                  value={String(profileData.established_year || '')}
+                  value={profileData.established_year ? String(profileData.established_year) : undefined}
                   onValueChange={(v) => handleChange('established_year', v)}
                 >
                   <SelectTrigger><SelectValue placeholder="Select years" /></SelectTrigger>
@@ -828,21 +874,18 @@ const AgencyProfilePage = () => {
               <DocumentCard
                 label="Agency Logo"
                 url={logoPreview}
-                isEditing={isEditing}
                 onUpload={handleLogoChange}
               />
               <DocumentCard
                 label="Trade License"
                 url={tradeLicensePreview || profileData.trade_license_document}
                 verificationStatus={profileData.trade_license_verification_status}
-                isEditing={isEditing}
                 onUpload={handleDocUpload('trade_license_document')}
               />
               <DocumentCard
                 label="Representative ID"
                 url={repIdPreview || profileData.authorized_person_id_document}
                 verificationStatus={profileData.authorized_person_id_verification_status}
-                isEditing={isEditing}
                 onUpload={handleDocUpload('authorized_person_id_document')}
               />
             </div>
@@ -858,10 +901,13 @@ const AgencyProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FieldRow label="Country" value={profileData.country} isEditing={isEditing} required>
                 <Select
-                  value={profileData.country}
+                  value={profileData.country || undefined}
                   onValueChange={(v) => {
-                    handleChange('country', v);
-                    if (v !== profileData.country) handleChange('city', '');
+                    setProfileData(prev => ({
+                      ...prev,
+                      country: v,
+                      city: v !== prev.country ? '' : prev.city,
+                    }));
                   }}
                 >
                   <SelectTrigger className={errors.country ? 'border-red-500' : ''}>
@@ -875,7 +921,7 @@ const AgencyProfilePage = () => {
               </FieldRow>
 
               <FieldRow label="City" value={profileData.city} isEditing={isEditing} required>
-                <Select value={profileData.city} onValueChange={(v) => handleChange('city', v)}>
+                <Select value={profileData.city || undefined} onValueChange={(v) => handleChange('city', v)}>
                   <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
                     <SelectValue placeholder={availableCities.length ? 'Select city' : 'Select country first'} />
                   </SelectTrigger>
@@ -1025,7 +1071,7 @@ const AgencyProfilePage = () => {
 
               <FieldRow label="Position" value={profileData.authorized_person_position} isEditing={isEditing} required>
                 <Select
-                  value={profileData.authorized_person_position}
+                  value={profileData.authorized_person_position || undefined}
                   onValueChange={(v) => handleChange('authorized_person_position', v)}
                 >
                   <SelectTrigger className={errors.authorized_person_position ? 'border-red-500' : ''}>

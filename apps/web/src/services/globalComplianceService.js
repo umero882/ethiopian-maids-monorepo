@@ -683,7 +683,7 @@ class GlobalComplianceService {
         });
       }
     } catch (error) {
-      console.warn('Failed to load compliance cache:', error);
+      // Failed to load compliance cache
     }
   }
 

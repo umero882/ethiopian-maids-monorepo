@@ -195,6 +195,9 @@ const UPSERT_AGENCY_PROFILE = gql`
           full_name
           license_number
           country
+          city
+          phone
+          email
           business_phone
           business_email
           website_url
@@ -211,6 +214,8 @@ const UPSERT_AGENCY_PROFILE = gql`
           authorized_person_phone
           authorized_person_email
           authorized_person_id_number
+          trade_license_document
+          authorized_person_id_document
           logo_url
           logo_file_preview
           license_expiry_date
@@ -390,13 +395,18 @@ function normalizeMaidData(userId: string, data: ProfileData): Record<string, un
 
 function normalizeAgencyData(userId: string, data: ProfileData): Record<string, unknown> {
   const agencyName = (data.agencyName as string) || (data.full_name as string) || '';
+  const phoneVal = data.contactPhone || data.business_phone || data.phone || null;
+  const emailVal = data.officialEmail || data.business_email || data.email || null;
   return {
     id: userId,
     full_name: agencyName.trim(),
     license_number: data.tradeLicenseNumber || data.licenseNumber || data.license_number || null,
     country: data.countryOfRegistration || data.country || null,
-    business_phone: data.contactPhone || data.business_phone || data.phone || null,
-    business_email: data.officialEmail || data.business_email || data.email || null,
+    city: data.city || null,
+    phone: phoneVal,
+    email: emailVal,
+    business_phone: phoneVal,
+    business_email: emailVal,
     website_url: data.website || data.website_url || null,
     head_office_address: data.headOfficeAddress || data.head_office_address || null,
     service_countries: Array.isArray(data.operatingCities) ? data.operatingCities
@@ -414,6 +424,8 @@ function normalizeAgencyData(userId: string, data: ProfileData): Record<string, 
     authorized_person_phone: data.authorizedPersonPhone || data.authorized_person_phone || null,
     authorized_person_email: data.authorizedPersonEmail || data.authorized_person_email || null,
     authorized_person_id_number: data.authorizedPersonIdNumber || data.authorized_person_id_number || null,
+    trade_license_document: data.tradeLicenseDocumentUrl || data.trade_license_document || null,
+    authorized_person_id_document: data.authorizedPersonIdDocumentUrl || data.authorized_person_id_document || null,
     logo_url: data.logo || data.logo_url || null,
     logo_file_preview: data.logoFilePreview || data.logo_file_preview || null,
     license_expiry_date: data.licenseExpiryDate

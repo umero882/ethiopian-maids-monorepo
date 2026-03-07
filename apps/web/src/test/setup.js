@@ -371,6 +371,14 @@ vi.mock('@ethio/api-client', () => ({
     mutate: vi.fn(() => Promise.resolve({ data: null, errors: null })),
     subscribe: vi.fn(() => ({ subscribe: vi.fn() })),
   },
+  GetProfileDocument: {},
+  setAuthToken: vi.fn(),
+  setTokenRefreshCallback: vi.fn(),
+  resetApolloCache: vi.fn(() => Promise.resolve()),
+  refetchActiveQueries: vi.fn(() => Promise.resolve()),
+  updateCacheAfterMutation: vi.fn(),
+  evictFromCache: vi.fn(),
+  readFromCache: vi.fn(),
 }));
 
 // Mock Apollo Client React hooks for subscriptions

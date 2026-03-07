@@ -54,8 +54,7 @@ const DashboardGateway = () => {
         // Only use if it's recent (within last 30 minutes)
         const isRecent = pendingSubscription.timestamp && (Date.now() - pendingSubscription.timestamp) < 30 * 60 * 1000;
         if (!isRecent) {
-          console.log('[DashboardGateway] Pending subscription expired, clearing...');
-          localStorage.removeItem('pendingSubscription');
+            localStorage.removeItem('pendingSubscription');
           pendingSubscription = null;
         }
       } catch (e) {
@@ -64,30 +63,15 @@ const DashboardGateway = () => {
       }
     }
 
-    console.log('[DashboardGateway] URL params:', {
-      success: paymentSuccess,
-      payment: paymentParam,
-      canceled: paymentCancelled,
-      session_id: sessionId,
-      plan: planType,
-      amount: amount,
-      pendingSubscription: pendingSubscription ? 'found' : 'none',
-      fullUrl: window.location.href
-    });
-
     // Check for payment success - various ways Stripe can indicate this
     const isPaymentSuccess = paymentSuccess === 'true' || paymentParam === 'success' || sessionId;
     // Also check if we have a pending subscription and user just arrived (from Stripe redirect)
     const hasPendingPayment = pendingSubscription && user && pendingSubscription.userId === user.id;
 
     if ((isPaymentSuccess || hasPendingPayment) && user) {
-      console.log('[DashboardGateway] Payment detected, syncing subscription to Hasura...');
-
       // Sync subscription using GraphQL (Firebase/Hasura)
       const syncSubscription = async (retryCount = 0, maxRetries = 3) => {
         try {
-          console.log(`[DashboardGateway] Sync attempt ${retryCount + 1}/${maxRetries + 1}`);
-
           // Use pending subscription from localStorage if available
           let planDetails = {
             planName: 'Professional',
@@ -104,7 +88,6 @@ const DashboardGateway = () => {
               billingPeriod: pendingSubscription.billingPeriod,
               amount: pendingSubscription.amount,
             };
-            console.log('[DashboardGateway] Using pending subscription from localStorage:', planDetails);
           } else if (amount) {
             const detected = detectPlanFromPayment(parseInt(amount), user.userType || 'agency');
             planDetails = { ...planDetails, ...detected, amount: parseInt(amount) };
@@ -119,8 +102,6 @@ const DashboardGateway = () => {
             stripeSubscriptionId: sessionId || `payment_${Date.now()}`,
             stripeCustomerId: null,
           });
-
-          console.log('[DashboardGateway] Sync result:', result);
 
           if (result.success) {
             // Clear pending subscription from localStorage
@@ -139,7 +120,6 @@ const DashboardGateway = () => {
             window.history.replaceState({}, document.title, newUrl);
           } else if (retryCount < maxRetries) {
             // Retry if sync failed
-            console.log('[DashboardGateway] Subscription sync failed, retrying...');
             await new Promise(resolve => setTimeout(resolve, 2000));
             return syncSubscription(retryCount + 1, maxRetries);
           } else {
@@ -161,7 +141,6 @@ const DashboardGateway = () => {
           console.error('[DashboardGateway] Error syncing subscription:', error);
 
           if (retryCount < maxRetries) {
-            console.log(`[DashboardGateway] Retrying after error (attempt ${retryCount + 1}/${maxRetries})...`);
             await new Promise(resolve => setTimeout(resolve, 2000));
             return syncSubscription(retryCount + 1, maxRetries);
           }
@@ -198,20 +177,6 @@ const DashboardGateway = () => {
   }, [searchParams, user, refreshSubscription]);
 
   useEffect(() => {
-    console.log('🔍 DashboardGateway useEffect triggered:', {
-      loading,
-      hasNavigated,
-      user: user
-        ? {
-            id: user.id,
-            email: user.email,
-            userType: user.userType,
-            user_type: user.user_type,
-            registration_complete: user.registration_complete,
-          }
-        : null,
-    });
-
     if (!loading && user && !hasNavigated) {
       // Prefer specific role types over generic 'user' — DB user_type is more reliable
       // JWT claims may default to 'user' if Cloud Functions haven't set the proper role
@@ -219,14 +184,16 @@ const DashboardGateway = () => {
       const dbType = user.user_type;
       const userType = (jwtType && jwtType !== 'user') ? jwtType : (dbType || jwtType);
 
-      console.log(
-        '🎯 DashboardGateway - Checking user status:',
-        'userType:', userType,
-        'Registration complete:', user.registration_complete,
-        'full_name:', user.full_name
-      );
+      // Check if this is an admin user (via userType or Hasura JWT claims)
+      const isAdminUser = userType === 'admin' || userType === 'site_admin';
 
       setHasNavigated(true); // Prevent multiple navigation attempts
+
+      // Admin users skip onboarding - route directly to admin dashboard
+      if (isAdminUser) {
+        navigate('/admin', { replace: true });
+        return;
+      }
 
       // ENFORCE: Profile must be complete before accessing dashboard
       // Users with incomplete profiles MUST complete the unified onboarding
@@ -235,14 +202,11 @@ const DashboardGateway = () => {
       const isProfileComplete = user.registration_complete === true || hasEssentialProfileData;
 
       if (!isProfileComplete) {
-        console.log('⚠️ DashboardGateway - User profile incomplete, redirecting to unified onboarding');
         navigate('/get-started', { replace: true });
         return;
       }
 
       // Route users to their appropriate dashboard based on user type
-      console.log('✅ DashboardGateway - Profile complete, routing to dashboard');
-
       switch (userType) {
         case 'maid':
           navigate('/dashboard/maid', { replace: true });
@@ -254,12 +218,11 @@ const DashboardGateway = () => {
           navigate('/dashboard/sponsor', { replace: true });
           break;
         case 'admin':
-          navigate('/admin-dashboard', { replace: true });
+          navigate('/admin', { replace: true });
           break;
         default:
           // If user type is not recognized, still allow dashboard access
           // but they'll see profile completion prompts
-          console.warn('⚠️ Unknown user type:', userType);
           navigate('/dashboard/sponsor', { replace: true }); // Default to sponsor dashboard
           break;
       }

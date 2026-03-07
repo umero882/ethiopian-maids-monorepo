@@ -347,7 +347,7 @@ const AdminProfileSettingsPage = () => {
           setActivityLogs(logsData.admin_activity_logs);
         }
       } catch (logsError) {
-        console.warn('[AdminProfile] Could not load activity logs:', logsError);
+        // Could not load activity logs - non-critical, continue
       }
 
       logAdminActivity?.('admin_profile_page_view', 'admin_profile', 'settings');
@@ -790,7 +790,7 @@ const AdminProfileSettingsPage = () => {
               />
               <Button
                 variant="outline"
-                size="icon" aria-label="Upload avatar"
+                size="icon"
                 aria-label="Upload avatar"
                 className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
                 onClick={() => fileInputRef.current?.click()}

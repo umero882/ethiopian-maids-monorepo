@@ -137,7 +137,7 @@ const FeaturedMaidsSection = () => {
           setMaids(result.data);
         }
       } catch (err) {
-        console.warn('Failed to fetch featured maids:', err);
+        // failed to fetch featured maids
       } finally {
         setLoading(false);
       }

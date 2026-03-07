@@ -139,7 +139,7 @@ class TwilioService {
     const country = countryPrefixes[countryCode.toUpperCase()];
 
     if (!country) {
-      console.warn(`Unknown country code: ${countryCode}`);
+      // Unknown country code
       return null;
     }
 

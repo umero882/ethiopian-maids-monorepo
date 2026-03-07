@@ -79,12 +79,11 @@ const AgencyHomePage = () => {
     { key: 'full_name', check: (v) => !!v?.trim() },
     { key: 'license_number', check: (v) => !!v?.trim() },
     { key: 'logo_url', check: (v) => !!v },
-    { key: 'trade_license_document', check: (v) => !!v },
     { key: 'authorized_person_id_document', check: (v) => !!v },
     { key: 'country', check: (v) => !!v?.trim() },
     { key: 'city', check: (v) => !!v?.trim() },
-    { key: 'phone', check: (v) => !!v?.trim() },
-    { key: 'email', check: (v) => !!v?.trim() },
+    { key: 'phone', check: (v) => !!v?.trim(), fallback: 'business_phone' },
+    { key: 'email', check: (v) => !!v?.trim(), fallback: 'business_email' },
     { key: 'authorized_person_name', check: (v) => !!v?.trim() },
     { key: 'authorized_person_position', check: (v) => !!v?.trim() },
     { key: 'authorized_person_phone', check: (v) => !!v?.trim() },
@@ -92,7 +91,7 @@ const AgencyHomePage = () => {
     { key: 'specialization', check: (v) => Array.isArray(v) && v.length > 0 },
     { key: 'agency_description', check: (v) => !!v?.trim() && v.trim().length >= 100 },
   ];
-  const filledCount = agencyProfile ? completionFields.filter((f) => f.check(agencyProfile[f.key])).length : 0;
+  const filledCount = agencyProfile ? completionFields.filter((f) => f.check(agencyProfile[f.key]) || (f.fallback && f.check(agencyProfile[f.fallback]))).length : 0;
   const completionPct = agencyProfile ? Math.round((filledCount / completionFields.length) * 100) : 0;
 
   // Get logo from DB profile (not from AuthContext)
@@ -103,38 +102,28 @@ const AgencyHomePage = () => {
   useEffect(() => {
     const success = searchParams.get('success');
     if (success === 'true') {
-      console.log('[AgencyHomePage] 🎉 Payment success detected! Starting subscription refresh...');
-
       // Show congratulations toast
       toast({
-        title: '🎉 Subscription Upgraded Successfully!',
+        title: 'Subscription Upgraded Successfully!',
         description: 'Welcome to your new plan! Your subscription is now active and all features are unlocked.',
         variant: 'default',
         duration: 6000,
       });
 
       // Refresh subscription data immediately
-      console.log('[AgencyHomePage] Calling refreshSubscription() - Attempt 1 (immediate)');
-      refreshSubscription().then(() => {
-        console.log('[AgencyHomePage] Initial refreshSubscription() completed');
-      }).catch((error) => {
+      refreshSubscription().catch((error) => {
         console.error('[AgencyHomePage] Error in initial refreshSubscription():', error);
       });
 
       // Refresh dashboard data immediately
-      console.log('[AgencyHomePage] Calling refreshKPIs() - Attempt 1 (immediate)');
       refreshKPIs();
 
       // Poll for subscription updates (webhook may take a few seconds)
       const pollAttempts = [2000, 4000, 6000]; // Poll at 2s, 4s, and 6s
-      console.log('[AgencyHomePage] Setting up polling at:', pollAttempts);
 
       pollAttempts.forEach((delay, index) => {
         setTimeout(() => {
-          console.log(`[AgencyHomePage] Poll attempt ${index + 2} (after ${delay}ms)`);
-          refreshSubscription().then(() => {
-            console.log(`[AgencyHomePage] refreshSubscription() completed - Attempt ${index + 2}`);
-          }).catch((error) => {
+          refreshSubscription().catch((error) => {
             console.error(`[AgencyHomePage] Error in refreshSubscription() - Attempt ${index + 2}:`, error);
           });
           refreshKPIs();

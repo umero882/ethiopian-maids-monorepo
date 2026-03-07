@@ -217,10 +217,6 @@ const RELIGIONS = [
 ];
 
 const UnifiedSponsorCompletionForm = ({ onUpdate, initialData = {} }) => {
-  /* console.log('🚀 UnifiedSponsorCompletionForm - Component loaded!', {
-    onUpdate,
-    initialData,
-  }); */
   const [activeTab, setActiveTab] = useState('verification');
 
   // Verification form data
@@ -472,7 +468,7 @@ const UnifiedSponsorCompletionForm = ({ onUpdate, initialData = {} }) => {
         const sponsorProfile = profileResult?.data ?? null;
         const error = profileResult?.error ?? null;
         if (error) {
-          console.warn('Failed to load sponsor profile:', error?.message);
+          // failed to load sponsor profile
         }
         if (sponsorProfile) {
           // Ensure all array fields are arrays (not null) and string fields are strings (not null)

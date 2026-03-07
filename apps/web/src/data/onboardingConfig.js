@@ -470,10 +470,10 @@ const AGENCY_PROFILE_STEPS = [
     description: 'Capture your photo and upload your Emirates ID for verification.',
     icon: Shield,
     phase: 'profile',
-    isSkippable: false,
+    isSkippable: true,
     points: 100,
     validation: {
-      required: ['facePhoto', 'tradeLicense', 'investorId'],
+      required: ['facePhoto', 'idDocument'],
     },
   },
   {

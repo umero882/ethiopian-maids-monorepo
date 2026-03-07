@@ -242,7 +242,7 @@ const MaidDetailPage = () => {
             setDocuments(docsData);
           }
         } catch (docErr) {
-          console.warn('Could not fetch documents:', docErr);
+          // Could not fetch documents
         }
       } catch (err) {
         console.error('Error fetching maid:', err);
@@ -283,7 +283,7 @@ const MaidDetailPage = () => {
           // Mark as viewed in this session
           sessionStorage.setItem(viewedKey, 'true');
         } catch (err) {
-          console.warn('Could not increment profile views:', err);
+          // Could not increment profile views
         }
       }
     };
@@ -301,7 +301,7 @@ const MaidDetailPage = () => {
         const { data } = await maidService.isFavorite(userId, id);
         setIsFavorite(data);
       } catch (err) {
-        console.warn('Could not check favorite status:', err);
+        // Could not check favorite status
       }
     };
 

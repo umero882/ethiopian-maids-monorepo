@@ -44,7 +44,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm nx run-many --target=test --all --parallel=3 --passWithNoTests
+      - run: pnpm nx run-many --target=test --all --parallel=3 --coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
@@ -68,6 +68,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - name: Clean stale build artifacts
+        run: rm -rf dist/apps/web
       - name: Build web app
         run: pnpm nx build web --configuration=production
         env:
@@ -79,7 +81,10 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_HASURA_ENDPOINT: ${{ secrets.VITE_HASURA_ENDPOINT }}
+          VITE_HASURA_GRAPHQL_ENDPOINT: ${{ secrets.VITE_HASURA_GRAPHQL_ENDPOINT }}
+          VITE_HASURA_WS_ENDPOINT: ${{ secrets.VITE_HASURA_WS_ENDPOINT }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_MEASUREMENT_ID: ${{ secrets.VITE_MEASUREMENT_ID }}
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -100,6 +105,15 @@ jobs:
         with:
           name: web-build
           path: dist/
+      - name: Clean old assets on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            rm -rf /var/www/ethiopianmaids/assets
+            rm -f /var/www/ethiopianmaids/sw.js /var/www/ethiopianmaids/workbox-*.js
       - name: Deploy build to VPS
         uses: appleboy/scp-action@v0.1.7
         with:

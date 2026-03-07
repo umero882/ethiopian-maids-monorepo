@@ -273,7 +273,7 @@ const MaidCompletionForm = ({ onUpdate, initialData = {} }) => {
       setFormData((prev) => {
         const prevUrl = prev?.[field]?.previewUrl;
         if (prevUrl && typeof prevUrl === 'string' && prevUrl.startsWith('blob:')) {
-          try { URL.revokeObjectURL(prevUrl); } catch (e) { console.warn('Failed to revoke blob URL'); }
+          try { URL.revokeObjectURL(prevUrl); } catch (e) { /* revoke failed */; }
         }
         return { ...prev, [field]: { file: wm, previewUrl, watermarked: true } };
       });
@@ -289,7 +289,7 @@ const MaidCompletionForm = ({ onUpdate, initialData = {} }) => {
     setFormData((prev) => {
       const prevUrl = prev?.[field]?.previewUrl;
       if (prevUrl && typeof prevUrl === 'string' && prevUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(prevUrl); } catch (e) { console.warn('Failed to revoke blob URL'); }
+        try { URL.revokeObjectURL(prevUrl); } catch (e) { /* revoke failed */; }
       }
       return { ...prev, [field]: { file: null, previewUrl: null, watermarked: false } };
     });
@@ -306,7 +306,7 @@ const MaidCompletionForm = ({ onUpdate, initialData = {} }) => {
     ];
     urls.forEach((u) => {
       if (u && typeof u === 'string' && u.startsWith('blob:')) {
-        try { URL.revokeObjectURL(u); } catch (e) { console.warn('Failed to revoke blob URL'); }
+        try { URL.revokeObjectURL(u); } catch (e) { /* revoke failed */; }
       }
     });
   }, [formData.passportPhotoPage?.previewUrl, formData.referenceLetter?.previewUrl, formData.medicalCertificate?.previewUrl]);

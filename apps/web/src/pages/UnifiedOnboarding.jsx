@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { OnboardingProvider, useOnboarding } from '@/context/OnboardingContext';
 import OnboardingLayout from '@/components/onboarding/shared/OnboardingLayout';
 import DraftRecoveryModal from '@/components/onboarding/shared/DraftRecoveryModal';
 import ConfettiCelebration from '@/components/onboarding/shared/ConfettiCelebration';
+import { AlertTriangle } from 'lucide-react';
 
 // Shared Steps
 import WelcomeStep from '@/components/onboarding/steps/WelcomeStep';
@@ -119,6 +121,7 @@ const STEP_CONFIGS = {
  */
 const OnboardingFlow = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     currentStep,
     userType,
@@ -130,6 +133,9 @@ const OnboardingFlow = () => {
     startFresh,
     formData,
   } = useOnboarding();
+
+  // Detect if user is logged in but has incomplete onboarding
+  const isReturningIncompleteUser = user && !user.registration_complete;
 
   // Build the complete step list based on user type
   const steps = useMemo(() => {
@@ -212,6 +218,18 @@ const OnboardingFlow = () => {
 
   return (
     <>
+      {/* Incomplete onboarding banner for returning users */}
+      {isReturningIncompleteUser && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 shadow-lg">
+          <div className="max-w-2xl mx-auto flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm font-medium">
+              Your onboarding is incomplete. Please finish setting up your profile to access the platform.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Draft Recovery Modal */}
       <DraftRecoveryModal
         isOpen={showDraftRecovery}

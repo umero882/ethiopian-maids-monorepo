@@ -107,11 +107,24 @@ import {
   CheckSquare,
   Square,
   StickyNote,
-  Send
+  Send,
+  Bell
 } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { toast } from '@/components/ui/use-toast';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/lib/firebaseClient';
+
+// Query to fetch emails from profiles table (email is not on maid_profiles)
+const GET_EMAILS_BY_IDS = gql`
+  query GetEmailsByIds($ids: [String!]!) {
+    profiles(where: { id: { _in: $ids } }) {
+      id
+      email
+    }
+  }
+`;
 
 
 // GraphQL Query - includes fields needed for list view AND profile completeness checks in the dialog
@@ -285,6 +298,9 @@ const CREATE_NOTIFICATION_MUTATION = gql`
       title
       message
       priority
+      delivery_status
+      delivery_channels
+      sent_by
       created_at
     }
   }
@@ -442,7 +458,7 @@ const GET_MAID_BY_ID = gql`
 `;
 
 const AdminMaidsPage = () => {
-  const { logAdminActivity } = useAdminAuth();
+  const { logAdminActivity, adminUser } = useAdminAuth();
   const [maidsData, setMaidsData] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -478,12 +494,16 @@ const AdminMaidsPage = () => {
   // Export state
   const [exporting, setExporting] = useState(false);
 
+  // Email map (maid ID -> email from profiles table)
+  const [emailMap, setEmailMap] = useState({});
+
   // Verification dialog state
   const [verificationDialog, setVerificationDialog] = useState({
     open: false,
     maid: null,
     action: '', // 'approve', 'reject', 'pending'
-    message: ''
+    message: '',
+    channels: { inApp: true, whatsApp: true, email: true }
   });
   const [verificationProcessing, setVerificationProcessing] = useState(false);
 
@@ -704,6 +724,22 @@ Ethiopian Maids Platform Team`
       if (data?.maid_profiles !== undefined) {
         setMaidsData(mappedData);
         setTotalCount(data?.maid_profiles_aggregate?.aggregate?.count || 0);
+
+        // Fetch emails from profiles table (fire and forget)
+        const maidIds = mappedData.map(m => m.id).filter(Boolean);
+        if (maidIds.length > 0) {
+          apolloClient.query({
+            query: GET_EMAILS_BY_IDS,
+            variables: { ids: maidIds },
+            fetchPolicy: 'cache-first'
+          }).then(({ data: emailData }) => {
+            if (emailData?.profiles) {
+              const map = {};
+              emailData.profiles.forEach(p => { if (p.email) map[p.id] = p.email; });
+              setEmailMap(prev => ({ ...prev, ...map }));
+            }
+          }).catch(() => {});
+        }
       }
 
       // Update stats from parallel fetch
@@ -814,16 +850,19 @@ Ethiopian Maids Platform Team`
   // Open verification dialog with message
   const openVerificationDialog = (maid, action) => {
     const personalizedMessage = defaultMessages[action].replace(/{name}/g, maid.full_name || 'User');
+    const hasPhone = !!(maid.phone_number || maid.alternative_phone);
+    const hasEmail = !!(emailMap[maid.id] || maid.email);
     setVerificationDialog({
       open: true,
       maid,
       action,
-      message: personalizedMessage
+      message: personalizedMessage,
+      channels: { inApp: true, whatsApp: hasPhone, email: hasEmail }
     });
   };
 
   // Send in-app notification to user
-  const sendInAppNotification = async (userId, type, title, message, priority = 'high', actionUrl = null) => {
+  const sendInAppNotification = async (userId, type, title, message, priority = 'high', actionUrl = null, deliveryMeta = {}) => {
     try {
       const result = await apolloClient.mutate({
         mutation: CREATE_NOTIFICATION_MUTATION,
@@ -837,7 +876,8 @@ Ethiopian Maids Platform Team`
             related_type: 'maid_profile',
             link: actionUrl,
             action_url: actionUrl,
-            read: false
+            read: false,
+            ...deliveryMeta
           }
         }
       });
@@ -845,6 +885,34 @@ Ethiopian Maids Platform Team`
       return true;
     } catch (error) {
       logger.error('Failed to send in-app notification:', error);
+      return false;
+    }
+  };
+
+  // Send email via Cloud Function (SendGrid)
+  const sendEmailNotification = async (to, subject, message, recipientName) => {
+    if (!to || !functions) return false;
+    try {
+      const sendEmail = httpsCallable(functions, 'notificationSendEmail');
+      const result = await sendEmail({ to, subject, message, recipientName });
+      logger.info(`Email sent to ${to}:`, result.data);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send email notification:', error);
+      return false;
+    }
+  };
+
+  // Send WhatsApp via Cloud Function (Meta API)
+  const sendWhatsAppDirect = async (phone, message) => {
+    if (!phone || !functions) return false;
+    try {
+      const sendWA = httpsCallable(functions, 'notificationSendWhatsApp');
+      const result = await sendWA({ phone, message });
+      logger.info(`WhatsApp sent to ${phone}:`, result.data);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send WhatsApp via Cloud Function:', error);
       return false;
     }
   };
@@ -957,7 +1025,7 @@ Ethiopian Maids Platform Team`
 
     setVerificationProcessing(true);
     try {
-      const { action, maid, message } = verificationDialog;
+      const { action, maid, message, channels } = verificationDialog;
       let newStatus;
 
       switch (action) {
@@ -1000,15 +1068,15 @@ Ethiopian Maids Platform Team`
 
       // Track notification channels used
       const notificationChannels = [];
+      const deliveryChannelsList = [];
 
-      // 2. Send in-app notification to maid (only for independent maids, not agency-managed)
+      // Build action titles and personalized message
       const actionTitles = {
         approve: 'Profile Approved!',
         reject: 'Profile Rejected',
         pending: 'Profile Under Review'
       };
 
-      // Create personalized message for independent maid
       const maidName = maid.full_name || 'there';
       let maidMessage;
       if (action === 'reject') {
@@ -1019,24 +1087,55 @@ Ethiopian Maids Platform Team`
         maidMessage = `Dear ${maidName},\n\nYour profile is currently under review.\n\n${message}`;
       }
 
-      const maidNotificationSent = await sendInAppNotification(
-        maid.user_id || maid.id,
-        action === 'approve' ? 'profile_approved' : action === 'reject' ? 'profile_rejected' : 'system_announcement',
-        actionTitles[action],
-        maidMessage,
-        action === 'reject' ? 'urgent' : 'high',
-        '/dashboard/maid/profile' // Full path to maid profile page
-      );
-      if (maidNotificationSent) notificationChannels.push('in-app');
+      // Delivery metadata for notification record
+      const deliveryMeta = {
+        sent_by: adminUser?.id || null,
+      };
 
-      // 3. Send WhatsApp to maid if phone available
-      const maidPhone = maid.phone_number || maid.alternative_phone;
-      if (maidPhone) {
-        const whatsappSent = await sendWhatsAppMessage(maidPhone, maidMessage);
-        if (whatsappSent) notificationChannels.push('whatsapp');
+      // 2. Send in-app notification if channel enabled
+      if (channels.inApp) {
+        deliveryChannelsList.push('in-app');
+        const maidNotificationSent = await sendInAppNotification(
+          maid.user_id || maid.id,
+          action === 'approve' ? 'profile_approved' : action === 'reject' ? 'profile_rejected' : 'system_announcement',
+          actionTitles[action],
+          maidMessage,
+          action === 'reject' ? 'urgent' : 'high',
+          '/dashboard/maid/profile',
+          { ...deliveryMeta, delivery_channels: deliveryChannelsList, delivery_status: 'sent' }
+        );
+        if (maidNotificationSent) notificationChannels.push('in-app');
       }
 
-      // 4. If agency-managed, notify the agency via all channels
+      // 3. Send WhatsApp if channel enabled and phone available
+      const maidPhone = maid.phone_number || maid.alternative_phone;
+      if (channels.whatsApp && maidPhone) {
+        // Queue in DB (existing flow)
+        await sendWhatsAppMessage(maidPhone, maidMessage);
+        // Also send via Cloud Function (real delivery)
+        const waSent = await sendWhatsAppDirect(maidPhone, maidMessage);
+        if (waSent) {
+          notificationChannels.push('whatsapp');
+          if (!deliveryChannelsList.includes('whatsapp')) deliveryChannelsList.push('whatsapp');
+        }
+      }
+
+      // 4. Send email if channel enabled and email available
+      const maidEmail = emailMap[maid.id] || maid.email;
+      if (channels.email && maidEmail) {
+        const emailSent = await sendEmailNotification(
+          maidEmail,
+          actionTitles[action],
+          maidMessage,
+          maidName
+        );
+        if (emailSent) {
+          notificationChannels.push('email');
+          if (!deliveryChannelsList.includes('email')) deliveryChannelsList.push('email');
+        }
+      }
+
+      // 5. If agency-managed, notify the agency via all channels
       let agencyNotification = { success: false, channels: [] };
       if (maid.is_agency_managed && maid.agency_id) {
         agencyNotification = await notifyAgency(maid.agency_id, maid, action, message);
@@ -1044,15 +1143,6 @@ Ethiopian Maids Platform Team`
           notificationChannels.push(`agency(${agencyNotification.channels.join(',')})`);
         }
       }
-
-      // 5. Log email for maid (SendGrid integration placeholder)
-      // In production, this would send via SendGrid
-      logger.info(`Email notification queued for maid:`, {
-        maidId: maid.id,
-        maidName: maid.full_name,
-        action,
-        messageLength: message.length
-      });
 
       const actionLabels = {
         approve: 'approved',
@@ -1075,7 +1165,7 @@ Ethiopian Maids Platform Team`
       });
 
       // Close dialog
-      setVerificationDialog({ open: false, maid: null, action: '', message: '' });
+      setVerificationDialog({ open: false, maid: null, action: '', message: '', channels: { inApp: true, whatsApp: true, email: true } });
     } catch (error) {
       logger.error('Failed to update verification status:', error);
       toast({
@@ -1543,7 +1633,18 @@ Ethiopian Maids Platform Team`
         if (profileResult.status === 'fulfilled') {
           const { data: profileData, errors: profileErrors } = profileResult.value;
           if (!profileErrors && profileData?.maid_profiles_by_pk) {
-            setMaidData(profileData.maid_profiles_by_pk);
+            const maidProfile = profileData.maid_profiles_by_pk;
+            // Also fetch email from profiles table
+            try {
+              const { data: emailData } = await apolloClient.query({
+                query: GET_EMAILS_BY_IDS,
+                variables: { ids: [maidId] },
+                fetchPolicy: 'cache-first'
+              });
+              const email = emailData?.profiles?.[0]?.email;
+              if (email) maidProfile.email = email;
+            } catch (e) { /* email fetch is non-critical */ }
+            setMaidData(maidProfile);
           } else if (profileErrors) {
             logger.error('GraphQL errors fetching full profile:', profileErrors);
           }
@@ -2069,6 +2170,15 @@ Ethiopian Maids Platform Team`;
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-500">Email</span>
+                        <span className={`text-sm font-medium flex items-center gap-1 ${!maid.email ? 'text-amber-500' : ''}`} title={maid.email || ''}>
+                          <Mail className="h-3 w-3 text-blue-500" />
+                          {maid.email ? (
+                            <span className="truncate max-w-[160px]">{maid.email}</span>
+                          ) : 'Not set'}
+                        </span>
+                      </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-slate-500">Phone</span>
                         <span className={`text-sm font-medium flex items-center gap-1 ${!maid.phone_number ? 'text-red-500' : ''}`}>
@@ -2896,6 +3006,7 @@ Ethiopian Maids Platform Team`;
                       />
                     </TableHead>
                     <TableHead>Maid</TableHead>
+                    <TableHead>Contact</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Experience</TableHead>
                     <TableHead>Status</TableHead>
@@ -2932,6 +3043,20 @@ Ethiopian Maids Platform Team`;
                             <div>
                               <p className="font-medium">{maid.full_name || 'Unknown'}</p>
                               <p className="text-sm text-muted-foreground">{maid.nationality || 'Not specified'}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {emailMap[maid.id] && (
+                              <div className="flex items-center gap-1" title={emailMap[maid.id]}>
+                                <Mail className="h-3 w-3 text-blue-500 shrink-0" />
+                                <span className="text-xs text-muted-foreground truncate max-w-[140px]">{emailMap[maid.id]}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-green-500 shrink-0" />
+                              <span className="text-xs text-muted-foreground">{maid.phone || 'N/A'}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -3251,6 +3376,61 @@ Ethiopian Maids Platform Team`;
                 className="min-h-[250px] font-mono text-sm"
                 placeholder="Enter message to send to the user..."
               />
+            </div>
+
+            {/* Notification Channel Selection */}
+            <div>
+              <Label className="text-base font-medium flex items-center gap-2 mb-3">
+                <Send className="h-4 w-4" />
+                Notification Channels
+              </Label>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={verificationDialog.channels?.inApp}
+                    onCheckedChange={(checked) => setVerificationDialog(prev => ({
+                      ...prev,
+                      channels: { ...prev.channels, inApp: !!checked }
+                    }))}
+                  />
+                  <Bell className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm">In-App</span>
+                </label>
+                <label className={`flex items-center gap-2 ${!(verificationDialog.maid?.phone_number || verificationDialog.maid?.alternative_phone) ? 'opacity-50' : 'cursor-pointer'}`}>
+                  <Checkbox
+                    checked={verificationDialog.channels?.whatsApp}
+                    onCheckedChange={(checked) => setVerificationDialog(prev => ({
+                      ...prev,
+                      channels: { ...prev.channels, whatsApp: !!checked }
+                    }))}
+                    disabled={!(verificationDialog.maid?.phone_number || verificationDialog.maid?.alternative_phone)}
+                  />
+                  <MessageSquare className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">
+                    WhatsApp
+                    {!(verificationDialog.maid?.phone_number || verificationDialog.maid?.alternative_phone) && (
+                      <span className="text-xs text-muted-foreground ml-1">(no phone)</span>
+                    )}
+                  </span>
+                </label>
+                <label className={`flex items-center gap-2 ${!(emailMap[verificationDialog.maid?.id] || verificationDialog.maid?.email) ? 'opacity-50' : 'cursor-pointer'}`}>
+                  <Checkbox
+                    checked={verificationDialog.channels?.email}
+                    onCheckedChange={(checked) => setVerificationDialog(prev => ({
+                      ...prev,
+                      channels: { ...prev.channels, email: !!checked }
+                    }))}
+                    disabled={!(emailMap[verificationDialog.maid?.id] || verificationDialog.maid?.email)}
+                  />
+                  <Mail className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm">
+                    Email
+                    {!(emailMap[verificationDialog.maid?.id] || verificationDialog.maid?.email) && (
+                      <span className="text-xs text-muted-foreground ml-1">(no email)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
             </div>
 
             {verificationDialog.action === 'approve' && (

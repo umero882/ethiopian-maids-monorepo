@@ -7,6 +7,7 @@ export {
   evictFromCache,
   readFromCache,
   setAuthToken,
+  setTokenRefreshCallback,
 } from './client';
 
 // Export all generated hooks (includes types, documents, and subscription hooks)

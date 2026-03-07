@@ -31,15 +31,11 @@ import '@/lib/globalShims';
 // Initialize performance monitoring
 try {
   initializePerformanceMonitoring();
-  if (import.meta.env.DEV) console.log('Performance monitoring initialized');
+  // Performance monitoring initialized
 } catch (error) {
   console.error('Performance monitoring failed:', error);
 }
 
-if (import.meta.env.DEV) {
-  console.log('main.jsx is loading...');
-  console.log('Apollo Client initialized with Hasura endpoint');
-}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

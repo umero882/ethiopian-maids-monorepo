@@ -185,9 +185,7 @@ export const validateAPIKeys = () => {
     warnings.push('Currents API key not configured - skipping this source');
   }
 
-  if (warnings.length > 0) {
-    console.warn('News API Configuration Warnings:', warnings);
-  }
+  // Warnings tracked but not logged to console
 
   return warnings.length === 0;
 };

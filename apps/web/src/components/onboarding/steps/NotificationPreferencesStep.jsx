@@ -4,6 +4,7 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import StepCard, { StepTip } from '../shared/StepCard';
 import StepNavigation from '../shared/StepNavigation';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import {
   Bell,
   Mail,
@@ -13,11 +14,14 @@ import {
   Shield,
   Megaphone,
   Clock,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NotificationPreferencesStep = () => {
-  const { userType, previousStep, awardPoints, updateFormData, formData, completeOnboarding } = useOnboarding();
+  const { userType, previousStep, awardPoints, updateFormData, formData, completeOnboarding, completionError } = useOnboarding();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get user-type-specific notification options
   const getNotificationOptions = () => {
@@ -173,10 +177,15 @@ const NotificationPreferencesStep = () => {
 
   // Handle continue - this is the final step, complete onboarding
   const handleContinue = async () => {
-    updateFormData({ notificationPreferences: preferences });
-    awardPoints(15, 'Set notification preferences');
-    // This is the last step - complete onboarding and redirect to dashboard
-    await completeOnboarding();
+    setIsSubmitting(true);
+    try {
+      updateFormData({ notificationPreferences: preferences });
+      awardPoints(15, 'Set notification preferences');
+      // This is the last step - complete onboarding and redirect to dashboard
+      await completeOnboarding();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Count enabled notifications
@@ -283,10 +292,38 @@ const NotificationPreferencesStep = () => {
         </StepTip>
       </StepCard>
 
+      {/* Error recovery UI */}
+      {completionError && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-500/10 border border-red-500/30 rounded-lg p-4"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-red-400 text-sm font-medium">Registration failed</p>
+              <p className="text-gray-400 text-xs mt-1">{completionError}</p>
+              <p className="text-gray-500 text-xs mt-1">Your data is saved locally and will not be lost.</p>
+              <Button
+                onClick={handleContinue}
+                disabled={isSubmitting}
+                className="mt-3 bg-red-600 hover:bg-red-700 text-white text-sm"
+                size="sm"
+              >
+                <RefreshCw className={cn('w-4 h-4 mr-2', isSubmitting && 'animate-spin')} />
+                {isSubmitting ? 'Retrying...' : 'Retry Registration'}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <StepNavigation
         onNext={handleContinue}
         onPrevious={previousStep}
-        nextLabel="Complete Registration"
+        nextLabel={isSubmitting ? 'Completing...' : 'Complete Registration'}
+        isDisabled={isSubmitting}
       />
     </div>
   );

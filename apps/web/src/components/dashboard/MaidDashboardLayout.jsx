@@ -85,7 +85,32 @@ const MaidDashboardLayout = () => {
   const mobileSidebarRef = useRef(null);
 
   // Use real-time subscription for unread notification count
-  const { count: unreadNotificationCount } = useUnreadNotificationCount();
+  const { count: subUnreadCount } = useUnreadNotificationCount();
+  const [fallbackUnreadCount, setFallbackUnreadCount] = useState(0);
+
+  // Fallback: fetch unread count via query when subscription may not work
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: GET_UNREAD_NOTIFICATIONS,
+          variables: { userId: user.id },
+          fetchPolicy: 'network-only',
+        });
+        setFallbackUnreadCount(data?.notifications?.length || 0);
+      } catch (err) {
+        // Silently fail - subscription may still work
+      }
+    };
+    fetchUnreadCount();
+    // Poll every 60s as fallback
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  // Use subscription count if available, otherwise fallback
+  const unreadNotificationCount = subUnreadCount > 0 ? subUnreadCount : fallbackUnreadCount;
 
   // Check if user is on free plan
   const isFreePlan = !subscriptionLoading && (!subscriptionPlan || subscriptionPlan.toLowerCase() === 'free');
@@ -246,7 +271,7 @@ const MaidDashboardLayout = () => {
         const hasPassport = PASSPORT_ALIASES.some(alias => docTypes.has(alias));
         pendingDocs = hasPassport ? 0 : 1;
       } catch (docError) {
-        console.warn('Error fetching document counts:', docError);
+        // silently ignore document count fetch error
       }
 
       setDashboardStats({

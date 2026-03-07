@@ -669,4 +669,48 @@ export const adminNotificationService = {
   },
 };
 
+// =====================================================
+// TELEGRAM NOTIFICATION HELPERS (via Cloud Function)
+// =====================================================
+
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+const getAdminNotifyFn = () => httpsCallable(getFunctions(), 'adminNotify');
+
+/**
+ * Send an admin Telegram notification. Fire-and-forget.
+ * @param {string} type - Event type
+ * @param {Record<string, any>} payload - Event data
+ */
+async function telegramNotify(type, payload) {
+  try {
+    await getAdminNotifyFn()({ type, payload });
+  } catch (err) {
+    console.error(`[AdminTelegram] Failed to send ${type} notification:`, err);
+  }
+}
+
+/**
+ * Telegram notification helpers for client-side events.
+ * These call the `adminNotify` Cloud Function which sends
+ * a formatted message to the admin Telegram chat.
+ */
+export const adminTelegramNotify = {
+  bookingCreated({ sponsorId, sponsorName, maidId, maidName, bookingId }) {
+    return telegramNotify('booking', { sponsorId, sponsorName, maidId, maidName, bookingId });
+  },
+  interviewScheduled({ sponsorId, sponsorName, maidId, maidName, scheduledDate, interviewId }) {
+    return telegramNotify('interview', { sponsorId, sponsorName, maidId, maidName, scheduledDate, interviewId });
+  },
+  siteError({ type, message, url, userId, stack }) {
+    return telegramNotify('site_error', { type, message, url, userId, stack });
+  },
+  profileUpdate({ userId, userType, action }) {
+    return telegramNotify('profile_update', { userId, userType, action });
+  },
+  custom({ title, message, details }) {
+    return telegramNotify('custom', { title, message, details });
+  },
+};
+
 export default adminNotificationService;

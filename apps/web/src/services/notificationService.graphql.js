@@ -543,21 +543,11 @@ export const graphqlNotificationService = {
   async createOrUpdateMessageNotification(recipientId, senderName, messagePreview, conversationId, conversationLink) {
     try {
       log.info('📬 [GraphQL] Creating/updating message notification for:', recipientId, 'conversation:', conversationId);
-      console.log('[NotificationService] createOrUpdateMessageNotification called:', {
-        recipientId,
-        senderName,
-        conversationId,
-        conversationLink
-      });
 
       let existingNotification = null;
 
       // Try to find existing unread notification for this conversation
       try {
-        console.log('[NotificationService] Querying for existing notification with:', {
-          userId: recipientId,
-          conversationId: conversationId,
-        });
         const { data: existingData, errors } = await apolloClient.query({
           query: GetExistingMessageNotificationDocument,
           variables: {
@@ -569,14 +559,11 @@ export const graphqlNotificationService = {
         if (errors) {
           console.error('[NotificationService] Query errors:', errors);
         }
-        console.log('[NotificationService] Query result:', existingData);
         existingNotification = existingData?.notifications?.[0];
         log.debug('📋 [GraphQL] Existing notification found:', existingNotification?.id || 'none');
-        console.log('[NotificationService] Existing notification:', existingNotification || 'none');
       } catch (queryError) {
         // If query fails, just create a new notification
         log.warn('⚠️ [GraphQL] Could not check for existing notification:', queryError.message);
-        console.error('[NotificationService] Query failed:', queryError);
       }
 
       if (existingNotification) {
@@ -619,7 +606,6 @@ export const graphqlNotificationService = {
         related_id: conversationId,
         related_type: 'conversation',
       };
-      console.log('[NotificationService] Creating NEW notification with data:', notificationData);
 
       const { data: createData, errors: createErrors } = await apolloClient.mutate({
         mutation: CreateNotificationDocument,
@@ -631,7 +617,6 @@ export const graphqlNotificationService = {
       if (createErrors) {
         console.error('[NotificationService] Create errors:', createErrors);
       }
-      console.log('[NotificationService] Created notification:', createData?.insert_notifications_one);
       log.info('✅ [GraphQL] New message notification created');
       return { data: createData?.insert_notifications_one, error: null, updated: false, count: 1 };
     } catch (error) {

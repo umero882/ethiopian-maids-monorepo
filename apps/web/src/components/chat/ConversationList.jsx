@@ -68,7 +68,6 @@ const ConversationList = ({
     }
     // Check if it's a voice message
     const isVoice = isVoiceMessage(message);
-    console.log('[ConversationList] formatLastMessage:', { message: message.substring(0, 50), isVoice });
     if (isVoice) {
       return { isVoice: true, text: 'Voice message' };
     }

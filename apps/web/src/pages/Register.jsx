@@ -109,20 +109,14 @@ const Register = () => {
       // The callback is created once when hook initializes, so using
       // the userType variable directly would capture a stale value
       const currentUserType = userTypeRef.current;
-      console.log('🔐 [Register] onVerificationComplete - userTypeRef.current:', currentUserType);
 
       if (currentUserType) {
         try {
-          console.log('🔐 [Register] Setting userType in Firebase Custom Claims:', currentUserType);
           await setUserTypeClaim(currentUserType);
-          console.log('✅ [Register] userType successfully set in Custom Claims');
         } catch (claimError) {
-          console.error('❌ [Register] Failed to set userType in claims:', claimError);
+          console.error('Failed to set userType in claims:', claimError);
           // Don't block registration - claims can be synced later
-          // But log this for debugging
         }
-      } else {
-        console.warn('⚠️ [Register] userType is empty in onVerificationComplete callback!');
       }
 
       toast({
@@ -142,7 +136,6 @@ const Register = () => {
   // This ensures the onVerificationComplete callback always has the latest value
   useEffect(() => {
     userTypeRef.current = userType;
-    console.log('📝 [Register] userTypeRef updated to:', userType);
   }, [userType]);
 
   useEffect(() => {
@@ -211,7 +204,6 @@ const Register = () => {
       ...prev, // Keep existing data
       userType: type, // Only update userType
     }));
-    console.log('📝 [Register] handleUserTypeSelect - set userType to:', type);
   };
 
   // Format phone number to E.164 format
@@ -422,8 +414,6 @@ const Register = () => {
         userType: formData.userType || userType, // Fallback to state if formData is stale
         phoneVerified: true,
       };
-
-      console.log('📝 [Register] Registration data userType:', registrationData.userType);
 
       const result = await register(registrationData);
 

@@ -25,6 +25,8 @@
 import * as admin from 'firebase-admin';
 import { GraphQLClient, gql } from 'graphql-request';
 import * as functions from 'firebase-functions';
+import { sendTelegramMessage, sendMonitorTelegramMessage } from '../notifications/telegramService';
+import { formatNewRegistration } from '../notifications/adminMessages';
 
 // Hasura GraphQL endpoint from environment
 const HASURA_ENDPOINT = functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
@@ -242,6 +244,16 @@ export async function onUserCreated(user: admin.auth.UserRecord): Promise<void> 
   } else {
     console.warn('[HasuraClaims] Hasura config not set, skipping profiles row creation');
   }
+
+  // Send admin Telegram notification for new registration (DM + monitor group)
+  const regMsg = formatNewRegistration({
+    email: user.email,
+    uid: user.uid,
+    displayName: user.displayName,
+    phoneNumber: user.phoneNumber,
+  });
+  await sendTelegramMessage(regMsg);
+  await sendMonitorTelegramMessage(regMsg);
 }
 
 /**

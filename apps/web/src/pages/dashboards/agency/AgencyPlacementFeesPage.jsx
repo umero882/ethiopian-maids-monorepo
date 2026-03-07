@@ -165,7 +165,7 @@ const AgencyPlacementFeesPage = () => {
         } else if (result.hasPending && result.wasCancelled) {
           // Payment was cancelled
           setPendingPayment(null);
-          console.log('Payment was cancelled');
+          // Payment was cancelled
         } else if (result.hasPending && result.isPending && result.data) {
           // There's a pending payment - show confirmation UI
           setPendingPayment(result.data);
@@ -198,7 +198,6 @@ const AgencyPlacementFeesPage = () => {
       return;
     }
 
-    console.log('Confirming payment:', { agencyId, amount: pendingPayment.amount });
     setConfirmingPayment(true);
     setError(null);
 
@@ -208,8 +207,6 @@ const AgencyPlacementFeesPage = () => {
         pendingPayment.amount,
         pendingPayment.currency || 'AED'
       );
-
-      console.log('Payment confirmation result:', result);
 
       if (result.success) {
         setPaymentSuccess({

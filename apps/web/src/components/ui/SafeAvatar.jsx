@@ -42,7 +42,7 @@ export const SafeAvatar = ({
 
   // Handle image error
   const handleError = () => {
-    console.warn('Avatar image failed to load:', imageSrc);
+    // avatar image failed to load
     setHasError(true);
     setImageSrc(null); // Clear the image source to show fallback
   };

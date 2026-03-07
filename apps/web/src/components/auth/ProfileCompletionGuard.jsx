@@ -36,13 +36,11 @@ const ProfileCompletionGuard = ({ children, redirectTo = '/get-started' }) => {
 
   // Not logged in - redirect to login
   if (!user) {
-    console.log('[ProfileCompletionGuard] No user, redirecting to login');
     return <Navigate to='/login' state={{ from: location }} replace />;
   }
 
   // Profile incomplete - redirect to complete profile
   if (user.registration_complete !== true) {
-    console.log('[ProfileCompletionGuard] Profile incomplete, redirecting to:', redirectTo);
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 

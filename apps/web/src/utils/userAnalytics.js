@@ -372,8 +372,8 @@ class UserAnalytics {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventType, data }),
-      }).catch((error) => {
-        console.warn('Failed to send analytics:', error);
+      }).catch(() => {
+        // Analytics send failed silently
       });
     }
   }

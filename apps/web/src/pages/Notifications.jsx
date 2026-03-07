@@ -626,7 +626,7 @@ const Notifications = () => {
                                 <div className='flex items-center space-x-2 ml-4'>
                                   {!notification.read && (
                                     <Button
-                                      size="icon" aria-label="Notification action"
+                                      size="icon"
                                       aria-label="Mark as read"
                                       variant='ghost'
                                       onClick={(e) => {

@@ -15,15 +15,20 @@ import {
 } from 'firebase/auth';
 import { validateField } from './inputValidation';
 import { clearCSRFToken } from './csrfProtection';
+import { getSystemSetting } from '@/contexts/SystemSettingsContext';
 
 // =============================================
 // RATE LIMITING & BRUTE FORCE PROTECTION
 // =============================================
 
 const RATE_LIMIT_STORAGE_KEY = 'auth_rate_limit';
-const MAX_LOGIN_ATTEMPTS = 5;
+const DEFAULT_MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+
+function getMaxLoginAttempts() {
+  return getSystemSetting('max_login_attempts') || DEFAULT_MAX_LOGIN_ATTEMPTS;
+}
 
 /**
  * Get rate limiting data for an identifier (email/IP)
@@ -74,7 +79,7 @@ export function checkRateLimit(identifier) {
   }
 
   // Check if too many attempts in current window
-  if (data.attempts >= MAX_LOGIN_ATTEMPTS) {
+  if (data.attempts >= getMaxLoginAttempts()) {
     data.lockedUntil = now + LOCKOUT_DURATION;
     setRateLimitData(identifier, data);
     return {
@@ -117,8 +122,13 @@ export function clearRateLimit(identifier) {
 // =============================================
 
 const SESSION_STORAGE_KEY = 'secure_session';
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+const DEFAULT_SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 const ACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours of inactivity
+
+function getSessionTimeout() {
+  const minutes = getSystemSetting('session_timeout');
+  return minutes ? minutes * 60 * 1000 : DEFAULT_SESSION_TIMEOUT;
+}
 
 /**
  * Create a secure session
@@ -134,7 +144,7 @@ function createSecureSession(user, tokenData) {
     expires_at: tokenData.expires_at || (now + 3600 * 1000), // Default 1 hour
     createdAt: now,
     lastActivity: now,
-    expiresAt: now + SESSION_TIMEOUT,
+    expiresAt: now + getSessionTimeout(),
     csrfToken: crypto.getRandomValues(new Uint8Array(32)).join(''),
   };
 }
@@ -196,28 +206,24 @@ export function getCurrentSession() {
 
     // Check if session has expired
     if (now > session.expiresAt) {
-      console.warn('Session expired');
       clearSession();
       return null;
     }
 
     // Check if session has been inactive too long
     if (now - session.lastActivity > ACTIVITY_TIMEOUT) {
-      console.warn('Session inactive timeout');
       clearSession();
       return null;
     }
 
     // Validate session integrity (basic fingerprint check)
     if (session.fingerprint && session.fingerprint !== generateBrowserFingerprint()) {
-      console.warn('Session fingerprint mismatch - possible session hijacking attempt');
       clearSession();
       return null;
     }
 
     // Validate origin
     if (session.origin && session.origin !== window.location.origin) {
-      console.warn('Session origin mismatch');
       clearSession();
       return null;
     }

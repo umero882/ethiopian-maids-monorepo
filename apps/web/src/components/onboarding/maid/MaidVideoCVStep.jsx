@@ -126,7 +126,7 @@ const MaidVideoCVStep = () => {
           try {
             await videoRef.current.play();
           } catch (playErr) {
-            console.warn('Autoplay warning:', playErr);
+            // autoplay not available
           }
         }
 

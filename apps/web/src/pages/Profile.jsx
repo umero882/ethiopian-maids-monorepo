@@ -175,10 +175,7 @@ const Profile = () => {
 
         // If database fetch fails, check if we have locally stored data
         if (sponsorError) {
-          console.warn(
-            'Error fetching sponsor profile from database:',
-            sponsorError
-          );
+          // Error fetching sponsor profile from database
 
           // Check if user has locally stored completion data (from recent registration)
           if (user.profileInDatabase === false && user.registration_complete) {
@@ -275,7 +272,7 @@ const Profile = () => {
         }
 
         if (completionError) {
-          console.warn('Error fetching completion data:', completionError);
+          // Error fetching completion data (non-critical)
           // Don't return here, just log the warning as completion data is optional
         }
 
@@ -306,7 +303,7 @@ const Profile = () => {
           await profileService.getProfileData(user.id, user.userType);
 
         if (error) {
-          console.warn(`Error fetching ${user.userType} profile:`, error);
+          // Profile fetch failed for this user type
           // Database-only mode - no localStorage fallback
           setProfileData(null);
           setLoading(false);

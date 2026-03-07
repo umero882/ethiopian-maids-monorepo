@@ -388,15 +388,11 @@ export const adminSupportService = {
       // Build order by
       const order_by = [{ [sortBy]: sortDirection }];
 
-      console.log('[adminSupportService] Fetching tickets with:', { limit, offset, where, order_by });
-
       const result = await apolloClient.query({
         query: GET_TICKETS,
         variables: { limit, offset, where, order_by },
         fetchPolicy: 'network-only'
       });
-
-      console.log('[adminSupportService] Query result:', result);
 
       // Apollo Client 4 returns { data, error, errors, loading, networkStatus }
       const { data, error, errors } = result;
@@ -415,8 +411,6 @@ export const adminSupportService = {
 
       const tickets = data?.support_tickets || [];
       const totalCount = data?.support_tickets_aggregate?.aggregate?.count || 0;
-
-      console.log('[adminSupportService] Found', tickets.length, 'tickets, total:', totalCount);
 
       // Transform tickets to match UI expectations
       const transformedTickets = tickets.map(ticket => ({
@@ -505,14 +499,10 @@ export const adminSupportService = {
    */
   async getStats() {
     try {
-      console.log('[adminSupportService] Fetching ticket stats...');
-
       const result = await apolloClient.query({
         query: GET_TICKET_STATS,
         fetchPolicy: 'network-only'
       });
-
-      console.log('[adminSupportService] Stats result:', result);
 
       const { data, error, errors } = result;
 

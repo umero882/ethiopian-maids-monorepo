@@ -359,29 +359,20 @@ const PricingPage = () => {
 
   // Handle subscription action (subscribe, upgrade, downgrade, cancel)
   const handleSubscribe = async (plan) => {
-    console.log('[PricingPage] handleSubscribe called with plan:', plan);
-
     if (!user) {
-      console.log('[PricingPage] No user found, redirecting to login');
       navigate('/login', { state: { returnTo: '/pricing' } });
       return;
     }
 
-    console.log('[PricingPage] Current user:', { id: user.id, email: user.email, type: user.userType });
-
     const currentPlan = subscriptionPlan || 'free';
     const targetPlan = plan.id.toLowerCase();
     const actionType = subscriptionManagementService.getActionType(currentPlan, targetPlan);
-
-    console.log('[PricingPage] Action type:', actionType, 'from', currentPlan, 'to', targetPlan);
 
     // Check if action is allowed
     const { allowed, reason } = subscriptionManagementService.canPerformAction(
       actionType,
       subscriptionDetails
     );
-
-    console.log('[PricingPage] Action allowed:', allowed, 'reason:', reason);
 
     if (!allowed) {
       toast({
@@ -392,7 +383,6 @@ const PricingPage = () => {
       return;
     }
 
-    console.log('[PricingPage] Setting loading state for plan:', plan.id);
     setLoadingPlanId(plan.id);
 
     try {
@@ -413,10 +403,6 @@ const PricingPage = () => {
         }
 
         // For paid plans, use Stripe Checkout
-        console.log('[PricingPage] Plan object:', plan);
-        console.log('[PricingPage] Billing cycle:', billingCycle);
-        console.log('[PricingPage] Plan.priceId:', plan.priceId);
-
         const priceId =
           billingCycle === 'annual'
             ? typeof plan.priceId === 'object'
@@ -426,8 +412,6 @@ const PricingPage = () => {
               ? plan.priceId.monthly
               : plan.priceId;
 
-        console.log('[PricingPage] Selected priceId:', priceId);
-
         if (!priceId) {
           console.error('[PricingPage] No priceId found!', { plan, billingCycle });
           throw new Error('Price ID not found for this plan');
@@ -435,16 +419,6 @@ const PricingPage = () => {
 
         // Determine plan tier from plan name (Pro or Premium)
         const planTier = plan.name.toLowerCase().includes('premium') ? 'premium' : 'pro';
-
-        console.log('[PricingPage] Creating checkout with:', {
-          priceId,
-          userId: user.id,
-          userEmail: user.email,
-          userType: displayUserType,
-          planTier,
-          planName: plan.name,
-          billingCycle: isAnnual ? 'annual' : 'monthly',
-        });
 
         // Try to get payment link directly (faster and more reliable)
         const paymentLinkUrl = plan.paymentLink
@@ -455,8 +429,6 @@ const PricingPage = () => {
 
         if (paymentLinkUrl) {
           // Use Stripe Payment Link directly (bypasses Cloud Function)
-          console.log('[PricingPage] Using payment link:', paymentLinkUrl);
-
           // Store pending subscription info in localStorage for sync after payment
           // This is needed because Payment Links can't have dynamic redirect URLs
           const pendingSubscription = {
@@ -470,7 +442,6 @@ const PricingPage = () => {
             timestamp: Date.now(),
           };
           localStorage.setItem('pendingSubscription', JSON.stringify(pendingSubscription));
-          console.log('[PricingPage] Stored pending subscription:', pendingSubscription);
 
           // Add customer email as prefill parameter if available
           const urlWithParams = new URL(paymentLinkUrl);
@@ -480,14 +451,11 @@ const PricingPage = () => {
           // Add client reference for tracking (user ID)
           urlWithParams.searchParams.set('client_reference_id', user.id);
 
-          console.log('[PricingPage] Payment link with params:', urlWithParams.toString());
-
           window.location.href = urlWithParams.toString();
           return;
         }
 
         // Fallback: Create Stripe checkout session via Cloud Function
-        console.log('[PricingPage] No payment link found, trying Cloud Function...');
         const result = await stripeBillingService.createCheckoutSession({
           priceId,
           userId: user.id,
@@ -498,11 +466,8 @@ const PricingPage = () => {
           billingCycle: isAnnual ? 'annual' : 'monthly',
         });
 
-        console.log('[PricingPage] Checkout result:', result);
-
         if (result.success) {
           // Redirect to Stripe Checkout
-          console.log('[PricingPage] Redirecting to:', result.url);
           window.location.href = result.url;
         } else {
           console.error('[PricingPage] Checkout failed:', result.error);

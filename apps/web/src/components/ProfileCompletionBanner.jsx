@@ -52,13 +52,6 @@ const ProfileCompletionBanner = ({
 
         const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
 
-        /* console.log('ProfileCompletionBanner: Checking sponsor profile', {
-          userId: user.id,
-          hasData: !!data,
-          error: error?.code,
-          profileCompleted: data?.profile_completed,
-        }); */
-
         // If error is PROFILE_NOT_FOUND or data is null, profile doesn't exist
         if (error?.code === 'PROFILE_NOT_FOUND' || !data) {
           setHasProfile(false);
@@ -71,11 +64,6 @@ const ProfileCompletionBanner = ({
                               data.city &&
                               data.country &&
                               data.accommodation_type;
-          /* console.log('ProfileCompletionBanner: Profile found', {
-            isCompleted,
-            profile_completed: data.profile_completed,
-            hasRequiredFields: !!(data.full_name && data.city && data.country),
-          }); */
           setHasProfile(isCompleted);
         }
       } catch (error) {

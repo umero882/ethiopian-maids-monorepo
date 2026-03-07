@@ -182,7 +182,7 @@ const Maids = () => {
           setFavoritedMaidIds(data);
         }
       } catch (error) {
-        console.warn('Could not fetch favorites:', error);
+        // Could not fetch favorites
       }
     };
 

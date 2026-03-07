@@ -329,39 +329,22 @@ class SubscriptionManagementService {
     } = params;
 
     try {
-      console.log('handleCancellation called with params:', {
-        userId,
-        subscriptionId,
-        stripeSubscriptionId,
-        cancelImmediately
-      });
-
       if (stripeSubscriptionId) {
         // Cancel via Stripe using Firebase Cloud Function
-        console.log('Calling Cloud Function with:', {
-          subscriptionId,
-          cancelImmediately
-        });
 
         // Verify the user is authenticated
         const currentUser = auth.currentUser;
         if (!currentUser) {
-          console.error('No authenticated user found');
           throw new Error('Authentication required. Please log in again.');
         }
-
-        console.log('Current user:', currentUser.uid, currentUser.email);
 
         const data = await this.callFunction('cancelSubscription', {
           subscriptionId,
           cancelImmediately,
         });
 
-        console.log('Cloud Function response:', data);
-
         if (!data || !data.success) {
           const errorMsg = data?.error || data?.message || 'Cloud Function returned unsuccessful response';
-          console.error('Unsuccessful response:', errorMsg, data);
           throw new Error(errorMsg);
         }
 

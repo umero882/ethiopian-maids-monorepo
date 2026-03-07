@@ -8,14 +8,25 @@ import {
 import { createLogger } from '@/utils/logger';
 import { secureLogin, secureLogout, secureRegister } from '@/lib/secureAuth';
 import sessionManager from '@/lib/sessionManager';
-import { apolloClient, GetProfileDocument } from '@ethio/api-client';
+import { apolloClient, GetProfileDocument, setTokenRefreshCallback } from '@ethio/api-client';
 import { gql } from '@apollo/client';
 
 // Firebase Auth imports
-import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached, ensureProfileExistsViaFunction } from '@/lib/firebaseClient';
+import { auth, FIREBASE_TOKEN_KEY, getStoredToken, getUserTypeFromClaims, getUserTypeCached, ensureProfileExistsViaFunction, refreshIdToken } from '@/lib/firebaseClient';
 import { onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, confirmPasswordReset, reload } from 'firebase/auth';
 
 const log = createLogger('AuthContext');
+
+// Register token refresh callback for Apollo Client auto-retry on 401
+setTokenRefreshCallback(async () => {
+  try {
+    const newToken = await refreshIdToken();
+    return newToken || null;
+  } catch (err) {
+    log.error('Token refresh failed', err);
+    return null;
+  }
+});
 
 // Direct GraphQL fetch function to bypass Apollo Client issues
 const HASURA_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql';
@@ -472,6 +483,9 @@ const createOrUpdateAgencyProfile = async (userId, profileData) => {
       full_name: agencyName.trim(),
       license_number: profileData.tradeLicenseNumber || profileData.licenseNumber || null,
       country: profileData.countryOfRegistration || profileData.country || null,
+      city: profileData.city || null,
+      phone: profileData.contactPhone || profileData.phone || null,
+      email: profileData.officialEmail || profileData.email || null,
       business_phone: profileData.contactPhone || profileData.phone || null,
       business_email: profileData.officialEmail || profileData.email || null,
       website_url: profileData.website || null,
@@ -494,6 +508,8 @@ const createOrUpdateAgencyProfile = async (userId, profileData) => {
       authorized_person_phone: profileData.authorizedPersonPhone || null,
       authorized_person_email: profileData.authorizedPersonEmail || null,
       authorized_person_id_number: profileData.authorizedPersonIdNumber || null,
+      trade_license_document: profileData.tradeLicenseDocumentUrl || null,
+      authorized_person_id_document: profileData.authorizedPersonIdDocumentUrl || null,
       contact_phone_verified: Boolean(profileData.contactPhoneVerified),
       official_email_verified: Boolean(profileData.officialEmailVerified),
       authorized_person_phone_verified: Boolean(profileData.authorizedPersonPhoneVerified),
@@ -524,7 +540,7 @@ const createOrUpdateAgencyProfile = async (userId, profileData) => {
           object: $data,
           on_conflict: {
             constraint: agency_profiles_pkey,
-            update_columns: [full_name, license_number, country, business_phone, business_email, website_url, head_office_address, service_countries, specialization, placement_fee_percentage, agency_description, support_hours_start, support_hours_end, emergency_contact_phone, authorized_person_name, authorized_person_position, authorized_person_phone, authorized_person_email, authorized_person_id_number, contact_phone_verified, official_email_verified, authorized_person_phone_verified, authorized_person_email_verified, license_verified, profile_completed, profile_completed_at, onboarding_completed, onboarding_completed_at, logo_url, logo_file_preview, license_expiry_date, updated_at]
+            update_columns: [full_name, license_number, country, city, phone, email, business_phone, business_email, website_url, head_office_address, service_countries, specialization, placement_fee_percentage, agency_description, support_hours_start, support_hours_end, emergency_contact_phone, authorized_person_name, authorized_person_position, authorized_person_phone, authorized_person_email, authorized_person_id_number, trade_license_document, authorized_person_id_document, contact_phone_verified, official_email_verified, authorized_person_phone_verified, authorized_person_email_verified, license_verified, profile_completed, profile_completed_at, onboarding_completed, onboarding_completed_at, logo_url, logo_file_preview, license_expiry_date, updated_at]
           }
         ) {
           id
@@ -747,15 +763,11 @@ const AuthProvider = ({ children, mockValue }) => {
       // 4. Default to 'sponsor' only if nothing else available
       // ============================================================================
 
-      console.log('🔍 fetchUserProfile - Starting for Firebase UID:', firebaseUser.uid);
-      console.log('🔍 fetchUserProfile - Registration userType passed:', registrationUserType);
-
       // PRIORITY 1: Get userType from Firebase Custom Claims (authoritative source)
       let claimsUserType = null;
       try {
         const idTokenResult = await firebaseUser.getIdTokenResult(true);
         claimsUserType = idTokenResult.claims.user_type;
-        console.log('🔍 fetchUserProfile - userType from Firebase claims:', claimsUserType);
         // CRITICAL: Update localStorage with the force-refreshed token so that
         // Apollo Client and all Hasura queries use the latest claims (role, user_id).
         // Without this, localStorage keeps a stale token from the initial getIdToken()
@@ -764,17 +776,13 @@ const AuthProvider = ({ children, mockValue }) => {
           localStorage.setItem(FIREBASE_TOKEN_KEY, idTokenResult.token);
         }
       } catch (claimsError) {
-        console.warn('🔍 fetchUserProfile - Could not read claims:', claimsError.message);
+        log.warn('fetchUserProfile - Could not read claims:', claimsError.message);
       }
 
       // PRIORITY 2: Use registration parameter if claims not yet set
       // (This handles the case right after registration before claims are set)
       const effectiveUserType = claimsUserType || registrationUserType;
-      console.log('🔍 fetchUserProfile - Effective userType:', effectiveUserType);
       log.debug('Fetching user profile via GraphQL for:', firebaseUser.uid);
-
-      // Use Apollo Client with proper Apollo 4 link chain configuration
-      console.log('🔍 fetchUserProfile - Executing Apollo Client query...');
 
       let queryResult, errors, data;
 
@@ -790,20 +798,15 @@ const AuthProvider = ({ children, mockValue }) => {
         errors = apolloResult?.errors;
         data = queryResult?.profiles_by_pk;
 
-        console.log('🔍 fetchUserProfile - Apollo Client query successful');
-        console.log('🔍 fetchUserProfile - profiles_by_pk:', data);
-        console.log('🔍 fetchUserProfile - user_type from query:', data?.user_type);
       } catch (apolloError) {
         // Fallback: Direct fetch if Apollo Client fails
-        console.warn('🔍 fetchUserProfile - Apollo Client failed, using direct fetch:', apolloError.message);
+        log.warn('fetchUserProfile - Apollo Client failed, using direct fetch:', apolloError.message);
         const directResult = await fetchProfileDirect(firebaseUser.uid);
 
         queryResult = directResult?.data;
         errors = directResult?.errors;
         data = queryResult?.profiles_by_pk;
 
-        console.log('🔍 fetchUserProfile - Direct fetch result:', data);
-        console.log('🔍 fetchUserProfile - user_type from direct fetch:', data?.user_type);
       }
 
       log.debug('Profile fetch result:', {
@@ -827,15 +830,10 @@ const AuthProvider = ({ children, mockValue }) => {
 
         const userTypeValue = effectiveUserType || 'sponsor';
 
-        console.log('🔍 fetchUserProfile - Creating profile with userType:', userTypeValue,
-          '(from:', claimsUserType ? 'Firebase claims' : registrationUserType ? 'registration param' : 'default', ')');
-
         // PRIMARY: Try Cloud Function (uses admin secret, bypasses permission issues)
         let profileCreated = false;
         try {
-          console.log('☁️ fetchUserProfile - Attempting profile creation via Cloud Function...');
           await ensureProfileExistsViaFunction({ userType: userTypeValue });
-          console.log('✅ fetchUserProfile - Profile created via Cloud Function');
 
           // Re-fetch the profile that was just created
           try {
@@ -847,13 +845,12 @@ const AuthProvider = ({ children, mockValue }) => {
             data = refetchResult?.data?.profiles_by_pk;
             if (data) {
               profileCreated = true;
-              console.log('✅ fetchUserProfile - Re-fetched profile after CF creation');
             }
           } catch (refetchError) {
-            console.warn('⚠️ fetchUserProfile - Re-fetch after CF creation failed:', refetchError.message);
+            log.warn('fetchUserProfile - Re-fetch after CF creation failed:', refetchError.message);
           }
         } catch (cfError) {
-          console.warn('⚠️ fetchUserProfile - Cloud Function profile creation failed:', cfError.message);
+          log.warn('fetchUserProfile - Cloud Function profile creation failed:', cfError.message);
         }
 
         // FALLBACK: Try direct GraphQL mutation if Cloud Function failed
@@ -889,7 +886,6 @@ const AuthProvider = ({ children, mockValue }) => {
         // If still no data, return a basic profile from Firebase user
         if (!data) {
           const fallbackUserType = effectiveUserType || 'sponsor';
-          console.log('🔍 fetchUserProfile - Using in-memory fallback userType:', fallbackUserType);
           return {
             id: firebaseUser.uid,
             email: firebaseUser.email,
@@ -903,9 +899,6 @@ const AuthProvider = ({ children, mockValue }) => {
       }
 
       // Create a consistent user object structure
-      console.log('🔍 AuthContext - FULL Profile data from database:', JSON.stringify(data, null, 2));
-      console.log('🔍 AuthContext - user_type field value:', data?.user_type);
-      console.log('🔍 AuthContext - user_type field type:', typeof data?.user_type);
       log.debug('AuthContext - Profile data from database:', {
         user_type: data?.user_type,
         role: data?.role,
@@ -934,19 +927,14 @@ const AuthProvider = ({ children, mockValue }) => {
 
       if (!detectedUserType || detectedUserType === '' || detectedUserType === 'null') {
         // Priority 4: Default fallback
-        console.warn('⚠️ AuthContext - No userType found in claims, database, or registration - defaulting to sponsor');
+        log.warn('AuthContext - No userType found in claims, database, or registration - defaulting to sponsor');
         detectedUserType = 'sponsor';
       }
 
-      console.log('🎯 AuthContext - Final detected userType:', detectedUserType,
-        '(source:', claimsUserType ? 'Firebase claims' :
-                   data?.user_type ? 'database' :
-                   registrationUserType ? 'registration' : 'default', ')');
       log.debug('AuthContext - Final detected userType:', detectedUserType);
 
       // If JWT claims say 'user' but database has a specific type, prefer database
       if (detectedUserType === 'user' && data?.user_type && data.user_type !== 'user') {
-        console.log('🔄 AuthContext - Overriding JWT "user" role with DB user_type:', data.user_type);
         detectedUserType = data.user_type;
       }
 
@@ -975,11 +963,6 @@ const AuthProvider = ({ children, mockValue }) => {
           };
 
       // If user is an agency and registration is complete, fetch agency profile data
-      console.log('🔍 AuthContext - Checking agency profile fetch conditions:', {
-        userType: detectedUserType,
-        registrationComplete: baseProfile.registration_complete,
-        shouldFetchAgencyProfile: detectedUserType === 'agency' && baseProfile.registration_complete,
-      });
       if (detectedUserType === 'agency' && baseProfile.registration_complete) {
         try {
           log.debug('Fetching agency profile data for:', firebaseUser.uid);
@@ -1476,7 +1459,6 @@ const AuthProvider = ({ children, mockValue }) => {
     setLoading(true);
     try {
       log.debug('AuthContext.register: starting');
-      console.log('🔍 register - userType:', credentials.userType);
 
       // NOTE: userType is now set via Firebase Custom Claims after registration
       // The setUserTypeClaim() function should be called from Register.jsx
@@ -1489,7 +1471,6 @@ const AuthProvider = ({ children, mockValue }) => {
 
         // Fetch or create user profile - pass the userType from registration
         try {
-          console.log('🔍 register - Passing userType to fetchUserProfile:', credentials.userType);
           const profile = await fetchUserProfile(auth?.currentUser, credentials.userType);
           setUser(profile);
         } catch (profileError) {

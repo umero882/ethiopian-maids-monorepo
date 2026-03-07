@@ -42,10 +42,9 @@ const Login = () => {
     ); */
 
     if (user) {
-      /* console.log(
-        '✅ User detected in Login component, navigating to dashboard'
-      ); */
-      navigate('/dashboard');
+      // Admin users go directly to admin dashboard, others to regular dashboard gateway
+      const isAdmin = user.userType === 'admin' || user.userType === 'site_admin';
+      navigate(isAdmin ? '/admin' : '/dashboard');
     }
   }, [user, navigate]);
 
