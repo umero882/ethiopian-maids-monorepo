@@ -107,3 +107,5 @@ tools/firebase-functions/lib/
 # Claude local settings
 .claude/settings.local.json
 **/settings.local.json
+
+.nx/polygraph
