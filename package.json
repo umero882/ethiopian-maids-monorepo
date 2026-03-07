@@ -7,7 +7,7 @@
     "codegen:watch": "dotenv -- graphql-codegen --config codegen.yml --watch",
     "codegen:relay": "dotenv -- graphql-codegen --config codegen-relay.yml",
     "codegen:all": "pnpm codegen && pnpm codegen:relay",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "private": true,
   "devDependencies": {
@@ -39,6 +39,7 @@
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.1",
+    "husky": "^9.1.7",
     "helmet": "^8.1.0",
     "jiti": "2.4.2",
     "jsdom": "^27.1.0",
