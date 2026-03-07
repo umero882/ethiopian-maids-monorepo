@@ -17,6 +17,7 @@ export default [
       '**/test/**',
       '**/__tests__/**',
       'apps/mobile/**',
+      'apps/web/packages/**',
     ],
   },
 
@@ -25,11 +26,11 @@ export default [
     ...js.configs.recommended,
     files: ['**/*.{js,jsx}'],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
         ...globals.browser,
-        ...globals.es2022,
+        ...globals.es2025,
       },
       parserOptions: {
         ecmaFeatures: { jsx: true },

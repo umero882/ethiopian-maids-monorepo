@@ -1,4 +1,5 @@
-/* eslint-disable no-irregular-whitespace */`n/**
+/* eslint-disable no-irregular-whitespace */
+/**
  * Enhanced Maid Profile Page with Polished UI/UX
  * Features: Auto-save, Progress tracking, Better validation, Modern design
  */
