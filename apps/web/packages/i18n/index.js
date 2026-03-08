@@ -4,8 +4,8 @@
  * Provides translation functions and locale management.
  */
 
-import enTranslations from './locales/en.json' assert { type: 'json' };
-import arTranslations from './locales/ar.json' assert { type: 'json' };
+import enTranslations from './locales/en.json';
+import arTranslations from './locales/ar.json';
 
 export const translations = {
   en: enTranslations,
