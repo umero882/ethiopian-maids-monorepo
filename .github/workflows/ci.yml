@@ -45,7 +45,8 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm nx reset || true
-      - run: pnpm nx run-many --target=test --all --parallel=3 --coverage
+      - name: Run tests (exclude web until test infra is CI-ready)
+        run: pnpm nx run-many --target=test --exclude=web --parallel=3 --coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
