@@ -280,12 +280,131 @@ const parseSalaryToNumber = (salaryString) => {
   return match ? parseInt(match[0], 10) : null;
 };
 
+// Onboarding steps with per-step point values for Points Boost feature
+// Each step groups related fields and has a total point allocation
+export const ONBOARDING_STEP_POINTS = {
+  personal_info: {
+    label: 'Personal Info',
+    points: 150,
+    fields: ['full_name', 'date_of_birth', 'nationality', 'religion', 'marital_status'],
+  },
+  location: {
+    label: 'Location',
+    points: 100,
+    fields: ['country', 'state_province'],
+  },
+  professional: {
+    label: 'Profession',
+    points: 100,
+    fields: ['primary_profession', 'education_level'],
+  },
+  skills: {
+    label: 'Skills & Languages',
+    points: 150,
+    fields: ['skills', 'languages'],
+  },
+  experience: {
+    label: 'Experience',
+    points: 100,
+    fields: ['experience_years'],
+  },
+  preferences: {
+    label: 'Salary Preference',
+    points: 100,
+    fields: ['preferred_salary_min'],
+  },
+  about: {
+    label: 'About Me',
+    points: 100,
+    fields: ['about_me'],
+  },
+  photo: {
+    label: 'Profile Photo',
+    points: 200,
+    fields: ['profile_photo_url'],
+  },
+};
+
+// Optional bonus points
+export const OPTIONAL_BONUS_POINTS = {
+  introduction_video_url: { label: 'Video CV', points: 50 },
+  work_preferences: { label: 'Work Preferences', points: 20, isArray: true },
+  contract_duration_preference: { label: 'Contract Preference', points: 10 },
+  live_in_preference: { label: 'Accommodation Preference', points: 10 },
+  previous_countries: { label: 'Previous Countries', points: 20, isArray: true },
+};
+
+/**
+ * Calculate per-step points earned for the Points Boost feature
+ *
+ * @param {Object} profile - Profile data (snake_case DB format)
+ * @returns {Object} { steps: [{key, label, points, earned, completed}], bonus: [{key, label, points, earned}], totalEarned, totalPossible, bonusEarned, bonusPossible }
+ */
+export const calculateStepPoints = (profile) => {
+  if (!profile) {
+    return {
+      steps: Object.entries(ONBOARDING_STEP_POINTS).map(([key, step]) => ({
+        key, label: step.label, points: step.points, earned: 0, completed: false,
+      })),
+      bonus: Object.entries(OPTIONAL_BONUS_POINTS).map(([key, b]) => ({
+        key, label: b.label, points: b.points, earned: 0,
+      })),
+      totalEarned: 0,
+      totalPossible: Object.values(ONBOARDING_STEP_POINTS).reduce((s, v) => s + v.points, 0),
+      bonusEarned: 0,
+      bonusPossible: Object.values(OPTIONAL_BONUS_POINTS).reduce((s, v) => s + v.points, 0),
+    };
+  }
+
+  const isFieldFilled = (field) => {
+    const config = ONBOARDING_REQUIRED_FIELDS[field];
+    const value = profile[field];
+    if (!config) return false;
+    if (config.isArray) return Array.isArray(value) && value.length > 0;
+    if (typeof value === 'number') return !isNaN(value);
+    if (typeof value === 'boolean') return true;
+    return value && String(value).trim().length > 0;
+  };
+
+  const steps = Object.entries(ONBOARDING_STEP_POINTS).map(([key, step]) => {
+    const filledCount = step.fields.filter(isFieldFilled).length;
+    const totalFields = step.fields.length;
+    const completed = filledCount === totalFields;
+    // Partial credit: earn proportional points based on fields filled
+    const earned = Math.round((filledCount / totalFields) * step.points);
+    return { key, label: step.label, points: step.points, earned, completed, filledCount, totalFields };
+  });
+
+  const bonus = Object.entries(OPTIONAL_BONUS_POINTS).map(([key, b]) => {
+    const value = profile[key];
+    let filled = false;
+    if (b.isArray) {
+      filled = Array.isArray(value) && value.length > 0;
+    } else if (typeof value === 'boolean') {
+      filled = value === true;
+    } else {
+      filled = value && String(value).trim().length > 0;
+    }
+    return { key, label: b.label, points: b.points, earned: filled ? b.points : 0 };
+  });
+
+  const totalEarned = steps.reduce((s, v) => s + v.earned, 0);
+  const totalPossible = Object.values(ONBOARDING_STEP_POINTS).reduce((s, v) => s + v.points, 0);
+  const bonusEarned = bonus.reduce((s, v) => s + v.earned, 0);
+  const bonusPossible = Object.values(OPTIONAL_BONUS_POINTS).reduce((s, v) => s + v.points, 0);
+
+  return { steps, bonus, totalEarned, totalPossible, bonusEarned, bonusPossible };
+};
+
 export default {
   calculateProfileCompletion,
   calculateOptionalBonus,
   getMissingRequiredFields,
   getProfileCompletionStatus,
   mapOnboardingToProfile,
+  calculateStepPoints,
   ONBOARDING_REQUIRED_FIELDS,
   OPTIONAL_PROFILE_FIELDS,
+  ONBOARDING_STEP_POINTS,
+  OPTIONAL_BONUS_POINTS,
 };
