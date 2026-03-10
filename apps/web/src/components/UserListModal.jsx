@@ -242,16 +242,17 @@ const UserListModal = ({
   const currentUserType = authUserType || user?.user_type || 'agency';
 
   // Check subscription status
+  const userId = user?.uid || user?.id;
   useEffect(() => {
     const checkSubscription = async () => {
-      if (user?.uid) {
-        const subscription = await subscriptionService.getActiveSubscription(user.uid);
+      if (userId) {
+        const subscription = await subscriptionService.getActiveSubscription(userId);
         const planType = subscriptionService.getPlanType(subscription);
         setIsPaidUser(planType !== 'free');
       }
     };
     checkSubscription();
-  }, [user?.uid]);
+  }, [userId]);
 
   // Query for users
   const {

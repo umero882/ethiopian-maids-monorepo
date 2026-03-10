@@ -38,7 +38,7 @@ const SendMessageDialog = ({ open, onClose, maid, user }) => {
     setSending(true);
     try {
       const { error } = await messageService.sendMessage({
-        senderId: user.uid,
+        senderId: user.uid || user.id,
         recipientId: maid.id,
         subject: subject.trim() || `Message from ${user.displayName || 'Sponsor'}`,
         content: message.trim(),

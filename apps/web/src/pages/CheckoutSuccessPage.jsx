@@ -31,8 +31,9 @@ export default function CheckoutSuccessPage() {
     const verifyAndRedirect = async () => {
       try {
         // Refresh subscription data
-        if (user?.uid) {
-          const subData = await subscriptionService.getActiveSubscription(user.uid);
+        const userId = user?.uid || user?.id;
+        if (userId) {
+          const subData = await subscriptionService.getActiveSubscription(userId);
           setSubscription(subData);
         }
 
