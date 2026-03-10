@@ -188,11 +188,14 @@ const Navbar = () => {
     closeMobileMenu();
   };
 
+  const isMaid = user?.userType === 'maid' || user?.user_type === 'maid';
+
   const commonNavLinks = [
     { to: '/', text: 'Home', icon: Home, requiresProfileComplete: false },
     { to: '/maids', text: 'Find Maids', icon: Users, requiresProfileComplete: false },
     { to: '/jobs', text: 'Jobs', icon: Briefcase, requiresProfileComplete: true },
-    { to: '/pricing', text: 'Pricing', icon: DollarSign, requiresProfileComplete: false },
+    // Maid users manage subscriptions via their dashboard; hide global pricing page
+    ...(!isMaid ? [{ to: '/pricing', text: 'Pricing', icon: DollarSign, requiresProfileComplete: false }] : []),
   ];
 
   const mobileMenuVariants = {

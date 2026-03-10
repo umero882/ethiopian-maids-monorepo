@@ -300,6 +300,17 @@ const ADMIN_CHANGE_VERIFICATION_STATUS = gql`
   }
 `;
 
+const ADMIN_VERIFY_MAID_DOCUMENTS = gql`
+  mutation AdminVerifyMaidDocuments($maidId: String!, $verified: Boolean!) {
+    update_maid_documents(
+      where: { maid_id: { _eq: $maidId } }
+      _set: { verified: $verified }
+    ) {
+      affected_rows
+    }
+  }
+`;
+
 const ADMIN_UPDATE_SUBSCRIPTION = gql`
   mutation AdminUpdateSubscription($id: String!, $status: String!) {
     update_profiles_by_pk(
@@ -500,6 +511,18 @@ export const adminProfileService = {
 
       if (errors?.length > 0) {
         throw new Error(errors[0].message);
+      }
+
+      // When profile is verified, also verify all their documents
+      // When rejected/unverified, reset documents to unverified
+      const verifyDocs = status === 'verified';
+      try {
+        await apolloClient.mutate({
+          mutation: ADMIN_VERIFY_MAID_DOCUMENTS,
+          variables: { maidId: profileId, verified: verifyDocs },
+        });
+      } catch (docErr) {
+        logger.warn('Failed to update document verification (non-critical):', docErr);
       }
 
       return { data: data?.update_profiles_by_pk, error: null };

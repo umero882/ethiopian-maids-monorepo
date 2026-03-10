@@ -180,6 +180,7 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
 
   const [loading, setLoading] = useState(false);
   const [dbSubscription, setDbSubscription] = useState(null);
+  const [pointsBoost, setPointsBoost] = useState(null);
 
   // Fetch subscription from database - using useCallback to stabilize reference
   const fetchSubscription = useCallback(async () => {
@@ -195,7 +196,31 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
 
     try {
       setLoading(true);
-      const subscription = await subscriptionService.getActiveSubscription(user.id);
+      const [subscription, boost] = await Promise.all([
+        subscriptionService.getActiveSubscription(user.id),
+        userType === 'maid' ? subscriptionService.getPointsBoost(user.id) : null,
+      ]);
+
+      // Process points boost
+      if (boost) {
+        const now = new Date();
+        const endDate = new Date(boost.end_date);
+        const isActive = boost.status === 'active' && endDate > now;
+        const daysRemaining = isActive
+          ? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
+          : 0;
+        const meta = typeof boost.metadata === 'string' ? JSON.parse(boost.metadata) : boost.metadata;
+        setPointsBoost({
+          status: isActive ? 'active' : 'expired',
+          points: meta?.points_used || 0,
+          days: meta?.days_granted || 0,
+          daysRemaining,
+          expiresAt: boost.end_date,
+          subscription: boost,
+        });
+      } else {
+        setPointsBoost(null);
+      }
 
       if (subscription) {
         setDbSubscription(subscription);
@@ -213,6 +238,20 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
           subscriptionId: subscription.id,
           status: subscription.status,
           features: subscription.features,
+        });
+      } else if (boost && boost.status === 'active' && new Date(boost.end_date) > new Date()) {
+        // No paid subscription but active points boost → treat as premium
+        setDbSubscription(boost);
+        setSubscriptionPlan(SUBSCRIPTION_PLANS.PREMIUM);
+        setSubscriptionDetails({
+          startDate: boost.start_date,
+          endDate: boost.end_date,
+          autoRenew: false,
+          paymentMethod: null,
+          invoices: [],
+          subscriptionId: boost.id,
+          status: 'active',
+          features: {},
         });
       } else {
         // User is on free plan
@@ -406,6 +445,107 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
     }));
   };
 
+  // Activate points boost
+  const activatePointsBoost = async (totalPoints, pointsBreakdown = {}) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      const result = await subscriptionService.activatePointsBoost(
+        user.id,
+        totalPoints,
+        pointsBreakdown,
+        userType
+      );
+
+      toast({
+        title: 'Points Boost Activated!',
+        description: `You earned ${totalPoints} points (${(totalPoints / 100).toFixed(1)} days of premium features)`,
+      });
+
+      // Refresh subscription to pick up the new boost
+      await fetchSubscription();
+      return true;
+    } catch (error) {
+      console.error('Error activating points boost:', error);
+      toast({
+        title: 'Activation Failed',
+        description: error.message || 'Failed to activate points boost. Please try again.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Purchase paid points boost (redirects to Stripe Checkout)
+  const purchasePointsBoost = async (planKey) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      const result = await subscriptionService.purchasePointsBoost(planKey);
+
+      if (!result.success) {
+        throw result.error || new Error('Failed to create checkout session');
+      }
+
+      // User will be redirected to Stripe Checkout — no further action here
+      return true;
+    } catch (error) {
+      console.error('Error purchasing points boost:', error);
+      toast({
+        title: 'Purchase Failed',
+        description: error.message || 'Failed to start checkout. Please try again.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Activate paid boost after successful Stripe payment
+  const activatePaidBoost = async (planKey) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      await subscriptionService.activatePaidBoost(planKey);
+
+      const plans = subscriptionService.getPaidBoostPlans();
+      const plan = plans[planKey];
+
+      toast({
+        title: 'Premium Boost Activated!',
+        description: `${plan?.days || ''} days of premium features have been activated.`,
+      });
+
+      await fetchSubscription();
+      return true;
+    } catch (error) {
+      console.error('Error activating paid boost:', error);
+      toast({
+        title: 'Activation Failed',
+        description: error.message || 'Failed to activate boost. Please contact support.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get current plan limits
   const getCurrentLimits = () => {
     if (!userType) return {};
@@ -428,6 +568,10 @@ export const SubscriptionProvider = ({ children, mockValue }) => {
     FEATURE_LIMITS,
     loading,
     dbSubscription,
+    pointsBoost,
+    activatePointsBoost,
+    purchasePointsBoost,
+    activatePaidBoost,
   };
 
   return (

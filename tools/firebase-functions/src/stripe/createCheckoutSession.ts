@@ -1,23 +1,29 @@
 /**
  * Create Stripe Checkout Session
+ * Supports both subscription mode (recurring plans) and payment mode (one-time boost)
  */
 
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import { GraphQLClient, gql } from 'graphql-request';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+// Config: prefer process.env over deprecated functions.config()
+const _hasuraLegacy = (() => { try { return functions.config()?.hasura || {}; } catch { return {} as any; } })();
+const _stripeLegacy = (() => { try { return functions.config()?.stripe || {}; } catch { return {} as any; } })();
+
+const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || _stripeLegacy.secret_key || '';
+const HASURA_ENDPOINT = process.env.HASURA_GRAPHQL_ENDPOINT || _hasuraLegacy.endpoint || 'https://api.ethiopianmaids.com/v1/graphql';
+const HASURA_SECRET = process.env.HASURA_ADMIN_SECRET || _hasuraLegacy.admin_secret || '';
+
+const stripe = new Stripe(STRIPE_SECRET, {
   apiVersion: '2023-10-16',
 });
 
-const hasuraClient = new GraphQLClient(
-  process.env.HASURA_GRAPHQL_ENDPOINT || 'https://api.ethiopianmaids.com/v1/graphql',
-  {
-    headers: {
-      'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET || '',
-    },
-  }
-);
+const hasuraClient = new GraphQLClient(HASURA_ENDPOINT, {
+  headers: {
+    'x-hasura-admin-secret': HASURA_SECRET,
+  },
+});
 
 const UPSERT_CUSTOMER = gql`
   mutation UpsertCustomer($userId: String!, $stripeCustomerId: String!) {
@@ -45,7 +51,7 @@ const GET_CUSTOMER = gql`
 
 interface CheckoutSessionData {
   userId: string;
-  priceId: string;
+  priceId?: string;
   planName?: string;
   userEmail?: string;
   billingCycle?: string;
@@ -53,6 +59,12 @@ interface CheckoutSessionData {
   planTier?: string;
   successUrl?: string;
   cancelUrl?: string;
+  // One-time payment fields (for paid boost)
+  mode?: 'subscription' | 'payment';
+  amount?: number;
+  currency?: string;
+  productName?: string;
+  productDescription?: string;
 }
 
 export async function createCheckoutSession(
@@ -63,17 +75,25 @@ export async function createCheckoutSession(
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
 
-  const { priceId, planName, userEmail, successUrl, cancelUrl, userType, planTier, billingCycle } = data;
+  const {
+    priceId, planName, userEmail, successUrl, cancelUrl,
+    userType, planTier, billingCycle,
+    mode = 'subscription', amount, currency = 'aed',
+    productName, productDescription,
+  } = data;
 
   // IMPORTANT: Always use the verified Firebase UID from auth context, not from client data
-  // This ensures the subscription is linked to the correct user profile
   const userId = context.auth.uid;
 
-  if (!priceId) {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing priceId');
+  // Validate: subscription mode requires priceId, payment mode requires amount
+  if (mode === 'subscription' && !priceId) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing priceId for subscription mode');
+  }
+  if (mode === 'payment' && (!amount || amount <= 0)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid amount for payment mode');
   }
 
-  console.log(`Creating checkout session for Firebase user: ${userId}`);
+  console.log(`Creating ${mode} checkout session for Firebase user: ${userId}`);
 
   try {
     let stripeCustomerId: string | null = null;
@@ -88,8 +108,8 @@ export async function createCheckoutSession(
       const customer = await stripe.customers.create({
         email: userEmail,
         metadata: {
-          userId,  // This is now the verified Firebase UID
-          firebaseUid: userId,  // Explicitly set for clarity
+          userId,
+          firebaseUid: userId,
           userType: userType || '',
         },
       });
@@ -102,36 +122,63 @@ export async function createCheckoutSession(
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionMetadata: Record<string, string> = {
+      userId,
+      firebaseUid: userId,
+      planName: planName || '',
+      userType: userType || '',
+      planTier: planTier || '',
+      billingCycle: billingCycle || '',
+    };
+
+    // Build line_items based on mode
+    let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[];
+
+    if (mode === 'payment' && amount) {
+      // One-time payment with dynamic pricing (e.g., paid boost)
+      lineItems = [{
+        price_data: {
+          currency: currency,
+          product_data: {
+            name: productName || 'Premium Boost',
+            description: productDescription || 'Premium features boost',
+          },
+          unit_amount: amount, // amount in smallest currency unit (fils for AED)
+        },
+        quantity: 1,
+      }];
+    } else {
+      // Subscription with pre-created price
+      lineItems = [{
+        price: priceId!,
+        quantity: 1,
+      }];
+    }
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: stripeCustomerId,
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
+      line_items: lineItems,
+      mode: mode,
       success_url: successUrl || `${process.env.APP_URL || 'https://ethiopianmaids.com'}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${process.env.APP_URL || 'https://ethiopianmaids.com'}/dashboard?canceled=true`,
-      metadata: {
-        userId,  // This is now the verified Firebase UID
-        firebaseUid: userId,  // Explicitly set for clarity
-        planName: planName || '',
-        userType: userType || '',
-        planTier: planTier || '',
-        billingCycle: billingCycle || '',
-      },
-      subscription_data: {
+      metadata: sessionMetadata,
+    };
+
+    // Add subscription_data only for subscription mode
+    if (mode === 'subscription') {
+      sessionParams.subscription_data = {
         metadata: {
-          userId,  // This is now the verified Firebase UID
-          firebaseUid: userId,  // Explicitly set for clarity
+          userId,
+          firebaseUid: userId,
           planName: planName || '',
           userType: userType || '',
           planTier: planTier || '',
         },
-      },
-    });
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     if (!session.url) {
       throw new Error('Failed to create checkout session URL');

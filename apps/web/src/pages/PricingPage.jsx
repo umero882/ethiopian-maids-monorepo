@@ -69,6 +69,14 @@ const PricingPage = () => {
   usePageTitle('Pricing');
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Maid users manage subscriptions via their dashboard (Points Boost)
+  React.useEffect(() => {
+    if (user?.userType === 'maid' || user?.user_type === 'maid') {
+      navigate('/dashboard/maid/subscriptions', { replace: true });
+    }
+  }, [user?.userType, user?.user_type, navigate]);
+
   const {
     subscriptionPlan,
     subscriptionDetails,

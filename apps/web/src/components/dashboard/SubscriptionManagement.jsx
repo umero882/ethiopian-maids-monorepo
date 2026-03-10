@@ -643,7 +643,7 @@ const SubscriptionManagement = () => {
                 ))}
               </CardContent>
               <CardFooter>
-                <Button variant='outline' onClick={() => navigate('/pricing')}>
+                <Button variant='outline' onClick={() => navigate(userType === 'maid' ? '/dashboard/maid/subscriptions' : '/pricing')}>
                   Compare Plans
                 </Button>
               </CardFooter>
@@ -702,7 +702,7 @@ const SubscriptionManagement = () => {
                       <Button
                         variant='link'
                         className='mt-2'
-                        onClick={() => navigate('/pricing')}
+                        onClick={() => navigate(userType === 'maid' ? '/dashboard/maid/subscriptions' : '/pricing')}
                       >
                         Upgrade to access billing features
                       </Button>
@@ -729,7 +729,14 @@ const SubscriptionManagement = () => {
                     Payment Method
                   </h3>
 
-                  {subscriptionDetails.paymentMethod || storedPaymentMethods.length > 0 ? (
+                  {userType === 'maid' ? (
+                    <div className='p-4 border border-dashed rounded-lg bg-gray-50'>
+                      <p className='text-sm text-gray-600'>
+                        Payments are processed securely via Stripe checkout when you purchase a premium boost.
+                        No saved payment method is needed.
+                      </p>
+                    </div>
+                  ) : subscriptionDetails.paymentMethod || storedPaymentMethods.length > 0 ? (
                     <div className='space-y-3'>
                       {/* Show context payment method if exists */}
                       {subscriptionDetails.paymentMethod && (
@@ -753,7 +760,7 @@ const SubscriptionManagement = () => {
                           <Button
                             variant='outline'
                             size='sm'
-                            onClick={() => navigate('/dashboard/sponsor/payment-settings')}
+                            onClick={() => navigate(`/dashboard/${userType === 'agency' ? 'agency' : 'sponsor'}/payment-settings`)}
                           >
                             Edit
                           </Button>
@@ -784,7 +791,7 @@ const SubscriptionManagement = () => {
                           <Button
                             variant='outline'
                             size='sm'
-                            onClick={() => navigate('/dashboard/sponsor/payment-settings')}
+                            onClick={() => navigate(`/dashboard/${userType === 'agency' ? 'agency' : 'sponsor'}/payment-settings`)}
                           >
                             Manage
                           </Button>
@@ -799,7 +806,7 @@ const SubscriptionManagement = () => {
                       <Button
                         variant='outline'
                         size='sm'
-                        onClick={() => navigate('/dashboard/sponsor/payment-settings')}
+                        onClick={() => navigate(`/dashboard/${userType === 'agency' ? 'agency' : 'sponsor'}/payment-settings`)}
                       >
                         Add Payment Method
                       </Button>

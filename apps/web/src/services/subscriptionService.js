@@ -10,7 +10,8 @@
 
 import { apolloClient } from '@ethio/api-client';
 import { gql } from '@apollo/client';
-import { auth } from '@/lib/firebaseClient';
+import { auth, functions } from '@/lib/firebaseClient';
+import { httpsCallable } from 'firebase/functions';
 import { getStripe } from '@/config/stripe';
 import { createLogger } from '@/utils/logger';
 
@@ -145,6 +146,87 @@ const UPDATE_SUBSCRIPTION = gql`
       cancelled_at
       features
       updated_at
+    }
+  }
+`;
+
+const GET_POINTS_BOOST = gql`
+  query GetPointsBoost($userId: String!) {
+    subscriptions(
+      where: {
+        user_id: { _eq: $userId }
+        plan_type: { _in: ["points_boost", "points_boost_paid"] }
+      }
+      order_by: { created_at: desc }
+      limit: 1
+    ) {
+      id
+      user_id
+      plan_type
+      plan_name
+      status
+      amount
+      start_date
+      end_date
+      metadata
+      created_at
+    }
+  }
+`;
+
+// Paid boost plans: 100 points = 1 day = $1 USD = ~3.67 AED
+const PAID_BOOST_PLANS = {
+  weekly: {
+    key: 'weekly',
+    label: '7 Days',
+    days: 7,
+    points: 700,
+    priceUSD: 7,
+    priceAED: 25.70,
+  },
+  fifteen_days: {
+    key: 'fifteen_days',
+    label: '15 Days',
+    days: 15,
+    points: 1500,
+    priceUSD: 15,
+    priceAED: 55.05,
+  },
+  monthly: {
+    key: 'monthly',
+    label: '30 Days',
+    days: 30,
+    points: 3000,
+    priceUSD: 30,
+    priceAED: 110.10,
+  },
+};
+
+const GET_PROFILE_COMPLETION = gql`
+  query GetProfileCompletion($userId: String!) {
+    maid_profiles_by_pk(id: $userId) {
+      id
+      profile_completion_percentage
+      full_name
+      date_of_birth
+      nationality
+      religion
+      marital_status
+      country
+      state_province
+      primary_profession
+      education_level
+      skills
+      languages
+      experience_years
+      preferred_salary_min
+      about_me
+      profile_photo_url
+      introduction_video_url
+      work_preferences
+      contract_duration_preference
+      live_in_preference
+      previous_countries
     }
   }
 `;
@@ -455,6 +537,9 @@ class SubscriptionService {
     const status = this.getSubscriptionStatus(subscription);
     if (status === 'expired' || status === 'cancelled') return 'free';
 
+    // Map points_boost (free or paid) to premium tier
+    if (subscription.plan_type === 'points_boost' || subscription.plan_type === 'points_boost_paid') return 'premium';
+
     return subscription.plan_type || 'free';
   }
 
@@ -667,6 +752,250 @@ class SubscriptionService {
       log.error('Error creating portal session:', error);
       return { success: false, error };
     }
+  }
+  /**
+   * Get user's points boost subscription
+   * @param {string} userId - User ID (Firebase UID)
+   * @returns {Promise<Object|null>} Points boost subscription or null
+   */
+  async getPointsBoost(userId) {
+    try {
+      log.info('Fetching points boost for user:', userId);
+
+      const { data, error } = await apolloClient.query({
+        query: GET_POINTS_BOOST,
+        variables: { userId },
+        fetchPolicy: 'network-only',
+      });
+
+      if (error) {
+        log.error('GraphQL error fetching points boost:', error);
+        return null;
+      }
+
+      return data?.subscriptions?.[0] || null;
+    } catch (error) {
+      log.error('Exception fetching points boost:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get profile data for points calculation
+   * @param {string} userId - User ID (Firebase UID)
+   * @returns {Promise<Object|null>} Profile data with fields for step-based points calculation
+   */
+  async getProfileForPoints(userId) {
+    try {
+      const { data, error } = await apolloClient.query({
+        query: GET_PROFILE_COMPLETION,
+        variables: { userId },
+        fetchPolicy: 'network-only',
+      });
+
+      if (error) {
+        log.error('GraphQL error fetching profile for points:', error);
+        return null;
+      }
+
+      return data?.maid_profiles_by_pk || null;
+    } catch (error) {
+      log.error('Exception fetching profile for points:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Activate points boost subscription
+   * @param {string} userId - User ID
+   * @param {number} totalPoints - Total points earned from step-based calculation
+   * @param {Object} pointsBreakdown - Breakdown of points by step
+   * @param {string} userType - User type
+   * @returns {Promise<Object>} Created subscription
+   */
+  async activatePointsBoost(userId, totalPoints, pointsBreakdown = {}, userType = 'maid') {
+    try {
+      const points = totalPoints;
+      const days = points / 100;
+
+      if (days <= 0) {
+        throw new Error('Not enough points to activate boost');
+      }
+
+      log.info('Activating points boost:', { userId, points, days });
+
+      const now = new Date();
+      const endDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+      // Note: user_id is set automatically by Hasura's INSERT permission (set: X-Hasura-User-Id)
+      // Do NOT include user_id in the object or Hasura will reject it
+      const { data, errors } = await apolloClient.mutate({
+        mutation: INSERT_SUBSCRIPTION,
+        variables: {
+          object: {
+            plan_id: `points_boost_${Date.now()}`,
+            plan_type: 'points_boost',
+            plan_name: 'Profile Points Boost',
+            amount: 0,
+            currency: 'AED',
+            billing_period: 'one_time',
+            status: 'active',
+            start_date: now.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
+            metadata: {
+              source: 'onboarding_points',
+              points_used: points,
+              days_granted: days,
+              breakdown: pointsBreakdown,
+            },
+          },
+        },
+      });
+
+      if (errors) {
+        throw new Error(errors[0]?.message || 'Failed to activate points boost');
+      }
+
+      log.info('Points boost activated:', data?.insert_subscriptions_one?.id);
+      return data?.insert_subscriptions_one;
+    } catch (error) {
+      log.error('Error activating points boost:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Purchase a paid points boost via Stripe Checkout.
+   * Uses Firebase httpsCallable to create a Stripe Checkout session, then redirects.
+   * On success return, activatePaidBoost() creates the subscription record.
+   * @param {string} planKey - 'weekly', 'fifteen_days', or 'monthly'
+   * @returns {Promise<{success: boolean, error?: Error}>}
+   */
+  async purchasePointsBoost(planKey) {
+    try {
+      const plan = PAID_BOOST_PLANS[planKey];
+      if (!plan) {
+        throw new Error(`Invalid boost plan: ${planKey}`);
+      }
+
+      const user = this.getCurrentUser();
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      log.info('Creating paid boost checkout:', { planKey, days: plan.days, priceAED: plan.priceAED });
+
+      if (!functions) {
+        throw new Error('Firebase Functions not initialized');
+      }
+
+      // Call Cloud Function via httpsCallable
+      const createCheckout = httpsCallable(functions, 'stripeCreateCheckoutSession');
+      const result = await createCheckout({
+        mode: 'payment',
+        amount: Math.round(plan.priceAED * 100), // fils (AED cents)
+        currency: 'aed',
+        productName: `Premium Boost - ${plan.label}`,
+        productDescription: `${plan.days} days of premium features (${plan.points} points)`,
+        userType: 'maid',
+        planTier: 'points_boost_paid',
+        planName: `Premium Boost - ${plan.label}`,
+        billingCycle: planKey,
+        userEmail: user.email,
+        successUrl: `${window.location.origin}/dashboard/maid/subscriptions?boost_success=true&plan=${planKey}`,
+        cancelUrl: `${window.location.origin}/dashboard/maid/subscriptions?boost_canceled=true`,
+      });
+
+      const { url, sessionId } = result.data;
+
+      if (!url && !sessionId) {
+        throw new Error('No checkout URL returned from server');
+      }
+
+      log.info('Paid boost checkout session created:', sessionId);
+
+      // Redirect to Stripe Checkout page
+      if (url) {
+        window.location.href = url;
+      } else {
+        // Fallback: use Stripe.js redirect
+        const stripe = await getStripe();
+        if (!stripe) {
+          throw new Error('Stripe not initialized');
+        }
+        const { error: redirectError } = await stripe.redirectToCheckout({ sessionId });
+        if (redirectError) throw redirectError;
+      }
+
+      return { success: true };
+    } catch (error) {
+      log.error('Error creating paid boost checkout:', error);
+      return { success: false, error };
+    }
+  }
+
+  /**
+   * Activate a paid points boost after successful payment
+   * Called when user returns from Stripe with boost_success=true
+   * @param {string} planKey - 'weekly', 'fifteen_days', or 'monthly'
+   * @returns {Promise<Object>} Created subscription
+   */
+  async activatePaidBoost(planKey) {
+    try {
+      const plan = PAID_BOOST_PLANS[planKey];
+      if (!plan) {
+        throw new Error(`Invalid boost plan: ${planKey}`);
+      }
+
+      const now = new Date();
+      const endDate = new Date(now.getTime() + plan.days * 24 * 60 * 60 * 1000);
+
+      log.info('Activating paid boost:', { planKey, days: plan.days });
+
+      // Note: user_id is set automatically by Hasura's INSERT permission
+      const { data, errors } = await apolloClient.mutate({
+        mutation: INSERT_SUBSCRIPTION,
+        variables: {
+          object: {
+            plan_id: `points_boost_paid_${planKey}_${Date.now()}`,
+            plan_type: 'points_boost_paid',
+            plan_name: `Premium Boost - ${plan.label}`,
+            amount: plan.priceAED,
+            currency: 'AED',
+            billing_period: 'one_time',
+            status: 'active',
+            start_date: now.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
+            metadata: {
+              source: 'paid_boost',
+              plan_key: planKey,
+              points: plan.points,
+              days_granted: plan.days,
+              price_usd: plan.priceUSD,
+              price_aed: plan.priceAED,
+            },
+          },
+        },
+      });
+
+      if (errors) {
+        throw new Error(errors[0]?.message || 'Failed to activate paid boost');
+      }
+
+      log.info('Paid boost activated:', data?.insert_subscriptions_one?.id);
+      return data?.insert_subscriptions_one;
+    } catch (error) {
+      log.error('Error activating paid boost:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available paid boost plans
+   * @returns {Object} Paid boost plans config
+   */
+  getPaidBoostPlans() {
+    return PAID_BOOST_PLANS;
   }
 }
 

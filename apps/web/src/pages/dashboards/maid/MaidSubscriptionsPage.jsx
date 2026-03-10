@@ -1,11 +1,15 @@
 import React from 'react';
 import SubscriptionManagement from '@/components/dashboard/SubscriptionManagement';
+import PointsBoostCard from '@/components/dashboard/PointsBoostCard';
 import { motion } from 'framer-motion';
 
 const MaidSubscriptionsPage = () => {
   return (
     <div className='space-y-6'>
       <SubscriptionManagement />
+
+      {/* Points Boost - earn premium days from profile completion */}
+      <PointsBoostCard />
 
       {/* FAQ Section */}
       <motion.div

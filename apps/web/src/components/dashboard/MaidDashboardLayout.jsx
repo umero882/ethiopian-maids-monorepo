@@ -536,7 +536,7 @@ const MaidDashboardLayout = () => {
                     </div>
                     <Button
                       size='sm'
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => navigate('/dashboard/maid/subscriptions')}
                       className='w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white gap-1 shadow-sm hover:shadow-md transition-all text-xs h-8'
                     >
                       <Sparkles className='h-3.5 w-3.5' />
@@ -628,7 +628,7 @@ const MaidDashboardLayout = () => {
                     <Button
                       size='sm'
                       onClick={() => {
-                        navigate('/pricing');
+                        navigate('/dashboard/maid/subscriptions');
                         setMobileSidebarOpen(false);
                       }}
                       className='w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white gap-1 shadow-sm text-xs h-8'

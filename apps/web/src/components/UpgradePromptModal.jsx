@@ -195,7 +195,7 @@ const UpgradePromptModal = ({
   const displayMessage = message || defaults.message;
 
   const handleUpgrade = () => {
-    navigate('/pricing');
+    navigate(userType === 'maid' ? '/dashboard/maid/subscriptions' : '/pricing');
     onClose();
   };
 
