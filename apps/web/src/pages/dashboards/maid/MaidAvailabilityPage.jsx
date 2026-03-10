@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { gql } from '@apollo/client';
 import { toast } from '@/components/ui/use-toast';
 import {
   Card,
@@ -11,12 +12,19 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { DatePicker, DropdownDatePicker } from '@/components/ui/date-picker';
+import { DropdownDatePicker } from '@/components/ui/date-picker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -24,47 +32,123 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   CalendarDays,
   Clock,
   Save,
   AlertTriangle,
-  Calendar as CalendarIcon,
   Plus,
   X,
+  Loader2,
+  CheckCircle2,
+  Briefcase,
+  Info,
 } from 'lucide-react';
-import { mockMaidAvailability } from '@/data/mockMaidProfileData.js';
+import { useAuth } from '@/contexts/AuthContext';
+import { apolloClient } from '@ethio/api-client';
 import {
   format,
   addDays,
-  isWeekend,
   isSameDay,
   parseISO,
-  isWithinInterval,
+  eachDayOfInterval,
 } from 'date-fns';
 
+// GraphQL queries
+const GET_MAID_AVAILABILITY = gql`
+  query GetMaidAvailability($userId: String!) {
+    maid_profiles_by_pk(id: $userId) {
+      id
+      availability_status
+      available_from
+      unavailable_dates
+      working_hours_schedule
+      notice_required_days
+      availability_notes
+      work_preferences
+    }
+    bookings(
+      where: {
+        maid_id: { _eq: $userId }
+        status: { _in: ["confirmed", "active", "in_progress"] }
+      }
+      order_by: { start_date: asc }
+    ) {
+      id
+      start_date
+      end_date
+      status
+      booking_type
+    }
+  }
+`;
+
+const UPDATE_MAID_AVAILABILITY = gql`
+  mutation UpdateMaidAvailability(
+    $userId: String!
+    $availability_status: String
+    $available_from: date
+    $unavailable_dates: jsonb
+    $working_hours_schedule: jsonb
+    $notice_required_days: Int
+    $availability_notes: String
+  ) {
+    update_maid_profiles_by_pk(
+      pk_columns: { id: $userId }
+      _set: {
+        availability_status: $availability_status
+        available_from: $available_from
+        unavailable_dates: $unavailable_dates
+        working_hours_schedule: $working_hours_schedule
+        notice_required_days: $notice_required_days
+        availability_notes: $availability_notes
+      }
+    ) {
+      id
+      availability_status
+      available_from
+      unavailable_dates
+      working_hours_schedule
+      notice_required_days
+      availability_notes
+    }
+  }
+`;
+
+const DEFAULT_WORKING_HOURS = {
+  monday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
+  tuesday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
+  wednesday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
+  thursday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
+  friday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
+  saturday: { isWorking: false, startTime: '09:00', endTime: '14:00' },
+  sunday: { isWorking: false, startTime: '09:00', endTime: '14:00' },
+};
+
+const AVAILABILITY_OPTIONS = [
+  { value: 'available', label: 'Available', color: 'bg-green-500' },
+  { value: 'unavailable', label: 'Unavailable', color: 'bg-red-500' },
+  { value: 'available_soon', label: 'Available Soon', color: 'bg-yellow-500' },
+  { value: 'employed', label: 'Currently Employed', color: 'bg-blue-500' },
+];
+
 const MaidAvailabilityPage = () => {
+  const { user } = useAuth();
+  const [availabilityStatus, setAvailabilityStatus] = useState('available');
+  const [availableFrom, setAvailableFrom] = useState(null);
   const [availability, setAvailability] = useState({
     unavailableDates: [],
     bookedDates: [],
-    workingHours: {
-      monday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
-      tuesday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
-      wednesday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
-      thursday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
-      friday: { isWorking: true, startTime: '08:00', endTime: '17:00' },
-      saturday: { isWorking: false, startTime: '09:00', endTime: '14:00' },
-      sunday: { isWorking: false, startTime: '09:00', endTime: '14:00' },
-    },
-    noticeRequired: 2, // days
+    workingHours: { ...DEFAULT_WORKING_HOURS },
+    noticeRequired: 2,
     specialNotes: '',
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isRangeMode, setIsRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('calendar');
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [leaveDetails, setLeaveDetails] = useState({
@@ -72,28 +156,79 @@ const MaidAvailabilityPage = () => {
     endDate: null,
     reason: '',
   });
+  const [workPreferences, setWorkPreferences] = useState([]);
 
+  // Load availability data from DB
   useEffect(() => {
-    // Fetch availability data - in production this would come from an API
-    // Using mock data for now
-    const fetchData = async () => {
-      try {
-        const data = mockMaidAvailability;
+    if (!user?.id) return;
 
-        // Convert string dates to Date objects
+    const loadAvailability = async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: GET_MAID_AVAILABILITY,
+          variables: { userId: user.id },
+          fetchPolicy: 'network-only',
+        });
+
+        const profile = data?.maid_profiles_by_pk;
+        const bookings = data?.bookings || [];
+
+        // Set work preferences
+        if (Array.isArray(profile?.work_preferences)) {
+          setWorkPreferences(profile.work_preferences);
+        }
+
+        // Set availability status
+        if (profile?.availability_status) {
+          setAvailabilityStatus(profile.availability_status);
+        }
+        if (profile?.available_from) {
+          setAvailableFrom(parseISO(profile.available_from));
+        }
+
+        // Parse unavailable dates from DB (stored as JSON array of ISO strings)
+        const dbUnavailableDates = Array.isArray(profile?.unavailable_dates)
+          ? profile.unavailable_dates.map((d) => parseISO(d))
+          : [];
+
+        // Parse booked dates from actual bookings
+        const bookedDates = [];
+        bookings.forEach((booking) => {
+          if (booking.start_date && booking.end_date) {
+            try {
+              const days = eachDayOfInterval({
+                start: parseISO(booking.start_date),
+                end: parseISO(booking.end_date),
+              });
+              bookedDates.push(...days);
+            } catch {
+              // Single day booking
+              bookedDates.push(parseISO(booking.start_date));
+            }
+          } else if (booking.start_date) {
+            bookedDates.push(parseISO(booking.start_date));
+          }
+        });
+
+        // Parse working hours from DB or use defaults
+        const dbWorkingHours = profile?.working_hours_schedule;
+        const workingHours =
+          dbWorkingHours && typeof dbWorkingHours === 'object' && Object.keys(dbWorkingHours).length > 0
+            ? dbWorkingHours
+            : { ...DEFAULT_WORKING_HOURS };
+
         setAvailability({
-          ...data,
-          unavailableDates: data.unavailableDates.map((dateStr) =>
-            parseISO(dateStr)
-          ),
-          bookedDates: data.bookedDates.map((dateStr) => parseISO(dateStr)),
+          unavailableDates: dbUnavailableDates,
+          bookedDates,
+          workingHours,
+          noticeRequired: profile?.notice_required_days ?? 2,
+          specialNotes: profile?.availability_notes || '',
         });
       } catch (error) {
         console.error('Error fetching availability data:', error);
         toast({
           title: 'Error',
-          description:
-            'Failed to load availability data. Please try again later.',
+          description: 'Failed to load availability data. Please try again later.',
           variant: 'destructive',
         });
       } finally {
@@ -101,12 +236,11 @@ const MaidAvailabilityPage = () => {
       }
     };
 
-    fetchData();
-  }, []);
+    loadAvailability();
+  }, [user?.id]);
 
   const handleDateSelect = (date) => {
     if (isRangeMode) {
-      // Handle date range selection
       if (!dateRange.from) {
         setDateRange({ from: date, to: null });
       } else if (!dateRange.to && date > dateRange.from) {
@@ -117,7 +251,6 @@ const MaidAvailabilityPage = () => {
     } else {
       setSelectedDate(date);
 
-      // Toggle date availability
       const isUnavailable = availability.unavailableDates.some((d) =>
         isSameDay(d, date)
       );
@@ -126,33 +259,28 @@ const MaidAvailabilityPage = () => {
       if (isBooked) {
         toast({
           title: 'Cannot Modify Booked Date',
-          description:
-            'This date is already booked by an employer and cannot be modified.',
+          description: 'This date is already booked by an employer and cannot be modified.',
           variant: 'destructive',
         });
         return;
       }
 
       if (isUnavailable) {
-        // Remove from unavailable dates
         setAvailability({
           ...availability,
           unavailableDates: availability.unavailableDates.filter(
             (d) => !isSameDay(d, date)
           ),
         });
-
         toast({
           title: 'Date Marked as Available',
           description: `You are now marked as available on ${format(date, 'MMMM d, yyyy')}.`,
         });
       } else {
-        // Add to unavailable dates
         setAvailability({
           ...availability,
           unavailableDates: [...availability.unavailableDates, date],
         });
-
         toast({
           title: 'Date Marked as Unavailable',
           description: `You are now marked as unavailable on ${format(date, 'MMMM d, yyyy')}.`,
@@ -163,7 +291,6 @@ const MaidAvailabilityPage = () => {
 
   const handleApplyRange = () => {
     if (dateRange.from && dateRange.to) {
-      // Create array of dates in the range
       const rangeDates = [];
       let currentDate = dateRange.from;
 
@@ -174,7 +301,6 @@ const MaidAvailabilityPage = () => {
         currentDate = addDays(currentDate, 1);
       }
 
-      // Add all dates in range to unavailable dates
       setAvailability({
         ...availability,
         unavailableDates: [
@@ -182,7 +308,6 @@ const MaidAvailabilityPage = () => {
           ...rangeDates,
         ].filter(
           (date, index, self) =>
-            // Remove duplicates
             index === self.findIndex((d) => isSameDay(d, date))
         ),
       });
@@ -192,7 +317,6 @@ const MaidAvailabilityPage = () => {
         description: `You are now marked as unavailable from ${format(dateRange.from, 'MMM d')} to ${format(dateRange.to, 'MMM d, yyyy')}.`,
       });
 
-      // Reset date range
       setDateRange({ from: null, to: null });
       setIsRangeMode(false);
     }
@@ -202,16 +326,34 @@ const MaidAvailabilityPage = () => {
     setDateRange({ from: null, to: null });
   };
 
+  // Real save to DB via GraphQL
   const handleSaveAvailability = async () => {
+    if (!user?.id) return;
+
     try {
-      setLoading(true);
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      setSaving(true);
+
+      // Convert Date objects to ISO strings for storage
+      const unavailableDatesISO = availability.unavailableDates.map((d) =>
+        format(d, 'yyyy-MM-dd')
+      );
+
+      await apolloClient.mutate({
+        mutation: UPDATE_MAID_AVAILABILITY,
+        variables: {
+          userId: user.id,
+          availability_status: availabilityStatus,
+          available_from: availableFrom ? format(availableFrom, 'yyyy-MM-dd') : null,
+          unavailable_dates: unavailableDatesISO,
+          working_hours_schedule: availability.workingHours,
+          notice_required_days: availability.noticeRequired,
+          availability_notes: availability.specialNotes,
+        },
+      });
 
       toast({
         title: 'Availability Saved',
-        description:
-          'Your availability settings have been updated successfully.',
+        description: 'Your availability settings have been updated successfully.',
       });
     } catch (error) {
       console.error('Error saving availability:', error);
@@ -221,7 +363,7 @@ const MaidAvailabilityPage = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -244,7 +386,6 @@ const MaidAvailabilityPage = () => {
 
   const handleSubmitLeave = () => {
     if (leaveDetails.startDate && leaveDetails.endDate) {
-      // Create array of dates in the leave period
       const leaveDates = [];
       let currentDate = leaveDetails.startDate;
 
@@ -255,7 +396,6 @@ const MaidAvailabilityPage = () => {
         currentDate = addDays(currentDate, 1);
       }
 
-      // Add all dates in range to unavailable dates
       setAvailability({
         ...availability,
         unavailableDates: [
@@ -263,17 +403,15 @@ const MaidAvailabilityPage = () => {
           ...leaveDates,
         ].filter(
           (date, index, self) =>
-            // Remove duplicates
             index === self.findIndex((d) => isSameDay(d, date))
         ),
       });
 
       toast({
         title: 'Leave Added',
-        description: `Your leave from ${format(leaveDetails.startDate, 'MMM d')} to ${format(leaveDetails.endDate, 'MMM d, yyyy')} has been added.`,
+        description: `Your leave from ${format(leaveDetails.startDate, 'MMM d')} to ${format(leaveDetails.endDate, 'MMM d, yyyy')} has been added. Click "Save Changes" to persist.`,
       });
 
-      // Reset leave details and close dialog
       setLeaveDetails({ startDate: null, endDate: null, reason: '' });
       setShowLeaveDialog(false);
     }
@@ -295,23 +433,128 @@ const MaidAvailabilityPage = () => {
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center h-full'>
-        <p>Loading availability data...</p>
+      <div className='flex items-center justify-center h-full py-20'>
+        <Loader2 className='h-8 w-8 animate-spin text-purple-500' />
+        <span className='ml-3 text-gray-600'>Loading availability data...</span>
       </div>
     );
   }
 
+  const isPartTime = workPreferences.some(
+    (p) => typeof p === 'string' && p.toLowerCase().includes('part-time')
+  );
+  const isFullTimeOnly =
+    workPreferences.length > 0 &&
+    !isPartTime &&
+    workPreferences.some(
+      (p) =>
+        typeof p === 'string' &&
+        (p.toLowerCase().includes('full-time') || p.toLowerCase().includes('live-in'))
+    );
+
   return (
     <div className='space-y-8'>
       <div className='flex justify-between items-center flex-wrap gap-4'>
-        <h1 className='text-3xl font-bold text-gray-800'>
-          Manage Availability
-        </h1>
-        <Button onClick={handleSaveAvailability} className='gap-2'>
-          <Save className='h-4 w-4' />
-          Save Changes
+        <div>
+          <h1 className='text-3xl font-bold text-gray-800'>
+            Manage Availability
+          </h1>
+          <p className='text-sm text-gray-500 mt-1'>
+            Set your part-time working schedule and availability for sponsors.
+          </p>
+        </div>
+        <Button onClick={handleSaveAvailability} disabled={saving} className='gap-2'>
+          {saving ? <Loader2 className='h-4 w-4 animate-spin' /> : <Save className='h-4 w-4' />}
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
+
+      {/* Full-time only info banner */}
+      {isFullTimeOnly && (
+        <motion.div {...sectionAnimation}>
+          <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3'>
+            <Info className='h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0' />
+            <div>
+              <p className='text-sm font-medium text-blue-800'>
+                Your profile is set to full-time / live-in work only.
+              </p>
+              <p className='text-sm text-blue-700 mt-1'>
+                Availability management is primarily designed for part-time maids who work with
+                multiple sponsors on a flexible schedule. As a full-time maid, your sponsor manages
+                your schedule. You can still set your status below if you're between placements.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Part-time context banner */}
+      {isPartTime && (
+        <motion.div {...sectionAnimation}>
+          <div className='bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-start gap-3'>
+            <Briefcase className='h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0' />
+            <div>
+              <p className='text-sm text-purple-700'>
+                As a part-time maid, manage your available days and working hours here. Sponsors
+                will see your availability when booking your services.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Availability Status Card */}
+      <motion.div {...sectionAnimation}>
+        <Card className='shadow-lg border-0'>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <CheckCircle2 className='h-5 w-5 text-purple-500' />
+              Availability Status
+            </CardTitle>
+            <CardDescription>
+              Set your current availability status visible to sponsors and agencies.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='space-y-2'>
+                <Label>Current Status</Label>
+                <Select value={availabilityStatus} onValueChange={setAvailabilityStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select status' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABILITY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className='flex items-center gap-2'>
+                          <div className={`h-3 w-3 rounded-full ${opt.color}`} />
+                          {opt.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(availabilityStatus === 'available_soon' || availabilityStatus === 'employed') && (
+                <div className='space-y-2'>
+                  <Label>Available From</Label>
+                  <DropdownDatePicker
+                    selected={availableFrom}
+                    onSelect={setAvailableFrom}
+                    fromYear={new Date().getFullYear()}
+                    toYear={new Date().getFullYear() + 2}
+                    minAge={-2}
+                    maxAge={0}
+                    placeholder='Select date'
+                    className='w-full'
+                  />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
         <TabsList className='grid grid-cols-2 mb-6'>
@@ -332,7 +575,7 @@ const MaidAvailabilityPage = () => {
                     </CardTitle>
                     <CardDescription>
                       Click on dates to mark yourself as available or
-                      unavailable.
+                      unavailable for part-time work.
                     </CardDescription>
                   </div>
                   <Button
@@ -499,7 +742,7 @@ const MaidAvailabilityPage = () => {
                   Working Hours
                 </CardTitle>
                 <CardDescription>
-                  Set your regular working hours for each day of the week.
+                  Set your regular part-time working hours for each day of the week.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -619,9 +862,9 @@ const MaidAvailabilityPage = () => {
                 </div>
               </CardContent>
               <CardFooter className='flex justify-end bg-gray-50 px-6 py-4'>
-                <Button onClick={handleSaveAvailability} className='gap-2'>
-                  <Save className='h-4 w-4' />
-                  Save Working Hours
+                <Button onClick={handleSaveAvailability} disabled={saving} className='gap-2'>
+                  {saving ? <Loader2 className='h-4 w-4 animate-spin' /> : <Save className='h-4 w-4' />}
+                  {saving ? 'Saving...' : 'Save Working Hours'}
                 </Button>
               </CardFooter>
             </Card>

@@ -159,7 +159,7 @@ class AdminDisputesService {
       reason_code: 'QD001',
       reason: ticket.subject,
       amount: 0, // Would need to be linked to transaction
-      currency: 'USD',
+      currency: 'AED',
       status: statusMap[ticket.status] || 'pending',
       priority: priorityMap[ticket.priority] || 'medium',
       created_at: ticket.created_at,

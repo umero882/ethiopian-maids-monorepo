@@ -1339,7 +1339,7 @@ Ethiopian Maids Platform Team`;
                     <div className="grid grid-cols-2 gap-3">
                       <InfoRow icon={Banknote} label="Salary Budget" value={
                         sponsor.salary_budget_min || sponsor.salary_budget_max
-                          ? `${sponsor.currency || 'USD'} ${sponsor.salary_budget_min || 0} - ${sponsor.salary_budget_max || 0}`
+                          ? `${sponsor.currency || 'AED'} ${sponsor.salary_budget_min || 0} - ${sponsor.salary_budget_max || 0}`
                           : null
                       } />
                       <InfoRow icon={Calendar} label="Payment" value={sponsor.payment_frequency?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} />

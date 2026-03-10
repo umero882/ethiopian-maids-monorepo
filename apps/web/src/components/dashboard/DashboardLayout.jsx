@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import Footer from '@/components/Footer';
 import AnnouncementBanner from '@/components/layout/AnnouncementBanner';
 import ProfileCompletionBanner from '@/components/ProfileCompletionBanner';
+import { NotificationCenter } from '@/components/notifications';
 import {
   LayoutDashboard,
   Briefcase,
@@ -104,17 +105,16 @@ const agencyNavItems = (profileIncomplete) => [
 
 const maidNavItems = (profileIncomplete) => [
   {
-    href: profileIncomplete ? '/complete-profile' : '/dashboard/maid',
-    label: profileIncomplete ? 'Complete Profile' : 'Overview',
-    icon: profileIncomplete ? ShieldCheck : LayoutDashboard,
+    href: '/dashboard/maid',
+    label: 'Overview',
+    icon: LayoutDashboard,
     disabled: false,
   },
   {
     href: '/dashboard/maid/profile',
-    label: 'My Profile',
-    icon: UserCircle,
-    disabled: profileIncomplete,
-    tooltip: commonDisabledTooltip,
+    label: profileIncomplete ? 'Complete Profile' : 'My Profile',
+    icon: profileIncomplete ? ShieldCheck : UserCircle,
+    disabled: false,
   },
   {
     href: '/dashboard/maid/requests',
@@ -349,9 +349,7 @@ const DashboardLayout = ({ children }) => {
     navItems = [];
   }
 
-  if (profileIncomplete) {
-    dashboardTitle = 'Complete Your Profile';
-  }
+  // Profile incomplete users can still access dashboard normally
 
   const handleLogout = () => {
     logout();
@@ -408,7 +406,7 @@ const DashboardLayout = ({ children }) => {
         <aside className='hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200 shadow-lg'>
           <div className='px-6 py-5 border-b border-gray-200'>
             <Link
-              to={profileIncomplete ? '/complete-profile' : '/dashboard'}
+              to='/dashboard'
               className='flex items-center space-x-2'
             >
               <img
@@ -450,7 +448,7 @@ const DashboardLayout = ({ children }) => {
           <SheetContent side='left' className='w-64 p-0 flex flex-col bg-white'>
             <div className='px-6 py-5 border-b border-gray-200'>
               <Link
-                to={profileIncomplete ? '/complete-profile' : '/dashboard'}
+                to='/dashboard'
                 className='flex items-center space-x-2'
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -509,25 +507,19 @@ const DashboardLayout = ({ children }) => {
                   </span>
                   {!profileIncomplete && (
                     <>
-                      <Button
-                        variant='ghost'
-                        aria-label='View notifications'
-                        size='icon'
-                        onClick={() =>
-                          navigate(
-                            user?.userType === 'sponsor'
-                              ? '/dashboard/sponsor/notifications'
-                              : '/notifications'
-                          )
-                        }
-                      >
-                        <Bell className='h-5 w-5 text-gray-500' />
-                      </Button>
+                      <NotificationCenter />
                       <Button
                       aria-label='View profile'
                         variant='ghost'
                         size='icon'
-                        onClick={() => navigate('/profile')}
+                        onClick={() => {
+                          const profilePath = user?.userType === 'sponsor'
+                            ? '/dashboard/sponsor/profile'
+                            : user?.userType === 'agency'
+                            ? '/dashboard/agency/profile'
+                            : '/dashboard/maid/profile';
+                          navigate(profilePath);
+                        }}
                       >
                         <UserCircle className='h-6 w-6 text-gray-500' />
                       </Button>
@@ -538,7 +530,14 @@ const DashboardLayout = ({ children }) => {
                       variant='ghost'
                       size='icon'
                       aria-label='Complete profile'
-                      onClick={() => navigate('/complete-profile')}
+                      onClick={() => {
+                        const profilePath = user?.userType === 'sponsor'
+                          ? '/dashboard/sponsor/profile'
+                          : user?.userType === 'agency'
+                          ? '/dashboard/agency/profile'
+                          : '/dashboard/maid/profile';
+                        navigate(profilePath);
+                      }}
                       title='Complete your profile'
                     >
                       <ShieldCheck className='h-6 w-6 text-yellow-500' />

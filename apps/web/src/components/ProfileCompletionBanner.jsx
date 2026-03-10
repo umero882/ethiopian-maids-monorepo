@@ -113,11 +113,15 @@ const ProfileCompletionBanner = ({
     if (onCompleteProfile) {
       onCompleteProfile();
     } else {
-      // Sponsors should go to their profile page to complete profile
+      // Redirect to the appropriate profile page based on user type
       if (user?.userType === 'sponsor') {
         navigate('/dashboard/sponsor/profile');
+      } else if (user?.userType === 'maid') {
+        navigate('/dashboard/maid/profile');
+      } else if (user?.userType === 'agency') {
+        navigate('/dashboard/agency/profile');
       } else {
-        navigate('/complete-profile');
+        navigate('/dashboard');
       }
     }
   };

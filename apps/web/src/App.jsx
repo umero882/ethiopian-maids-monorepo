@@ -321,6 +321,18 @@ const ConditionalMarquee = () => {
   return <MarqueeAnnouncement />;
 };
 
+// ErrorBoundary wrapper that resets on route changes
+// Using `key` forces full remount of the ErrorBoundary on navigation,
+// clearing any caught error state from the previous page
+const AdminErrorBoundary = ({ children }) => {
+  const location = useLocation();
+  return (
+    <ErrorBoundary key={location.pathname} name="AdminPanel">
+      {children}
+    </ErrorBoundary>
+  );
+};
+
 function App() {
   if (import.meta.env?.DEV) {
     logger.debug('App component with routing loading...');
@@ -756,13 +768,13 @@ function App() {
                     <Route
                       path='/admin'
                       element={
-                        <ErrorBoundary name="AdminPanel">
+                        <AdminErrorBoundary>
                           <Suspense fallback={<PageLoader />}>
                             <AdminProtectedRoute>
                               <AdminLayout />
                             </AdminProtectedRoute>
                           </Suspense>
-                        </ErrorBoundary>
+                        </AdminErrorBoundary>
                       }
                     >
                       <Route

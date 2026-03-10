@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Component } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import logger from '@/utils/logger';
@@ -42,6 +42,23 @@ import {
   BrainCircuit,
 } from 'lucide-react';
 import { AdminNotificationCenter } from './notifications/AdminNotificationCenter';
+
+// Silent error boundary for notifications - prevents notification errors from crashing the layout
+class NotificationErrorBoundary extends Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error) { logger.error('NotificationCenter error:', error); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Button variant="ghost" size="sm" onClick={() => this.setState({ hasError: false })}>
+          <Bell className="h-4 w-4" />
+        </Button>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const AdminLayout = () => {
   const { adminUser, logoutAdmin, canAccess } = useAdminAuth();
@@ -353,7 +370,9 @@ const AdminLayout = () => {
 
             {/* Desktop Header Actions */}
             <div className="flex items-center gap-4">
-              <AdminNotificationCenter />
+              <NotificationErrorBoundary>
+                <AdminNotificationCenter />
+              </NotificationErrorBoundary>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

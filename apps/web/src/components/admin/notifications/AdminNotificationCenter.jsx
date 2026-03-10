@@ -4,10 +4,10 @@
  * Features real-time updates, role-based filtering, and quick actions
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, CheckCheck, RefreshCw, Settings, ExternalLink } from 'lucide-react';
+import { Bell, CheckCheck, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -29,7 +29,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
 import { useAdminNotifications, useAdminUnreadCount } from '@/hooks/admin';
-import { useAdminNotificationCenter } from '@/hooks/admin/useAdminNotificationSubscription';
 import { adminNotificationService } from '@/services/adminNotificationService';
 import { AdminNotificationItemCompact } from './AdminNotificationItem';
 import { formatDistanceToNow } from 'date-fns';
@@ -55,28 +54,10 @@ export function AdminNotificationCenter() {
   } = useAdminNotifications({
     limit: 10,
     autoRefresh: true,
-    refreshInterval: 30000, // 30 seconds
+    refreshInterval: 300000, // 5 minutes - avoid exhausting browser connections
   });
 
-  // Also try real-time subscription for instant updates
-  const {
-    notifications: realtimeNotifications,
-    isConnected,
-  } = useAdminNotificationCenter({
-    limit: 10,
-    onNewNotification: useCallback((notification) => {
-      // Show toast for new notifications
-      toast({
-        title: notification.title,
-        description: notification.message,
-        variant: notification.priority === 'urgent' ? 'destructive' : 'default',
-        duration: notification.priority === 'urgent' ? 10000 : 5000,
-      });
-    }, []),
-  });
-
-  // Merge notifications - prefer polling data but use realtime for instant updates
-  const displayNotifications = notifications.length > 0 ? notifications : realtimeNotifications;
+  const displayNotifications = notifications;
 
   // Handle mark as read
   const handleMarkAsRead = useCallback(async (notificationId) => {
@@ -192,12 +173,6 @@ export function AdminNotificationCenter() {
           <DropdownMenuLabel className="flex items-center justify-between py-3">
             <div className="flex items-center gap-2">
               <span className="font-semibold">Notifications</span>
-              {isConnected && (
-                <span className="flex items-center gap-1 text-xs text-green-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Live
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-1">
               <Button

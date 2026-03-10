@@ -231,7 +231,7 @@ export const ProfileProvider = ({ children }) => {
             ? parseInt(profileData.salaryExpectations)
             : null,
         preferred_salary_max: null,
-        preferred_currency: profileData.currency || 'USD',
+        preferred_currency: profileData.currency || 'AED',
         available_from:
           profileData.availability === 'immediately'
             ? new Date().toISOString().slice(0, 10)

@@ -168,7 +168,7 @@ const MaidOverview = () => {
             visaStatus: maidProfileData.current_visa_status || 'Not specified',
             availability: maidProfileData.availability_status || 'Not specified',
             salaryRange: maidProfileData.preferred_salary_min ?
-              `${maidProfileData.preferred_salary_min} ${maidProfileData.preferred_currency || 'USD'}` :
+              `${maidProfileData.preferred_salary_min} ${maidProfileData.preferred_currency || 'AED'}` :
               'Not specified',
             description: maidProfileData.about_me || 'No description provided',
             skills: Array.isArray(maidProfileData.skills) ? maidProfileData.skills : [],
@@ -361,7 +361,7 @@ const MaidOverview = () => {
         {getProfileCompleteness() < 100 && (
           <Button
             className='gap-2'
-            onClick={() => navigate(user?.registration_complete ? '/dashboard/maid/profile' : '/complete-profile')}
+            onClick={() => navigate('/dashboard/maid/profile')}
           >
             <Plus className='h-4 w-4' />
             Complete Profile
@@ -381,7 +381,7 @@ const MaidOverview = () => {
           <Button
             variant='outline'
             size='sm'
-            onClick={() => navigate(user?.registration_complete ? '/dashboard/maid/profile' : '/complete-profile')}
+            onClick={() => navigate('/dashboard/maid/profile')}
           >
             Add Photo
           </Button>
@@ -400,7 +400,7 @@ const MaidOverview = () => {
           <Button
             variant='outline'
             size='sm'
-            onClick={() => navigate(user?.registration_complete ? '/dashboard/maid/profile' : '/complete-profile')}
+            onClick={() => navigate('/dashboard/maid/profile')}
           >
             Add Languages
           </Button>
@@ -419,7 +419,7 @@ const MaidOverview = () => {
           <Button
             variant='outline'
             size='sm'
-            onClick={() => navigate(user?.registration_complete ? '/dashboard/maid/profile' : '/complete-profile')}
+            onClick={() => navigate('/dashboard/maid/profile')}
           >
             Add Skills
           </Button>

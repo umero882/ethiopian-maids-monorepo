@@ -7877,7 +7877,7 @@ export type AgencyProfiles = {
   email?: Maybe<Scalars['String']['output']>;
   emergency_contact_phone?: Maybe<Scalars['String']['output']>;
   established_year?: Maybe<Scalars['Int']['output']>;
-  full_name: Scalars['String']['output'];
+  full_name?: Maybe<Scalars['String']['output']>;
   guarantee_period_months?: Maybe<Scalars['Int']['output']>;
   head_office_address?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
@@ -7887,8 +7887,11 @@ export type AgencyProfiles = {
   logo_file_preview?: Maybe<Scalars['String']['output']>;
   logo_url?: Maybe<Scalars['String']['output']>;
   official_email_verified?: Maybe<Scalars['Boolean']['output']>;
+  onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   phone?: Maybe<Scalars['String']['output']>;
   placement_fee_percentage?: Maybe<Scalars['numeric']['output']>;
+  profile_completed?: Maybe<Scalars['Boolean']['output']>;
   profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   registration_country?: Maybe<Scalars['String']['output']>;
   service_countries?: Maybe<Array<Scalars['String']['output']>>;
@@ -8026,8 +8029,11 @@ export type AgencyProfilesBoolExp = {
   logo_file_preview?: InputMaybe<StringComparisonExp>;
   logo_url?: InputMaybe<StringComparisonExp>;
   official_email_verified?: InputMaybe<BooleanComparisonExp>;
+  onboarding_completed?: InputMaybe<BooleanComparisonExp>;
+  onboarding_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   phone?: InputMaybe<StringComparisonExp>;
   placement_fee_percentage?: InputMaybe<NumericComparisonExp>;
+  profile_completed?: InputMaybe<BooleanComparisonExp>;
   profile_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   registration_country?: InputMaybe<StringComparisonExp>;
   service_countries?: InputMaybe<StringArrayComparisonExp>;
@@ -8116,8 +8122,11 @@ export type AgencyProfilesInsertInput = {
   logo_file_preview?: InputMaybe<Scalars['String']['input']>;
   logo_url?: InputMaybe<Scalars['String']['input']>;
   official_email_verified?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
   placement_fee_percentage?: InputMaybe<Scalars['numeric']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   registration_country?: InputMaybe<Scalars['String']['input']>;
   service_countries?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -8182,6 +8191,7 @@ export type AgencyProfilesMaxFields = {
   license_number?: Maybe<Scalars['String']['output']>;
   logo_file_preview?: Maybe<Scalars['String']['output']>;
   logo_url?: Maybe<Scalars['String']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   phone?: Maybe<Scalars['String']['output']>;
   placement_fee_percentage?: Maybe<Scalars['numeric']['output']>;
   profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -8247,6 +8257,7 @@ export type AgencyProfilesMinFields = {
   license_number?: Maybe<Scalars['String']['output']>;
   logo_file_preview?: Maybe<Scalars['String']['output']>;
   logo_url?: Maybe<Scalars['String']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   phone?: Maybe<Scalars['String']['output']>;
   placement_fee_percentage?: Maybe<Scalars['numeric']['output']>;
   profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -8340,8 +8351,11 @@ export type AgencyProfilesOrderBy = {
   logo_file_preview?: InputMaybe<OrderBy>;
   logo_url?: InputMaybe<OrderBy>;
   official_email_verified?: InputMaybe<OrderBy>;
+  onboarding_completed?: InputMaybe<OrderBy>;
+  onboarding_completed_at?: InputMaybe<OrderBy>;
   phone?: InputMaybe<OrderBy>;
   placement_fee_percentage?: InputMaybe<OrderBy>;
+  profile_completed?: InputMaybe<OrderBy>;
   profile_completed_at?: InputMaybe<OrderBy>;
   registration_country?: InputMaybe<OrderBy>;
   service_countries?: InputMaybe<OrderBy>;
@@ -8459,9 +8473,15 @@ export enum AgencyProfilesSelectColumn {
   /** column name */
   OFFICIAL_EMAIL_VERIFIED = 'official_email_verified',
   /** column name */
+  ONBOARDING_COMPLETED = 'onboarding_completed',
+  /** column name */
+  ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
+  /** column name */
   PHONE = 'phone',
   /** column name */
   PLACEMENT_FEE_PERCENTAGE = 'placement_fee_percentage',
+  /** column name */
+  PROFILE_COMPLETED = 'profile_completed',
   /** column name */
   PROFILE_COMPLETED_AT = 'profile_completed_at',
   /** column name */
@@ -8551,8 +8571,11 @@ export type AgencyProfilesSetInput = {
   logo_file_preview?: InputMaybe<Scalars['String']['input']>;
   logo_url?: InputMaybe<Scalars['String']['input']>;
   official_email_verified?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
   placement_fee_percentage?: InputMaybe<Scalars['numeric']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   registration_country?: InputMaybe<Scalars['String']['input']>;
   service_countries?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -8671,8 +8694,11 @@ export type AgencyProfilesStreamCursorValueInput = {
   logo_file_preview?: InputMaybe<Scalars['String']['input']>;
   logo_url?: InputMaybe<Scalars['String']['input']>;
   official_email_verified?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
   placement_fee_percentage?: InputMaybe<Scalars['numeric']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   registration_country?: InputMaybe<Scalars['String']['input']>;
   service_countries?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -8799,9 +8825,15 @@ export enum AgencyProfilesUpdateColumn {
   /** column name */
   OFFICIAL_EMAIL_VERIFIED = 'official_email_verified',
   /** column name */
+  ONBOARDING_COMPLETED = 'onboarding_completed',
+  /** column name */
+  ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
+  /** column name */
   PHONE = 'phone',
   /** column name */
   PLACEMENT_FEE_PERCENTAGE = 'placement_fee_percentage',
+  /** column name */
+  PROFILE_COMPLETED = 'profile_completed',
   /** column name */
   PROFILE_COMPLETED_AT = 'profile_completed_at',
   /** column name */
@@ -16626,6 +16658,319 @@ export type CountryCodesVarianceFields = {
   id?: Maybe<Scalars['Float']['output']>;
 };
 
+/** columns and relationships of "crash_reports" */
+export type CrashReports = {
+  __typename?: 'crash_reports';
+  app_version?: Maybe<Scalars['String']['output']>;
+  archived?: Maybe<Scalars['Boolean']['output']>;
+  component_name?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  error_message: Scalars['String']['output'];
+  error_stack?: Maybe<Scalars['String']['output']>;
+  error_type: Scalars['String']['output'];
+  id: Scalars['uuid']['output'];
+  metadata?: Maybe<Scalars['jsonb']['output']>;
+  page_url?: Maybe<Scalars['String']['output']>;
+  resolved?: Maybe<Scalars['Boolean']['output']>;
+  severity: Scalars['String']['output'];
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** columns and relationships of "crash_reports" */
+export type CrashReportsMetadataArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregated selection of "crash_reports" */
+export type CrashReportsAggregate = {
+  __typename?: 'crash_reports_aggregate';
+  aggregate?: Maybe<CrashReportsAggregateFields>;
+  nodes: Array<CrashReports>;
+};
+
+/** aggregate fields of "crash_reports" */
+export type CrashReportsAggregateFields = {
+  __typename?: 'crash_reports_aggregate_fields';
+  count: Scalars['Int']['output'];
+  max?: Maybe<CrashReportsMaxFields>;
+  min?: Maybe<CrashReportsMinFields>;
+};
+
+
+/** aggregate fields of "crash_reports" */
+export type CrashReportsAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<CrashReportsSelectColumn>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type CrashReportsAppendInput = {
+  metadata?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
+/** Boolean expression to filter rows from the table "crash_reports". All fields are combined with a logical 'AND'. */
+export type CrashReportsBoolExp = {
+  _and?: InputMaybe<Array<CrashReportsBoolExp>>;
+  _not?: InputMaybe<CrashReportsBoolExp>;
+  _or?: InputMaybe<Array<CrashReportsBoolExp>>;
+  app_version?: InputMaybe<StringComparisonExp>;
+  archived?: InputMaybe<BooleanComparisonExp>;
+  component_name?: InputMaybe<StringComparisonExp>;
+  created_at?: InputMaybe<TimestamptzComparisonExp>;
+  error_message?: InputMaybe<StringComparisonExp>;
+  error_stack?: InputMaybe<StringComparisonExp>;
+  error_type?: InputMaybe<StringComparisonExp>;
+  id?: InputMaybe<UuidComparisonExp>;
+  metadata?: InputMaybe<JsonbComparisonExp>;
+  page_url?: InputMaybe<StringComparisonExp>;
+  resolved?: InputMaybe<BooleanComparisonExp>;
+  severity?: InputMaybe<StringComparisonExp>;
+  user_agent?: InputMaybe<StringComparisonExp>;
+  user_id?: InputMaybe<StringComparisonExp>;
+};
+
+/** unique or primary key constraints on table "crash_reports" */
+export enum CrashReportsConstraint {
+  /** unique or primary key constraint on columns "id" */
+  CRASH_REPORTS_PKEY = 'crash_reports_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type CrashReportsDeleteAtPathInput = {
+  metadata?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type CrashReportsDeleteElemInput = {
+  metadata?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type CrashReportsDeleteKeyInput = {
+  metadata?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** input type for inserting data into table "crash_reports" */
+export type CrashReportsInsertInput = {
+  app_version?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  component_name?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  error_message?: InputMaybe<Scalars['String']['input']>;
+  error_stack?: InputMaybe<Scalars['String']['input']>;
+  error_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  metadata?: InputMaybe<Scalars['jsonb']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  resolved?: InputMaybe<Scalars['Boolean']['input']>;
+  severity?: InputMaybe<Scalars['String']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type CrashReportsMaxFields = {
+  __typename?: 'crash_reports_max_fields';
+  app_version?: Maybe<Scalars['String']['output']>;
+  component_name?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  error_message?: Maybe<Scalars['String']['output']>;
+  error_stack?: Maybe<Scalars['String']['output']>;
+  error_type?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  page_url?: Maybe<Scalars['String']['output']>;
+  severity?: Maybe<Scalars['String']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregate min on columns */
+export type CrashReportsMinFields = {
+  __typename?: 'crash_reports_min_fields';
+  app_version?: Maybe<Scalars['String']['output']>;
+  component_name?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  error_message?: Maybe<Scalars['String']['output']>;
+  error_stack?: Maybe<Scalars['String']['output']>;
+  error_type?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  page_url?: Maybe<Scalars['String']['output']>;
+  severity?: Maybe<Scalars['String']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['String']['output']>;
+};
+
+/** response of any mutation on the table "crash_reports" */
+export type CrashReportsMutationResponse = {
+  __typename?: 'crash_reports_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<CrashReports>;
+};
+
+/** on_conflict condition type for table "crash_reports" */
+export type CrashReportsOnConflict = {
+  constraint: CrashReportsConstraint;
+  update_columns?: Array<CrashReportsUpdateColumn>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+/** Ordering options when selecting data from "crash_reports". */
+export type CrashReportsOrderBy = {
+  app_version?: InputMaybe<OrderBy>;
+  archived?: InputMaybe<OrderBy>;
+  component_name?: InputMaybe<OrderBy>;
+  created_at?: InputMaybe<OrderBy>;
+  error_message?: InputMaybe<OrderBy>;
+  error_stack?: InputMaybe<OrderBy>;
+  error_type?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  metadata?: InputMaybe<OrderBy>;
+  page_url?: InputMaybe<OrderBy>;
+  resolved?: InputMaybe<OrderBy>;
+  severity?: InputMaybe<OrderBy>;
+  user_agent?: InputMaybe<OrderBy>;
+  user_id?: InputMaybe<OrderBy>;
+};
+
+/** primary key columns input for table: crash_reports */
+export type CrashReportsPkColumnsInput = {
+  id: Scalars['uuid']['input'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type CrashReportsPrependInput = {
+  metadata?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
+/** select columns of table "crash_reports" */
+export enum CrashReportsSelectColumn {
+  /** column name */
+  APP_VERSION = 'app_version',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  COMPONENT_NAME = 'component_name',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  ERROR_MESSAGE = 'error_message',
+  /** column name */
+  ERROR_STACK = 'error_stack',
+  /** column name */
+  ERROR_TYPE = 'error_type',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  METADATA = 'metadata',
+  /** column name */
+  PAGE_URL = 'page_url',
+  /** column name */
+  RESOLVED = 'resolved',
+  /** column name */
+  SEVERITY = 'severity',
+  /** column name */
+  USER_AGENT = 'user_agent',
+  /** column name */
+  USER_ID = 'user_id'
+}
+
+/** input type for updating data in table "crash_reports" */
+export type CrashReportsSetInput = {
+  app_version?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  component_name?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  error_message?: InputMaybe<Scalars['String']['input']>;
+  error_stack?: InputMaybe<Scalars['String']['input']>;
+  error_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  metadata?: InputMaybe<Scalars['jsonb']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  resolved?: InputMaybe<Scalars['Boolean']['input']>;
+  severity?: InputMaybe<Scalars['String']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Streaming cursor of the table "crash_reports" */
+export type CrashReportsStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: CrashReportsStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type CrashReportsStreamCursorValueInput = {
+  app_version?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  component_name?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  error_message?: InputMaybe<Scalars['String']['input']>;
+  error_stack?: InputMaybe<Scalars['String']['input']>;
+  error_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  metadata?: InputMaybe<Scalars['jsonb']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  resolved?: InputMaybe<Scalars['Boolean']['input']>;
+  severity?: InputMaybe<Scalars['String']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** update columns of table "crash_reports" */
+export enum CrashReportsUpdateColumn {
+  /** column name */
+  APP_VERSION = 'app_version',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  COMPONENT_NAME = 'component_name',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  ERROR_MESSAGE = 'error_message',
+  /** column name */
+  ERROR_STACK = 'error_stack',
+  /** column name */
+  ERROR_TYPE = 'error_type',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  METADATA = 'metadata',
+  /** column name */
+  PAGE_URL = 'page_url',
+  /** column name */
+  RESOLVED = 'resolved',
+  /** column name */
+  SEVERITY = 'severity',
+  /** column name */
+  USER_AGENT = 'user_agent',
+  /** column name */
+  USER_ID = 'user_id'
+}
+
+export type CrashReportsUpdates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<CrashReportsAppendInput>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<CrashReportsDeleteAtPathInput>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<CrashReportsDeleteElemInput>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<CrashReportsDeleteKeyInput>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<CrashReportsPrependInput>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<CrashReportsSetInput>;
+  /** filter the rows which have to be updated */
+  where: CrashReportsBoolExp;
+};
+
 /** columns and relationships of "credit_transactions" */
 export type CreditTransactions = {
   __typename?: 'credit_transactions';
@@ -16995,6 +17340,357 @@ export enum CursorOrdering {
   /** descending ordering of the cursor */
   DESC = 'DESC'
 }
+
+/** columns and relationships of "customer_feedback" */
+export type CustomerFeedback = {
+  __typename?: 'customer_feedback';
+  admin_notes?: Maybe<Scalars['String']['output']>;
+  archived?: Maybe<Scalars['Boolean']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_type: Scalars['String']['output'];
+  id: Scalars['uuid']['output'];
+  message: Scalars['String']['output'];
+  page_url?: Maybe<Scalars['String']['output']>;
+  rating?: Maybe<Scalars['Int']['output']>;
+  resolved_at?: Maybe<Scalars['timestamptz']['output']>;
+  status: Scalars['String']['output'];
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id: Scalars['String']['output'];
+  user_type?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregated selection of "customer_feedback" */
+export type CustomerFeedbackAggregate = {
+  __typename?: 'customer_feedback_aggregate';
+  aggregate?: Maybe<CustomerFeedbackAggregateFields>;
+  nodes: Array<CustomerFeedback>;
+};
+
+/** aggregate fields of "customer_feedback" */
+export type CustomerFeedbackAggregateFields = {
+  __typename?: 'customer_feedback_aggregate_fields';
+  avg?: Maybe<CustomerFeedbackAvgFields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<CustomerFeedbackMaxFields>;
+  min?: Maybe<CustomerFeedbackMinFields>;
+  stddev?: Maybe<CustomerFeedbackStddevFields>;
+  stddev_pop?: Maybe<CustomerFeedbackStddevPopFields>;
+  stddev_samp?: Maybe<CustomerFeedbackStddevSampFields>;
+  sum?: Maybe<CustomerFeedbackSumFields>;
+  var_pop?: Maybe<CustomerFeedbackVarPopFields>;
+  var_samp?: Maybe<CustomerFeedbackVarSampFields>;
+  variance?: Maybe<CustomerFeedbackVarianceFields>;
+};
+
+
+/** aggregate fields of "customer_feedback" */
+export type CustomerFeedbackAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<CustomerFeedbackSelectColumn>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type CustomerFeedbackAvgFields = {
+  __typename?: 'customer_feedback_avg_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "customer_feedback". All fields are combined with a logical 'AND'. */
+export type CustomerFeedbackBoolExp = {
+  _and?: InputMaybe<Array<CustomerFeedbackBoolExp>>;
+  _not?: InputMaybe<CustomerFeedbackBoolExp>;
+  _or?: InputMaybe<Array<CustomerFeedbackBoolExp>>;
+  admin_notes?: InputMaybe<StringComparisonExp>;
+  archived?: InputMaybe<BooleanComparisonExp>;
+  category?: InputMaybe<StringComparisonExp>;
+  created_at?: InputMaybe<TimestamptzComparisonExp>;
+  feedback_type?: InputMaybe<StringComparisonExp>;
+  id?: InputMaybe<UuidComparisonExp>;
+  message?: InputMaybe<StringComparisonExp>;
+  page_url?: InputMaybe<StringComparisonExp>;
+  rating?: InputMaybe<IntComparisonExp>;
+  resolved_at?: InputMaybe<TimestamptzComparisonExp>;
+  status?: InputMaybe<StringComparisonExp>;
+  updated_at?: InputMaybe<TimestamptzComparisonExp>;
+  user_agent?: InputMaybe<StringComparisonExp>;
+  user_id?: InputMaybe<StringComparisonExp>;
+  user_type?: InputMaybe<StringComparisonExp>;
+};
+
+/** unique or primary key constraints on table "customer_feedback" */
+export enum CustomerFeedbackConstraint {
+  /** unique or primary key constraint on columns "id" */
+  CUSTOMER_FEEDBACK_PKEY = 'customer_feedback_pkey'
+}
+
+/** input type for incrementing numeric columns in table "customer_feedback" */
+export type CustomerFeedbackIncInput = {
+  rating?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** input type for inserting data into table "customer_feedback" */
+export type CustomerFeedbackInsertInput = {
+  admin_notes?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  rating?: InputMaybe<Scalars['Int']['input']>;
+  resolved_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+  user_type?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type CustomerFeedbackMaxFields = {
+  __typename?: 'customer_feedback_max_fields';
+  admin_notes?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_type?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  page_url?: Maybe<Scalars['String']['output']>;
+  rating?: Maybe<Scalars['Int']['output']>;
+  resolved_at?: Maybe<Scalars['timestamptz']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['String']['output']>;
+  user_type?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregate min on columns */
+export type CustomerFeedbackMinFields = {
+  __typename?: 'customer_feedback_min_fields';
+  admin_notes?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_type?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  page_url?: Maybe<Scalars['String']['output']>;
+  rating?: Maybe<Scalars['Int']['output']>;
+  resolved_at?: Maybe<Scalars['timestamptz']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['String']['output']>;
+  user_type?: Maybe<Scalars['String']['output']>;
+};
+
+/** response of any mutation on the table "customer_feedback" */
+export type CustomerFeedbackMutationResponse = {
+  __typename?: 'customer_feedback_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<CustomerFeedback>;
+};
+
+/** on_conflict condition type for table "customer_feedback" */
+export type CustomerFeedbackOnConflict = {
+  constraint: CustomerFeedbackConstraint;
+  update_columns?: Array<CustomerFeedbackUpdateColumn>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
+};
+
+/** Ordering options when selecting data from "customer_feedback". */
+export type CustomerFeedbackOrderBy = {
+  admin_notes?: InputMaybe<OrderBy>;
+  archived?: InputMaybe<OrderBy>;
+  category?: InputMaybe<OrderBy>;
+  created_at?: InputMaybe<OrderBy>;
+  feedback_type?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  message?: InputMaybe<OrderBy>;
+  page_url?: InputMaybe<OrderBy>;
+  rating?: InputMaybe<OrderBy>;
+  resolved_at?: InputMaybe<OrderBy>;
+  status?: InputMaybe<OrderBy>;
+  updated_at?: InputMaybe<OrderBy>;
+  user_agent?: InputMaybe<OrderBy>;
+  user_id?: InputMaybe<OrderBy>;
+  user_type?: InputMaybe<OrderBy>;
+};
+
+/** primary key columns input for table: customer_feedback */
+export type CustomerFeedbackPkColumnsInput = {
+  id: Scalars['uuid']['input'];
+};
+
+/** select columns of table "customer_feedback" */
+export enum CustomerFeedbackSelectColumn {
+  /** column name */
+  ADMIN_NOTES = 'admin_notes',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  CATEGORY = 'category',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  FEEDBACK_TYPE = 'feedback_type',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  MESSAGE = 'message',
+  /** column name */
+  PAGE_URL = 'page_url',
+  /** column name */
+  RATING = 'rating',
+  /** column name */
+  RESOLVED_AT = 'resolved_at',
+  /** column name */
+  STATUS = 'status',
+  /** column name */
+  UPDATED_AT = 'updated_at',
+  /** column name */
+  USER_AGENT = 'user_agent',
+  /** column name */
+  USER_ID = 'user_id',
+  /** column name */
+  USER_TYPE = 'user_type'
+}
+
+/** input type for updating data in table "customer_feedback" */
+export type CustomerFeedbackSetInput = {
+  admin_notes?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  rating?: InputMaybe<Scalars['Int']['input']>;
+  resolved_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+  user_type?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type CustomerFeedbackStddevFields = {
+  __typename?: 'customer_feedback_stddev_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type CustomerFeedbackStddevPopFields = {
+  __typename?: 'customer_feedback_stddev_pop_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type CustomerFeedbackStddevSampFields = {
+  __typename?: 'customer_feedback_stddev_samp_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "customer_feedback" */
+export type CustomerFeedbackStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: CustomerFeedbackStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type CustomerFeedbackStreamCursorValueInput = {
+  admin_notes?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_type?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
+  page_url?: InputMaybe<Scalars['String']['input']>;
+  rating?: InputMaybe<Scalars['Int']['input']>;
+  resolved_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['String']['input']>;
+  user_type?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type CustomerFeedbackSumFields = {
+  __typename?: 'customer_feedback_sum_fields';
+  rating?: Maybe<Scalars['Int']['output']>;
+};
+
+/** update columns of table "customer_feedback" */
+export enum CustomerFeedbackUpdateColumn {
+  /** column name */
+  ADMIN_NOTES = 'admin_notes',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  CATEGORY = 'category',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  FEEDBACK_TYPE = 'feedback_type',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  MESSAGE = 'message',
+  /** column name */
+  PAGE_URL = 'page_url',
+  /** column name */
+  RATING = 'rating',
+  /** column name */
+  RESOLVED_AT = 'resolved_at',
+  /** column name */
+  STATUS = 'status',
+  /** column name */
+  UPDATED_AT = 'updated_at',
+  /** column name */
+  USER_AGENT = 'user_agent',
+  /** column name */
+  USER_ID = 'user_id',
+  /** column name */
+  USER_TYPE = 'user_type'
+}
+
+export type CustomerFeedbackUpdates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<CustomerFeedbackIncInput>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<CustomerFeedbackSetInput>;
+  /** filter the rows which have to be updated */
+  where: CustomerFeedbackBoolExp;
+};
+
+/** aggregate var_pop on columns */
+export type CustomerFeedbackVarPopFields = {
+  __typename?: 'customer_feedback_var_pop_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type CustomerFeedbackVarSampFields = {
+  __typename?: 'customer_feedback_var_samp_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type CustomerFeedbackVarianceFields = {
+  __typename?: 'customer_feedback_variance_fields';
+  rating?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Boolean expression to compare columns of type "date". All fields are combined with logical 'AND'. */
 export type DateComparisonExp = {
@@ -22023,8 +22719,8 @@ export type MaidDocuments = {
   custom_type_name?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   document_name?: Maybe<Scalars['String']['output']>;
-  document_type: Scalars['String']['output'];
-  document_url: Scalars['String']['output'];
+  document_type?: Maybe<Scalars['String']['output']>;
+  document_url?: Maybe<Scalars['String']['output']>;
   expiry_date?: Maybe<Scalars['date']['output']>;
   file_name?: Maybe<Scalars['String']['output']>;
   file_path?: Maybe<Scalars['String']['output']>;
@@ -22045,6 +22741,33 @@ export type MaidDocumentsAggregate = {
   __typename?: 'maid_documents_aggregate';
   aggregate?: Maybe<MaidDocumentsAggregateFields>;
   nodes: Array<MaidDocuments>;
+};
+
+export type MaidDocumentsAggregateBoolExp = {
+  bool_and?: InputMaybe<MaidDocumentsAggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<MaidDocumentsAggregateBoolExpBoolOr>;
+  count?: InputMaybe<MaidDocumentsAggregateBoolExpCount>;
+};
+
+export type MaidDocumentsAggregateBoolExpBoolAnd = {
+  arguments: MaidDocumentsSelectColumnMaidDocumentsAggregateBoolExpBoolAndArgumentsColumns;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<MaidDocumentsBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type MaidDocumentsAggregateBoolExpBoolOr = {
+  arguments: MaidDocumentsSelectColumnMaidDocumentsAggregateBoolExpBoolOrArgumentsColumns;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<MaidDocumentsBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type MaidDocumentsAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<MaidDocumentsSelectColumn>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<MaidDocumentsBoolExp>;
+  predicate: IntComparisonExp;
 };
 
 /** aggregate fields of "maid_documents" */
@@ -22070,10 +22793,37 @@ export type MaidDocumentsAggregateFieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** order by aggregate values of table "maid_documents" */
+export type MaidDocumentsAggregateOrderBy = {
+  avg?: InputMaybe<MaidDocumentsAvgOrderBy>;
+  count?: InputMaybe<OrderBy>;
+  max?: InputMaybe<MaidDocumentsMaxOrderBy>;
+  min?: InputMaybe<MaidDocumentsMinOrderBy>;
+  stddev?: InputMaybe<MaidDocumentsStddevOrderBy>;
+  stddev_pop?: InputMaybe<MaidDocumentsStddevPopOrderBy>;
+  stddev_samp?: InputMaybe<MaidDocumentsStddevSampOrderBy>;
+  sum?: InputMaybe<MaidDocumentsSumOrderBy>;
+  var_pop?: InputMaybe<MaidDocumentsVarPopOrderBy>;
+  var_samp?: InputMaybe<MaidDocumentsVarSampOrderBy>;
+  variance?: InputMaybe<MaidDocumentsVarianceOrderBy>;
+};
+
+/** input type for inserting array relation for remote table "maid_documents" */
+export type MaidDocumentsArrRelInsertInput = {
+  data: Array<MaidDocumentsInsertInput>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<MaidDocumentsOnConflict>;
+};
+
 /** aggregate avg on columns */
 export type MaidDocumentsAvgFields = {
   __typename?: 'maid_documents_avg_fields';
   file_size?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "maid_documents" */
+export type MaidDocumentsAvgOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
 };
 
 /** Boolean expression to filter rows from the table "maid_documents". All fields are combined with a logical 'AND'. */
@@ -22159,6 +22909,28 @@ export type MaidDocumentsMaxFields = {
   uploaded_at?: Maybe<Scalars['timestamptz']['output']>;
 };
 
+/** order by max() on columns of table "maid_documents" */
+export type MaidDocumentsMaxOrderBy = {
+  created_at?: InputMaybe<OrderBy>;
+  custom_type_name?: InputMaybe<OrderBy>;
+  description?: InputMaybe<OrderBy>;
+  document_name?: InputMaybe<OrderBy>;
+  document_type?: InputMaybe<OrderBy>;
+  document_url?: InputMaybe<OrderBy>;
+  expiry_date?: InputMaybe<OrderBy>;
+  file_name?: InputMaybe<OrderBy>;
+  file_path?: InputMaybe<OrderBy>;
+  file_size?: InputMaybe<OrderBy>;
+  file_url?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  maid_id?: InputMaybe<OrderBy>;
+  mime_type?: InputMaybe<OrderBy>;
+  title?: InputMaybe<OrderBy>;
+  type?: InputMaybe<OrderBy>;
+  updated_at?: InputMaybe<OrderBy>;
+  uploaded_at?: InputMaybe<OrderBy>;
+};
+
 /** aggregate min on columns */
 export type MaidDocumentsMinFields = {
   __typename?: 'maid_documents_min_fields';
@@ -22180,6 +22952,28 @@ export type MaidDocumentsMinFields = {
   type?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
   uploaded_at?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** order by min() on columns of table "maid_documents" */
+export type MaidDocumentsMinOrderBy = {
+  created_at?: InputMaybe<OrderBy>;
+  custom_type_name?: InputMaybe<OrderBy>;
+  description?: InputMaybe<OrderBy>;
+  document_name?: InputMaybe<OrderBy>;
+  document_type?: InputMaybe<OrderBy>;
+  document_url?: InputMaybe<OrderBy>;
+  expiry_date?: InputMaybe<OrderBy>;
+  file_name?: InputMaybe<OrderBy>;
+  file_path?: InputMaybe<OrderBy>;
+  file_size?: InputMaybe<OrderBy>;
+  file_url?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  maid_id?: InputMaybe<OrderBy>;
+  mime_type?: InputMaybe<OrderBy>;
+  title?: InputMaybe<OrderBy>;
+  type?: InputMaybe<OrderBy>;
+  updated_at?: InputMaybe<OrderBy>;
+  uploaded_at?: InputMaybe<OrderBy>;
 };
 
 /** response of any mutation on the table "maid_documents" */
@@ -22268,6 +23062,18 @@ export enum MaidDocumentsSelectColumn {
   VERIFIED = 'verified'
 }
 
+/** select "maid_documents_aggregate_bool_exp_bool_and_arguments_columns" columns of table "maid_documents" */
+export enum MaidDocumentsSelectColumnMaidDocumentsAggregateBoolExpBoolAndArgumentsColumns {
+  /** column name */
+  VERIFIED = 'verified'
+}
+
+/** select "maid_documents_aggregate_bool_exp_bool_or_arguments_columns" columns of table "maid_documents" */
+export enum MaidDocumentsSelectColumnMaidDocumentsAggregateBoolExpBoolOrArgumentsColumns {
+  /** column name */
+  VERIFIED = 'verified'
+}
+
 /** input type for updating data in table "maid_documents" */
 export type MaidDocumentsSetInput = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -22297,16 +23103,31 @@ export type MaidDocumentsStddevFields = {
   file_size?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by stddev() on columns of table "maid_documents" */
+export type MaidDocumentsStddevOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
+};
+
 /** aggregate stddev_pop on columns */
 export type MaidDocumentsStddevPopFields = {
   __typename?: 'maid_documents_stddev_pop_fields';
   file_size?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by stddev_pop() on columns of table "maid_documents" */
+export type MaidDocumentsStddevPopOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
+};
+
 /** aggregate stddev_samp on columns */
 export type MaidDocumentsStddevSampFields = {
   __typename?: 'maid_documents_stddev_samp_fields';
   file_size?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "maid_documents" */
+export type MaidDocumentsStddevSampOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
 };
 
 /** Streaming cursor of the table "maid_documents" */
@@ -22344,6 +23165,11 @@ export type MaidDocumentsStreamCursorValueInput = {
 export type MaidDocumentsSumFields = {
   __typename?: 'maid_documents_sum_fields';
   file_size?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** order by sum() on columns of table "maid_documents" */
+export type MaidDocumentsSumOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
 };
 
 /** update columns of table "maid_documents" */
@@ -22403,16 +23229,31 @@ export type MaidDocumentsVarPopFields = {
   file_size?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by var_pop() on columns of table "maid_documents" */
+export type MaidDocumentsVarPopOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
+};
+
 /** aggregate var_samp on columns */
 export type MaidDocumentsVarSampFields = {
   __typename?: 'maid_documents_var_samp_fields';
   file_size?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by var_samp() on columns of table "maid_documents" */
+export type MaidDocumentsVarSampOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
+};
+
 /** aggregate variance on columns */
 export type MaidDocumentsVarianceFields = {
   __typename?: 'maid_documents_variance_fields';
   file_size?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "maid_documents" */
+export type MaidDocumentsVarianceOrderBy = {
+  file_size?: InputMaybe<OrderBy>;
 };
 
 /** columns and relationships of "maid_images" */
@@ -22779,6 +23620,10 @@ export type MaidProfiles = {
   languages?: Maybe<Array<Scalars['String']['output']>>;
   last_name?: Maybe<Scalars['String']['output']>;
   live_in_preference?: Maybe<Scalars['Boolean']['output']>;
+  /** An array relationship */
+  maid_documents: Array<MaidDocuments>;
+  /** An aggregate relationship */
+  maid_documents_aggregate: MaidDocumentsAggregate;
   marital_status?: Maybe<Scalars['String']['output']>;
   medical_certificate_valid?: Maybe<Scalars['Boolean']['output']>;
   medical_info_encrypted?: Maybe<Scalars['String']['output']>;
@@ -22786,6 +23631,8 @@ export type MaidProfiles = {
   national_id_encrypted?: Maybe<Scalars['String']['output']>;
   national_id_hash?: Maybe<Scalars['String']['output']>;
   nationality?: Maybe<Scalars['String']['output']>;
+  onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   passport_expiry?: Maybe<Scalars['date']['output']>;
   passport_number?: Maybe<Scalars['String']['output']>;
   passport_number_encrypted?: Maybe<Scalars['String']['output']>;
@@ -22805,6 +23652,8 @@ export type MaidProfiles = {
   primary_image_processed_url?: Maybe<Scalars['String']['output']>;
   primary_profession?: Maybe<Scalars['String']['output']>;
   primary_profession_other?: Maybe<Scalars['String']['output']>;
+  profile_completed?: Maybe<Scalars['Boolean']['output']>;
+  profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   profile_completion_percentage?: Maybe<Scalars['Int']['output']>;
   profile_photo_url?: Maybe<Scalars['String']['output']>;
   profile_views?: Maybe<Scalars['Int']['output']>;
@@ -22834,6 +23683,26 @@ export type MaidProfiles = {
 /** columns and relationships of "maid_profiles" */
 export type MaidProfilesImageProcessingMetadataArgs = {
   path?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** columns and relationships of "maid_profiles" */
+export type MaidProfilesMaidDocumentsArgs = {
+  distinct_on?: InputMaybe<Array<MaidDocumentsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MaidDocumentsOrderBy>>;
+  where?: InputMaybe<MaidDocumentsBoolExp>;
+};
+
+
+/** columns and relationships of "maid_profiles" */
+export type MaidProfilesMaidDocumentsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<MaidDocumentsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MaidDocumentsOrderBy>>;
+  where?: InputMaybe<MaidDocumentsBoolExp>;
 };
 
 
@@ -22937,6 +23806,8 @@ export type MaidProfilesBoolExp = {
   languages?: InputMaybe<StringArrayComparisonExp>;
   last_name?: InputMaybe<StringComparisonExp>;
   live_in_preference?: InputMaybe<BooleanComparisonExp>;
+  maid_documents?: InputMaybe<MaidDocumentsBoolExp>;
+  maid_documents_aggregate?: InputMaybe<MaidDocumentsAggregateBoolExp>;
   marital_status?: InputMaybe<StringComparisonExp>;
   medical_certificate_valid?: InputMaybe<BooleanComparisonExp>;
   medical_info_encrypted?: InputMaybe<StringComparisonExp>;
@@ -22944,6 +23815,8 @@ export type MaidProfilesBoolExp = {
   national_id_encrypted?: InputMaybe<StringComparisonExp>;
   national_id_hash?: InputMaybe<StringComparisonExp>;
   nationality?: InputMaybe<StringComparisonExp>;
+  onboarding_completed?: InputMaybe<BooleanComparisonExp>;
+  onboarding_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   passport_expiry?: InputMaybe<DateComparisonExp>;
   passport_number?: InputMaybe<StringComparisonExp>;
   passport_number_encrypted?: InputMaybe<StringComparisonExp>;
@@ -22963,6 +23836,8 @@ export type MaidProfilesBoolExp = {
   primary_image_processed_url?: InputMaybe<StringComparisonExp>;
   primary_profession?: InputMaybe<StringComparisonExp>;
   primary_profession_other?: InputMaybe<StringComparisonExp>;
+  profile_completed?: InputMaybe<BooleanComparisonExp>;
+  profile_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   profile_completion_percentage?: InputMaybe<IntComparisonExp>;
   profile_photo_url?: InputMaybe<StringComparisonExp>;
   profile_views?: InputMaybe<IntComparisonExp>;
@@ -23067,6 +23942,7 @@ export type MaidProfilesInsertInput = {
   languages?: InputMaybe<Array<Scalars['String']['input']>>;
   last_name?: InputMaybe<Scalars['String']['input']>;
   live_in_preference?: InputMaybe<Scalars['Boolean']['input']>;
+  maid_documents?: InputMaybe<MaidDocumentsArrRelInsertInput>;
   marital_status?: InputMaybe<Scalars['String']['input']>;
   medical_certificate_valid?: InputMaybe<Scalars['Boolean']['input']>;
   medical_info_encrypted?: InputMaybe<Scalars['String']['input']>;
@@ -23074,6 +23950,8 @@ export type MaidProfilesInsertInput = {
   national_id_encrypted?: InputMaybe<Scalars['String']['input']>;
   national_id_hash?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   passport_expiry?: InputMaybe<Scalars['date']['input']>;
   passport_number?: InputMaybe<Scalars['String']['input']>;
   passport_number_encrypted?: InputMaybe<Scalars['String']['input']>;
@@ -23093,6 +23971,8 @@ export type MaidProfilesInsertInput = {
   primary_image_processed_url?: InputMaybe<Scalars['String']['input']>;
   primary_profession?: InputMaybe<Scalars['String']['input']>;
   primary_profession_other?: InputMaybe<Scalars['String']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   profile_completion_percentage?: InputMaybe<Scalars['Int']['input']>;
   profile_photo_url?: InputMaybe<Scalars['String']['input']>;
   profile_views?: InputMaybe<Scalars['Int']['input']>;
@@ -23161,6 +24041,7 @@ export type MaidProfilesMaxFields = {
   national_id_encrypted?: Maybe<Scalars['String']['output']>;
   national_id_hash?: Maybe<Scalars['String']['output']>;
   nationality?: Maybe<Scalars['String']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   passport_expiry?: Maybe<Scalars['date']['output']>;
   passport_number?: Maybe<Scalars['String']['output']>;
   passport_number_encrypted?: Maybe<Scalars['String']['output']>;
@@ -23177,6 +24058,7 @@ export type MaidProfilesMaxFields = {
   primary_image_processed_url?: Maybe<Scalars['String']['output']>;
   primary_profession?: Maybe<Scalars['String']['output']>;
   primary_profession_other?: Maybe<Scalars['String']['output']>;
+  profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   profile_completion_percentage?: Maybe<Scalars['Int']['output']>;
   profile_photo_url?: Maybe<Scalars['String']['output']>;
   profile_views?: Maybe<Scalars['Int']['output']>;
@@ -23243,6 +24125,7 @@ export type MaidProfilesMinFields = {
   national_id_encrypted?: Maybe<Scalars['String']['output']>;
   national_id_hash?: Maybe<Scalars['String']['output']>;
   nationality?: Maybe<Scalars['String']['output']>;
+  onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   passport_expiry?: Maybe<Scalars['date']['output']>;
   passport_number?: Maybe<Scalars['String']['output']>;
   passport_number_encrypted?: Maybe<Scalars['String']['output']>;
@@ -23259,6 +24142,7 @@ export type MaidProfilesMinFields = {
   primary_image_processed_url?: Maybe<Scalars['String']['output']>;
   primary_profession?: Maybe<Scalars['String']['output']>;
   primary_profession_other?: Maybe<Scalars['String']['output']>;
+  profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   profile_completion_percentage?: Maybe<Scalars['Int']['output']>;
   profile_photo_url?: Maybe<Scalars['String']['output']>;
   profile_views?: Maybe<Scalars['Int']['output']>;
@@ -23346,6 +24230,7 @@ export type MaidProfilesOrderBy = {
   languages?: InputMaybe<OrderBy>;
   last_name?: InputMaybe<OrderBy>;
   live_in_preference?: InputMaybe<OrderBy>;
+  maid_documents_aggregate?: InputMaybe<MaidDocumentsAggregateOrderBy>;
   marital_status?: InputMaybe<OrderBy>;
   medical_certificate_valid?: InputMaybe<OrderBy>;
   medical_info_encrypted?: InputMaybe<OrderBy>;
@@ -23353,6 +24238,8 @@ export type MaidProfilesOrderBy = {
   national_id_encrypted?: InputMaybe<OrderBy>;
   national_id_hash?: InputMaybe<OrderBy>;
   nationality?: InputMaybe<OrderBy>;
+  onboarding_completed?: InputMaybe<OrderBy>;
+  onboarding_completed_at?: InputMaybe<OrderBy>;
   passport_expiry?: InputMaybe<OrderBy>;
   passport_number?: InputMaybe<OrderBy>;
   passport_number_encrypted?: InputMaybe<OrderBy>;
@@ -23372,6 +24259,8 @@ export type MaidProfilesOrderBy = {
   primary_image_processed_url?: InputMaybe<OrderBy>;
   primary_profession?: InputMaybe<OrderBy>;
   primary_profession_other?: InputMaybe<OrderBy>;
+  profile_completed?: InputMaybe<OrderBy>;
+  profile_completed_at?: InputMaybe<OrderBy>;
   profile_completion_percentage?: InputMaybe<OrderBy>;
   profile_photo_url?: InputMaybe<OrderBy>;
   profile_views?: InputMaybe<OrderBy>;
@@ -23503,6 +24392,10 @@ export enum MaidProfilesSelectColumn {
   /** column name */
   NATIONALITY = 'nationality',
   /** column name */
+  ONBOARDING_COMPLETED = 'onboarding_completed',
+  /** column name */
+  ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
+  /** column name */
   PASSPORT_EXPIRY = 'passport_expiry',
   /** column name */
   PASSPORT_NUMBER = 'passport_number',
@@ -23540,6 +24433,10 @@ export enum MaidProfilesSelectColumn {
   PRIMARY_PROFESSION = 'primary_profession',
   /** column name */
   PRIMARY_PROFESSION_OTHER = 'primary_profession_other',
+  /** column name */
+  PROFILE_COMPLETED = 'profile_completed',
+  /** column name */
+  PROFILE_COMPLETED_AT = 'profile_completed_at',
   /** column name */
   PROFILE_COMPLETION_PERCENTAGE = 'profile_completion_percentage',
   /** column name */
@@ -23636,6 +24533,8 @@ export type MaidProfilesSetInput = {
   national_id_encrypted?: InputMaybe<Scalars['String']['input']>;
   national_id_hash?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   passport_expiry?: InputMaybe<Scalars['date']['input']>;
   passport_number?: InputMaybe<Scalars['String']['input']>;
   passport_number_encrypted?: InputMaybe<Scalars['String']['input']>;
@@ -23655,6 +24554,8 @@ export type MaidProfilesSetInput = {
   primary_image_processed_url?: InputMaybe<Scalars['String']['input']>;
   primary_profession?: InputMaybe<Scalars['String']['input']>;
   primary_profession_other?: InputMaybe<Scalars['String']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   profile_completion_percentage?: InputMaybe<Scalars['Int']['input']>;
   profile_photo_url?: InputMaybe<Scalars['String']['input']>;
   profile_views?: InputMaybe<Scalars['Int']['input']>;
@@ -23781,6 +24682,8 @@ export type MaidProfilesStreamCursorValueInput = {
   national_id_encrypted?: InputMaybe<Scalars['String']['input']>;
   national_id_hash?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
+  onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   passport_expiry?: InputMaybe<Scalars['date']['input']>;
   passport_number?: InputMaybe<Scalars['String']['input']>;
   passport_number_encrypted?: InputMaybe<Scalars['String']['input']>;
@@ -23800,6 +24703,8 @@ export type MaidProfilesStreamCursorValueInput = {
   primary_image_processed_url?: InputMaybe<Scalars['String']['input']>;
   primary_profession?: InputMaybe<Scalars['String']['input']>;
   primary_profession_other?: InputMaybe<Scalars['String']['input']>;
+  profile_completed?: InputMaybe<Scalars['Boolean']['input']>;
+  profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   profile_completion_percentage?: InputMaybe<Scalars['Int']['input']>;
   profile_photo_url?: InputMaybe<Scalars['String']['input']>;
   profile_views?: InputMaybe<Scalars['Int']['input']>;
@@ -23935,6 +24840,10 @@ export enum MaidProfilesUpdateColumn {
   /** column name */
   NATIONALITY = 'nationality',
   /** column name */
+  ONBOARDING_COMPLETED = 'onboarding_completed',
+  /** column name */
+  ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
+  /** column name */
   PASSPORT_EXPIRY = 'passport_expiry',
   /** column name */
   PASSPORT_NUMBER = 'passport_number',
@@ -23972,6 +24881,10 @@ export enum MaidProfilesUpdateColumn {
   PRIMARY_PROFESSION = 'primary_profession',
   /** column name */
   PRIMARY_PROFESSION_OTHER = 'primary_profession_other',
+  /** column name */
+  PROFILE_COMPLETED = 'profile_completed',
+  /** column name */
+  PROFILE_COMPLETED_AT = 'profile_completed_at',
   /** column name */
   PROFILE_COMPLETION_PERCENTAGE = 'profile_completion_percentage',
   /** column name */
@@ -25356,6 +26269,273 @@ export type MessagesUpdates = {
   where: MessagesBoolExp;
 };
 
+/** columns and relationships of "monitor_reports" */
+export type MonitorReports = {
+  __typename?: 'monitor_reports';
+  agent_response?: Maybe<Scalars['String']['output']>;
+  archived?: Maybe<Scalars['Boolean']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id: Scalars['Int']['output'];
+  priority?: Maybe<Scalars['String']['output']>;
+  report_content: Scalars['String']['output'];
+  report_type: Scalars['String']['output'];
+  status?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregated selection of "monitor_reports" */
+export type MonitorReportsAggregate = {
+  __typename?: 'monitor_reports_aggregate';
+  aggregate?: Maybe<MonitorReportsAggregateFields>;
+  nodes: Array<MonitorReports>;
+};
+
+/** aggregate fields of "monitor_reports" */
+export type MonitorReportsAggregateFields = {
+  __typename?: 'monitor_reports_aggregate_fields';
+  avg?: Maybe<MonitorReportsAvgFields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<MonitorReportsMaxFields>;
+  min?: Maybe<MonitorReportsMinFields>;
+  stddev?: Maybe<MonitorReportsStddevFields>;
+  stddev_pop?: Maybe<MonitorReportsStddevPopFields>;
+  stddev_samp?: Maybe<MonitorReportsStddevSampFields>;
+  sum?: Maybe<MonitorReportsSumFields>;
+  var_pop?: Maybe<MonitorReportsVarPopFields>;
+  var_samp?: Maybe<MonitorReportsVarSampFields>;
+  variance?: Maybe<MonitorReportsVarianceFields>;
+};
+
+
+/** aggregate fields of "monitor_reports" */
+export type MonitorReportsAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<MonitorReportsSelectColumn>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type MonitorReportsAvgFields = {
+  __typename?: 'monitor_reports_avg_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "monitor_reports". All fields are combined with a logical 'AND'. */
+export type MonitorReportsBoolExp = {
+  _and?: InputMaybe<Array<MonitorReportsBoolExp>>;
+  _not?: InputMaybe<MonitorReportsBoolExp>;
+  _or?: InputMaybe<Array<MonitorReportsBoolExp>>;
+  agent_response?: InputMaybe<StringComparisonExp>;
+  archived?: InputMaybe<BooleanComparisonExp>;
+  created_at?: InputMaybe<TimestamptzComparisonExp>;
+  id?: InputMaybe<IntComparisonExp>;
+  priority?: InputMaybe<StringComparisonExp>;
+  report_content?: InputMaybe<StringComparisonExp>;
+  report_type?: InputMaybe<StringComparisonExp>;
+  status?: InputMaybe<StringComparisonExp>;
+};
+
+/** unique or primary key constraints on table "monitor_reports" */
+export enum MonitorReportsConstraint {
+  /** unique or primary key constraint on columns "id" */
+  MONITOR_REPORTS_PKEY = 'monitor_reports_pkey'
+}
+
+/** input type for incrementing numeric columns in table "monitor_reports" */
+export type MonitorReportsIncInput = {
+  id?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** input type for inserting data into table "monitor_reports" */
+export type MonitorReportsInsertInput = {
+  agent_response?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  priority?: InputMaybe<Scalars['String']['input']>;
+  report_content?: InputMaybe<Scalars['String']['input']>;
+  report_type?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type MonitorReportsMaxFields = {
+  __typename?: 'monitor_reports_max_fields';
+  agent_response?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['Int']['output']>;
+  priority?: Maybe<Scalars['String']['output']>;
+  report_content?: Maybe<Scalars['String']['output']>;
+  report_type?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregate min on columns */
+export type MonitorReportsMinFields = {
+  __typename?: 'monitor_reports_min_fields';
+  agent_response?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['Int']['output']>;
+  priority?: Maybe<Scalars['String']['output']>;
+  report_content?: Maybe<Scalars['String']['output']>;
+  report_type?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+};
+
+/** response of any mutation on the table "monitor_reports" */
+export type MonitorReportsMutationResponse = {
+  __typename?: 'monitor_reports_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<MonitorReports>;
+};
+
+/** on_conflict condition type for table "monitor_reports" */
+export type MonitorReportsOnConflict = {
+  constraint: MonitorReportsConstraint;
+  update_columns?: Array<MonitorReportsUpdateColumn>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
+};
+
+/** Ordering options when selecting data from "monitor_reports". */
+export type MonitorReportsOrderBy = {
+  agent_response?: InputMaybe<OrderBy>;
+  archived?: InputMaybe<OrderBy>;
+  created_at?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  priority?: InputMaybe<OrderBy>;
+  report_content?: InputMaybe<OrderBy>;
+  report_type?: InputMaybe<OrderBy>;
+  status?: InputMaybe<OrderBy>;
+};
+
+/** primary key columns input for table: monitor_reports */
+export type MonitorReportsPkColumnsInput = {
+  id: Scalars['Int']['input'];
+};
+
+/** select columns of table "monitor_reports" */
+export enum MonitorReportsSelectColumn {
+  /** column name */
+  AGENT_RESPONSE = 'agent_response',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  PRIORITY = 'priority',
+  /** column name */
+  REPORT_CONTENT = 'report_content',
+  /** column name */
+  REPORT_TYPE = 'report_type',
+  /** column name */
+  STATUS = 'status'
+}
+
+/** input type for updating data in table "monitor_reports" */
+export type MonitorReportsSetInput = {
+  agent_response?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  priority?: InputMaybe<Scalars['String']['input']>;
+  report_content?: InputMaybe<Scalars['String']['input']>;
+  report_type?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type MonitorReportsStddevFields = {
+  __typename?: 'monitor_reports_stddev_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type MonitorReportsStddevPopFields = {
+  __typename?: 'monitor_reports_stddev_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type MonitorReportsStddevSampFields = {
+  __typename?: 'monitor_reports_stddev_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "monitor_reports" */
+export type MonitorReportsStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: MonitorReportsStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type MonitorReportsStreamCursorValueInput = {
+  agent_response?: InputMaybe<Scalars['String']['input']>;
+  archived?: InputMaybe<Scalars['Boolean']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  priority?: InputMaybe<Scalars['String']['input']>;
+  report_content?: InputMaybe<Scalars['String']['input']>;
+  report_type?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type MonitorReportsSumFields = {
+  __typename?: 'monitor_reports_sum_fields';
+  id?: Maybe<Scalars['Int']['output']>;
+};
+
+/** update columns of table "monitor_reports" */
+export enum MonitorReportsUpdateColumn {
+  /** column name */
+  AGENT_RESPONSE = 'agent_response',
+  /** column name */
+  ARCHIVED = 'archived',
+  /** column name */
+  CREATED_AT = 'created_at',
+  /** column name */
+  ID = 'id',
+  /** column name */
+  PRIORITY = 'priority',
+  /** column name */
+  REPORT_CONTENT = 'report_content',
+  /** column name */
+  REPORT_TYPE = 'report_type',
+  /** column name */
+  STATUS = 'status'
+}
+
+export type MonitorReportsUpdates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<MonitorReportsIncInput>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<MonitorReportsSetInput>;
+  /** filter the rows which have to be updated */
+  where: MonitorReportsBoolExp;
+};
+
+/** aggregate var_pop on columns */
+export type MonitorReportsVarPopFields = {
+  __typename?: 'monitor_reports_var_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type MonitorReportsVarSampFields = {
+  __typename?: 'monitor_reports_var_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type MonitorReportsVarianceFields = {
+  __typename?: 'monitor_reports_variance_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
 /** mutation root */
 export type MutationRoot = {
   __typename?: 'mutation_root';
@@ -25515,10 +26695,18 @@ export type MutationRoot = {
   delete_country_codes?: Maybe<CountryCodesMutationResponse>;
   /** delete single row from the table: "country_codes" */
   delete_country_codes_by_pk?: Maybe<CountryCodes>;
+  /** delete data from the table: "crash_reports" */
+  delete_crash_reports?: Maybe<CrashReportsMutationResponse>;
+  /** delete single row from the table: "crash_reports" */
+  delete_crash_reports_by_pk?: Maybe<CrashReports>;
   /** delete data from the table: "credit_transactions" */
   delete_credit_transactions?: Maybe<CreditTransactionsMutationResponse>;
   /** delete single row from the table: "credit_transactions" */
   delete_credit_transactions_by_pk?: Maybe<CreditTransactions>;
+  /** delete data from the table: "customer_feedback" */
+  delete_customer_feedback?: Maybe<CustomerFeedbackMutationResponse>;
+  /** delete single row from the table: "customer_feedback" */
+  delete_customer_feedback_by_pk?: Maybe<CustomerFeedback>;
   /** delete data from the table: "dispute_evidence" */
   delete_dispute_evidence?: Maybe<DisputeEvidenceMutationResponse>;
   /** delete single row from the table: "dispute_evidence" */
@@ -25589,6 +26777,10 @@ export type MutationRoot = {
   delete_message_templates_by_pk?: Maybe<MessageTemplates>;
   /** delete data from the table: "messages" */
   delete_messages?: Maybe<MessagesMutationResponse>;
+  /** delete data from the table: "monitor_reports" */
+  delete_monitor_reports?: Maybe<MonitorReportsMutationResponse>;
+  /** delete single row from the table: "monitor_reports" */
+  delete_monitor_reports_by_pk?: Maybe<MonitorReports>;
   /** delete data from the table: "news_items" */
   delete_news_items?: Maybe<NewsItemsMutationResponse>;
   /** delete single row from the table: "news_items" */
@@ -25949,10 +27141,18 @@ export type MutationRoot = {
   insert_country_codes?: Maybe<CountryCodesMutationResponse>;
   /** insert a single row into the table: "country_codes" */
   insert_country_codes_one?: Maybe<CountryCodes>;
+  /** insert data into the table: "crash_reports" */
+  insert_crash_reports?: Maybe<CrashReportsMutationResponse>;
+  /** insert a single row into the table: "crash_reports" */
+  insert_crash_reports_one?: Maybe<CrashReports>;
   /** insert data into the table: "credit_transactions" */
   insert_credit_transactions?: Maybe<CreditTransactionsMutationResponse>;
   /** insert a single row into the table: "credit_transactions" */
   insert_credit_transactions_one?: Maybe<CreditTransactions>;
+  /** insert data into the table: "customer_feedback" */
+  insert_customer_feedback?: Maybe<CustomerFeedbackMutationResponse>;
+  /** insert a single row into the table: "customer_feedback" */
+  insert_customer_feedback_one?: Maybe<CustomerFeedback>;
   /** insert data into the table: "dispute_evidence" */
   insert_dispute_evidence?: Maybe<DisputeEvidenceMutationResponse>;
   /** insert a single row into the table: "dispute_evidence" */
@@ -26025,6 +27225,10 @@ export type MutationRoot = {
   insert_messages?: Maybe<MessagesMutationResponse>;
   /** insert a single row into the table: "messages" */
   insert_messages_one?: Maybe<Messages>;
+  /** insert data into the table: "monitor_reports" */
+  insert_monitor_reports?: Maybe<MonitorReportsMutationResponse>;
+  /** insert a single row into the table: "monitor_reports" */
+  insert_monitor_reports_one?: Maybe<MonitorReports>;
   /** insert data into the table: "news_items" */
   insert_news_items?: Maybe<NewsItemsMutationResponse>;
   /** insert a single row into the table: "news_items" */
@@ -26463,12 +27667,24 @@ export type MutationRoot = {
   update_country_codes_by_pk?: Maybe<CountryCodes>;
   /** update multiples rows of table: "country_codes" */
   update_country_codes_many?: Maybe<Array<Maybe<CountryCodesMutationResponse>>>;
+  /** update data of the table: "crash_reports" */
+  update_crash_reports?: Maybe<CrashReportsMutationResponse>;
+  /** update single row of the table: "crash_reports" */
+  update_crash_reports_by_pk?: Maybe<CrashReports>;
+  /** update multiples rows of table: "crash_reports" */
+  update_crash_reports_many?: Maybe<Array<Maybe<CrashReportsMutationResponse>>>;
   /** update data of the table: "credit_transactions" */
   update_credit_transactions?: Maybe<CreditTransactionsMutationResponse>;
   /** update single row of the table: "credit_transactions" */
   update_credit_transactions_by_pk?: Maybe<CreditTransactions>;
   /** update multiples rows of table: "credit_transactions" */
   update_credit_transactions_many?: Maybe<Array<Maybe<CreditTransactionsMutationResponse>>>;
+  /** update data of the table: "customer_feedback" */
+  update_customer_feedback?: Maybe<CustomerFeedbackMutationResponse>;
+  /** update single row of the table: "customer_feedback" */
+  update_customer_feedback_by_pk?: Maybe<CustomerFeedback>;
+  /** update multiples rows of table: "customer_feedback" */
+  update_customer_feedback_many?: Maybe<Array<Maybe<CustomerFeedbackMutationResponse>>>;
   /** update data of the table: "dispute_evidence" */
   update_dispute_evidence?: Maybe<DisputeEvidenceMutationResponse>;
   /** update single row of the table: "dispute_evidence" */
@@ -26575,6 +27791,12 @@ export type MutationRoot = {
   update_messages?: Maybe<MessagesMutationResponse>;
   /** update multiples rows of table: "messages" */
   update_messages_many?: Maybe<Array<Maybe<MessagesMutationResponse>>>;
+  /** update data of the table: "monitor_reports" */
+  update_monitor_reports?: Maybe<MonitorReportsMutationResponse>;
+  /** update single row of the table: "monitor_reports" */
+  update_monitor_reports_by_pk?: Maybe<MonitorReports>;
+  /** update multiples rows of table: "monitor_reports" */
+  update_monitor_reports_many?: Maybe<Array<Maybe<MonitorReportsMutationResponse>>>;
   /** update data of the table: "news_items" */
   update_news_items?: Maybe<NewsItemsMutationResponse>;
   /** update single row of the table: "news_items" */
@@ -27353,6 +28575,18 @@ export type MutationRootDeleteCountryCodesByPkArgs = {
 
 
 /** mutation root */
+export type MutationRootDeleteCrashReportsArgs = {
+  where: CrashReportsBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootDeleteCrashReportsByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+/** mutation root */
 export type MutationRootDeleteCreditTransactionsArgs = {
   where: CreditTransactionsBoolExp;
 };
@@ -27360,6 +28594,18 @@ export type MutationRootDeleteCreditTransactionsArgs = {
 
 /** mutation root */
 export type MutationRootDeleteCreditTransactionsByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+/** mutation root */
+export type MutationRootDeleteCustomerFeedbackArgs = {
+  where: CustomerFeedbackBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootDeleteCustomerFeedbackByPkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -27571,6 +28817,18 @@ export type MutationRootDeleteMessageTemplatesByPkArgs = {
 /** mutation root */
 export type MutationRootDeleteMessagesArgs = {
   where: MessagesBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootDeleteMonitorReportsArgs = {
+  where: MonitorReportsBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootDeleteMonitorReportsByPkArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -28733,6 +29991,20 @@ export type MutationRootInsertCountryCodesOneArgs = {
 
 
 /** mutation root */
+export type MutationRootInsertCrashReportsArgs = {
+  objects: Array<CrashReportsInsertInput>;
+  on_conflict?: InputMaybe<CrashReportsOnConflict>;
+};
+
+
+/** mutation root */
+export type MutationRootInsertCrashReportsOneArgs = {
+  object: CrashReportsInsertInput;
+  on_conflict?: InputMaybe<CrashReportsOnConflict>;
+};
+
+
+/** mutation root */
 export type MutationRootInsertCreditTransactionsArgs = {
   objects: Array<CreditTransactionsInsertInput>;
   on_conflict?: InputMaybe<CreditTransactionsOnConflict>;
@@ -28743,6 +30015,20 @@ export type MutationRootInsertCreditTransactionsArgs = {
 export type MutationRootInsertCreditTransactionsOneArgs = {
   object: CreditTransactionsInsertInput;
   on_conflict?: InputMaybe<CreditTransactionsOnConflict>;
+};
+
+
+/** mutation root */
+export type MutationRootInsertCustomerFeedbackArgs = {
+  objects: Array<CustomerFeedbackInsertInput>;
+  on_conflict?: InputMaybe<CustomerFeedbackOnConflict>;
+};
+
+
+/** mutation root */
+export type MutationRootInsertCustomerFeedbackOneArgs = {
+  object: CustomerFeedbackInsertInput;
+  on_conflict?: InputMaybe<CustomerFeedbackOnConflict>;
 };
 
 
@@ -28993,6 +30279,20 @@ export type MutationRootInsertMessagesArgs = {
 /** mutation root */
 export type MutationRootInsertMessagesOneArgs = {
   object: MessagesInsertInput;
+};
+
+
+/** mutation root */
+export type MutationRootInsertMonitorReportsArgs = {
+  objects: Array<MonitorReportsInsertInput>;
+  on_conflict?: InputMaybe<MonitorReportsOnConflict>;
+};
+
+
+/** mutation root */
+export type MutationRootInsertMonitorReportsOneArgs = {
+  object: MonitorReportsInsertInput;
+  on_conflict?: InputMaybe<MonitorReportsOnConflict>;
 };
 
 
@@ -30705,6 +32005,36 @@ export type MutationRootUpdateCountryCodesManyArgs = {
 
 
 /** mutation root */
+export type MutationRootUpdateCrashReportsArgs = {
+  _append?: InputMaybe<CrashReportsAppendInput>;
+  _delete_at_path?: InputMaybe<CrashReportsDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<CrashReportsDeleteElemInput>;
+  _delete_key?: InputMaybe<CrashReportsDeleteKeyInput>;
+  _prepend?: InputMaybe<CrashReportsPrependInput>;
+  _set?: InputMaybe<CrashReportsSetInput>;
+  where: CrashReportsBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateCrashReportsByPkArgs = {
+  _append?: InputMaybe<CrashReportsAppendInput>;
+  _delete_at_path?: InputMaybe<CrashReportsDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<CrashReportsDeleteElemInput>;
+  _delete_key?: InputMaybe<CrashReportsDeleteKeyInput>;
+  _prepend?: InputMaybe<CrashReportsPrependInput>;
+  _set?: InputMaybe<CrashReportsSetInput>;
+  pk_columns: CrashReportsPkColumnsInput;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateCrashReportsManyArgs = {
+  updates: Array<CrashReportsUpdates>;
+};
+
+
+/** mutation root */
 export type MutationRootUpdateCreditTransactionsArgs = {
   _append?: InputMaybe<CreditTransactionsAppendInput>;
   _delete_at_path?: InputMaybe<CreditTransactionsDeleteAtPathInput>;
@@ -30733,6 +32063,28 @@ export type MutationRootUpdateCreditTransactionsByPkArgs = {
 /** mutation root */
 export type MutationRootUpdateCreditTransactionsManyArgs = {
   updates: Array<CreditTransactionsUpdates>;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateCustomerFeedbackArgs = {
+  _inc?: InputMaybe<CustomerFeedbackIncInput>;
+  _set?: InputMaybe<CustomerFeedbackSetInput>;
+  where: CustomerFeedbackBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateCustomerFeedbackByPkArgs = {
+  _inc?: InputMaybe<CustomerFeedbackIncInput>;
+  _set?: InputMaybe<CustomerFeedbackSetInput>;
+  pk_columns: CustomerFeedbackPkColumnsInput;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateCustomerFeedbackManyArgs = {
+  updates: Array<CustomerFeedbackUpdates>;
 };
 
 
@@ -31185,6 +32537,28 @@ export type MutationRootUpdateMessagesManyArgs = {
 
 
 /** mutation root */
+export type MutationRootUpdateMonitorReportsArgs = {
+  _inc?: InputMaybe<MonitorReportsIncInput>;
+  _set?: InputMaybe<MonitorReportsSetInput>;
+  where: MonitorReportsBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateMonitorReportsByPkArgs = {
+  _inc?: InputMaybe<MonitorReportsIncInput>;
+  _set?: InputMaybe<MonitorReportsSetInput>;
+  pk_columns: MonitorReportsPkColumnsInput;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateMonitorReportsManyArgs = {
+  updates: Array<MonitorReportsUpdates>;
+};
+
+
+/** mutation root */
 export type MutationRootUpdateNewsItemsArgs = {
   _inc?: InputMaybe<NewsItemsIncInput>;
   _set?: InputMaybe<NewsItemsSetInput>;
@@ -31270,6 +32644,11 @@ export type MutationRootUpdateNotificationSettingsManyArgs = {
 
 /** mutation root */
 export type MutationRootUpdateNotificationsArgs = {
+  _append?: InputMaybe<NotificationsAppendInput>;
+  _delete_at_path?: InputMaybe<NotificationsDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<NotificationsDeleteElemInput>;
+  _delete_key?: InputMaybe<NotificationsDeleteKeyInput>;
+  _prepend?: InputMaybe<NotificationsPrependInput>;
   _set?: InputMaybe<NotificationsSetInput>;
   where: NotificationsBoolExp;
 };
@@ -31277,6 +32656,11 @@ export type MutationRootUpdateNotificationsArgs = {
 
 /** mutation root */
 export type MutationRootUpdateNotificationsByPkArgs = {
+  _append?: InputMaybe<NotificationsAppendInput>;
+  _delete_at_path?: InputMaybe<NotificationsDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<NotificationsDeleteElemInput>;
+  _delete_key?: InputMaybe<NotificationsDeleteKeyInput>;
+  _prepend?: InputMaybe<NotificationsPrependInput>;
   _set?: InputMaybe<NotificationsSetInput>;
   pk_columns: NotificationsPkColumnsInput;
 };
@@ -31958,7 +33342,12 @@ export type MutationRootUpdateSponsorJobsManyArgs = {
 
 /** mutation root */
 export type MutationRootUpdateSponsorProfilesArgs = {
+  _append?: InputMaybe<SponsorProfilesAppendInput>;
+  _delete_at_path?: InputMaybe<SponsorProfilesDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<SponsorProfilesDeleteElemInput>;
+  _delete_key?: InputMaybe<SponsorProfilesDeleteKeyInput>;
   _inc?: InputMaybe<SponsorProfilesIncInput>;
+  _prepend?: InputMaybe<SponsorProfilesPrependInput>;
   _set?: InputMaybe<SponsorProfilesSetInput>;
   where: SponsorProfilesBoolExp;
 };
@@ -31966,7 +33355,12 @@ export type MutationRootUpdateSponsorProfilesArgs = {
 
 /** mutation root */
 export type MutationRootUpdateSponsorProfilesByPkArgs = {
+  _append?: InputMaybe<SponsorProfilesAppendInput>;
+  _delete_at_path?: InputMaybe<SponsorProfilesDeleteAtPathInput>;
+  _delete_elem?: InputMaybe<SponsorProfilesDeleteElemInput>;
+  _delete_key?: InputMaybe<SponsorProfilesDeleteKeyInput>;
   _inc?: InputMaybe<SponsorProfilesIncInput>;
+  _prepend?: InputMaybe<SponsorProfilesPrependInput>;
   _set?: InputMaybe<SponsorProfilesSetInput>;
   pk_columns: SponsorProfilesPkColumnsInput;
 };
@@ -33738,6 +35132,8 @@ export type Notifications = {
   __typename?: 'notifications';
   action_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  delivery_channels?: Maybe<Scalars['jsonb']['output']>;
+  delivery_status?: Maybe<Scalars['String']['output']>;
   expires_at?: Maybe<Scalars['timestamptz']['output']>;
   id: Scalars['uuid']['output'];
   link?: Maybe<Scalars['String']['output']>;
@@ -33747,9 +35143,16 @@ export type Notifications = {
   read_at?: Maybe<Scalars['timestamptz']['output']>;
   related_id?: Maybe<Scalars['uuid']['output']>;
   related_type?: Maybe<Scalars['String']['output']>;
+  sent_by?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   type: Scalars['String']['output'];
   user_id?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** columns and relationships of "notifications" */
+export type NotificationsDeliveryChannelsArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregated selection of "notifications" */
@@ -33774,6 +35177,11 @@ export type NotificationsAggregateFieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type NotificationsAppendInput = {
+  delivery_channels?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
 /** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
 export type NotificationsBoolExp = {
   _and?: InputMaybe<Array<NotificationsBoolExp>>;
@@ -33781,6 +35189,8 @@ export type NotificationsBoolExp = {
   _or?: InputMaybe<Array<NotificationsBoolExp>>;
   action_url?: InputMaybe<StringComparisonExp>;
   created_at?: InputMaybe<TimestamptzComparisonExp>;
+  delivery_channels?: InputMaybe<JsonbComparisonExp>;
+  delivery_status?: InputMaybe<StringComparisonExp>;
   expires_at?: InputMaybe<TimestamptzComparisonExp>;
   id?: InputMaybe<UuidComparisonExp>;
   link?: InputMaybe<StringComparisonExp>;
@@ -33790,6 +35200,7 @@ export type NotificationsBoolExp = {
   read_at?: InputMaybe<TimestamptzComparisonExp>;
   related_id?: InputMaybe<UuidComparisonExp>;
   related_type?: InputMaybe<StringComparisonExp>;
+  sent_by?: InputMaybe<StringComparisonExp>;
   title?: InputMaybe<StringComparisonExp>;
   type?: InputMaybe<StringComparisonExp>;
   user_id?: InputMaybe<StringComparisonExp>;
@@ -33801,10 +35212,27 @@ export enum NotificationsConstraint {
   NOTIFICATIONS_PKEY = 'notifications_pkey'
 }
 
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type NotificationsDeleteAtPathInput = {
+  delivery_channels?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type NotificationsDeleteElemInput = {
+  delivery_channels?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type NotificationsDeleteKeyInput = {
+  delivery_channels?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** input type for inserting data into table "notifications" */
 export type NotificationsInsertInput = {
   action_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  delivery_channels?: InputMaybe<Scalars['jsonb']['input']>;
+  delivery_status?: InputMaybe<Scalars['String']['input']>;
   expires_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   link?: InputMaybe<Scalars['String']['input']>;
@@ -33814,6 +35242,7 @@ export type NotificationsInsertInput = {
   read_at?: InputMaybe<Scalars['timestamptz']['input']>;
   related_id?: InputMaybe<Scalars['uuid']['input']>;
   related_type?: InputMaybe<Scalars['String']['input']>;
+  sent_by?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   user_id?: InputMaybe<Scalars['String']['input']>;
@@ -33824,6 +35253,7 @@ export type NotificationsMaxFields = {
   __typename?: 'notifications_max_fields';
   action_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  delivery_status?: Maybe<Scalars['String']['output']>;
   expires_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['uuid']['output']>;
   link?: Maybe<Scalars['String']['output']>;
@@ -33832,6 +35262,7 @@ export type NotificationsMaxFields = {
   read_at?: Maybe<Scalars['timestamptz']['output']>;
   related_id?: Maybe<Scalars['uuid']['output']>;
   related_type?: Maybe<Scalars['String']['output']>;
+  sent_by?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   type?: Maybe<Scalars['String']['output']>;
   user_id?: Maybe<Scalars['String']['output']>;
@@ -33842,6 +35273,7 @@ export type NotificationsMinFields = {
   __typename?: 'notifications_min_fields';
   action_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  delivery_status?: Maybe<Scalars['String']['output']>;
   expires_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['uuid']['output']>;
   link?: Maybe<Scalars['String']['output']>;
@@ -33850,6 +35282,7 @@ export type NotificationsMinFields = {
   read_at?: Maybe<Scalars['timestamptz']['output']>;
   related_id?: Maybe<Scalars['uuid']['output']>;
   related_type?: Maybe<Scalars['String']['output']>;
+  sent_by?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   type?: Maybe<Scalars['String']['output']>;
   user_id?: Maybe<Scalars['String']['output']>;
@@ -33875,6 +35308,8 @@ export type NotificationsOnConflict = {
 export type NotificationsOrderBy = {
   action_url?: InputMaybe<OrderBy>;
   created_at?: InputMaybe<OrderBy>;
+  delivery_channels?: InputMaybe<OrderBy>;
+  delivery_status?: InputMaybe<OrderBy>;
   expires_at?: InputMaybe<OrderBy>;
   id?: InputMaybe<OrderBy>;
   link?: InputMaybe<OrderBy>;
@@ -33884,6 +35319,7 @@ export type NotificationsOrderBy = {
   read_at?: InputMaybe<OrderBy>;
   related_id?: InputMaybe<OrderBy>;
   related_type?: InputMaybe<OrderBy>;
+  sent_by?: InputMaybe<OrderBy>;
   title?: InputMaybe<OrderBy>;
   type?: InputMaybe<OrderBy>;
   user_id?: InputMaybe<OrderBy>;
@@ -33894,12 +35330,21 @@ export type NotificationsPkColumnsInput = {
   id: Scalars['uuid']['input'];
 };
 
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type NotificationsPrependInput = {
+  delivery_channels?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
 /** select columns of table "notifications" */
 export enum NotificationsSelectColumn {
   /** column name */
   ACTION_URL = 'action_url',
   /** column name */
   CREATED_AT = 'created_at',
+  /** column name */
+  DELIVERY_CHANNELS = 'delivery_channels',
+  /** column name */
+  DELIVERY_STATUS = 'delivery_status',
   /** column name */
   EXPIRES_AT = 'expires_at',
   /** column name */
@@ -33919,6 +35364,8 @@ export enum NotificationsSelectColumn {
   /** column name */
   RELATED_TYPE = 'related_type',
   /** column name */
+  SENT_BY = 'sent_by',
+  /** column name */
   TITLE = 'title',
   /** column name */
   TYPE = 'type',
@@ -33930,6 +35377,8 @@ export enum NotificationsSelectColumn {
 export type NotificationsSetInput = {
   action_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  delivery_channels?: InputMaybe<Scalars['jsonb']['input']>;
+  delivery_status?: InputMaybe<Scalars['String']['input']>;
   expires_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   link?: InputMaybe<Scalars['String']['input']>;
@@ -33939,6 +35388,7 @@ export type NotificationsSetInput = {
   read_at?: InputMaybe<Scalars['timestamptz']['input']>;
   related_id?: InputMaybe<Scalars['uuid']['input']>;
   related_type?: InputMaybe<Scalars['String']['input']>;
+  sent_by?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   user_id?: InputMaybe<Scalars['String']['input']>;
@@ -33956,6 +35406,8 @@ export type NotificationsStreamCursorInput = {
 export type NotificationsStreamCursorValueInput = {
   action_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  delivery_channels?: InputMaybe<Scalars['jsonb']['input']>;
+  delivery_status?: InputMaybe<Scalars['String']['input']>;
   expires_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   link?: InputMaybe<Scalars['String']['input']>;
@@ -33965,6 +35417,7 @@ export type NotificationsStreamCursorValueInput = {
   read_at?: InputMaybe<Scalars['timestamptz']['input']>;
   related_id?: InputMaybe<Scalars['uuid']['input']>;
   related_type?: InputMaybe<Scalars['String']['input']>;
+  sent_by?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   user_id?: InputMaybe<Scalars['String']['input']>;
@@ -33976,6 +35429,10 @@ export enum NotificationsUpdateColumn {
   ACTION_URL = 'action_url',
   /** column name */
   CREATED_AT = 'created_at',
+  /** column name */
+  DELIVERY_CHANNELS = 'delivery_channels',
+  /** column name */
+  DELIVERY_STATUS = 'delivery_status',
   /** column name */
   EXPIRES_AT = 'expires_at',
   /** column name */
@@ -33995,6 +35452,8 @@ export enum NotificationsUpdateColumn {
   /** column name */
   RELATED_TYPE = 'related_type',
   /** column name */
+  SENT_BY = 'sent_by',
+  /** column name */
   TITLE = 'title',
   /** column name */
   TYPE = 'type',
@@ -34003,6 +35462,16 @@ export enum NotificationsUpdateColumn {
 }
 
 export type NotificationsUpdates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<NotificationsAppendInput>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<NotificationsDeleteAtPathInput>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<NotificationsDeleteElemInput>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<NotificationsDeleteKeyInput>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<NotificationsPrependInput>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<NotificationsSetInput>;
   /** filter the rows which have to be updated */
@@ -39848,6 +41317,8 @@ export type PlacementWorkflows = {
   __typename?: 'placement_workflows';
   agency_confirmed?: Maybe<Scalars['Boolean']['output']>;
   agency_id?: Maybe<Scalars['String']['output']>;
+  /** An object relationship */
+  agency_profile?: Maybe<AgencyProfiles>;
   contact_date?: Maybe<Scalars['timestamptz']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   created_by?: Maybe<Scalars['String']['output']>;
@@ -39862,6 +41333,8 @@ export type PlacementWorkflows = {
   interview_scheduled_date?: Maybe<Scalars['timestamptz']['output']>;
   last_activity_date?: Maybe<Scalars['timestamptz']['output']>;
   maid_id: Scalars['String']['output'];
+  /** An object relationship */
+  maid_profile?: Maybe<MaidProfiles>;
   metadata?: Maybe<Scalars['jsonb']['output']>;
   notes?: Maybe<Scalars['jsonb']['output']>;
   placement_confirmed_date?: Maybe<Scalars['timestamptz']['output']>;
@@ -39870,6 +41343,8 @@ export type PlacementWorkflows = {
   reminder_sent_count?: Maybe<Scalars['Int']['output']>;
   sponsor_confirmed?: Maybe<Scalars['Boolean']['output']>;
   sponsor_id: Scalars['String']['output'];
+  /** An object relationship */
+  sponsor_profile?: Maybe<SponsorProfiles>;
   status: Scalars['String']['output'];
   trial_end_date?: Maybe<Scalars['timestamptz']['output']>;
   trial_outcome?: Maybe<Scalars['String']['output']>;
@@ -39940,6 +41415,7 @@ export type PlacementWorkflowsBoolExp = {
   _or?: InputMaybe<Array<PlacementWorkflowsBoolExp>>;
   agency_confirmed?: InputMaybe<BooleanComparisonExp>;
   agency_id?: InputMaybe<StringComparisonExp>;
+  agency_profile?: InputMaybe<AgencyProfilesBoolExp>;
   contact_date?: InputMaybe<TimestamptzComparisonExp>;
   created_at?: InputMaybe<TimestamptzComparisonExp>;
   created_by?: InputMaybe<StringComparisonExp>;
@@ -39954,6 +41430,7 @@ export type PlacementWorkflowsBoolExp = {
   interview_scheduled_date?: InputMaybe<TimestamptzComparisonExp>;
   last_activity_date?: InputMaybe<TimestamptzComparisonExp>;
   maid_id?: InputMaybe<StringComparisonExp>;
+  maid_profile?: InputMaybe<MaidProfilesBoolExp>;
   metadata?: InputMaybe<JsonbComparisonExp>;
   notes?: InputMaybe<JsonbComparisonExp>;
   placement_confirmed_date?: InputMaybe<TimestamptzComparisonExp>;
@@ -39962,6 +41439,7 @@ export type PlacementWorkflowsBoolExp = {
   reminder_sent_count?: InputMaybe<IntComparisonExp>;
   sponsor_confirmed?: InputMaybe<BooleanComparisonExp>;
   sponsor_id?: InputMaybe<StringComparisonExp>;
+  sponsor_profile?: InputMaybe<SponsorProfilesBoolExp>;
   status?: InputMaybe<StringComparisonExp>;
   trial_end_date?: InputMaybe<TimestamptzComparisonExp>;
   trial_outcome?: InputMaybe<StringComparisonExp>;
@@ -40004,6 +41482,7 @@ export type PlacementWorkflowsIncInput = {
 export type PlacementWorkflowsInsertInput = {
   agency_confirmed?: InputMaybe<Scalars['Boolean']['input']>;
   agency_id?: InputMaybe<Scalars['String']['input']>;
+  agency_profile?: InputMaybe<AgencyProfilesObjRelInsertInput>;
   contact_date?: InputMaybe<Scalars['timestamptz']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   created_by?: InputMaybe<Scalars['String']['input']>;
@@ -40018,6 +41497,7 @@ export type PlacementWorkflowsInsertInput = {
   interview_scheduled_date?: InputMaybe<Scalars['timestamptz']['input']>;
   last_activity_date?: InputMaybe<Scalars['timestamptz']['input']>;
   maid_id?: InputMaybe<Scalars['String']['input']>;
+  maid_profile?: InputMaybe<MaidProfilesObjRelInsertInput>;
   metadata?: InputMaybe<Scalars['jsonb']['input']>;
   notes?: InputMaybe<Scalars['jsonb']['input']>;
   placement_confirmed_date?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -40026,6 +41506,7 @@ export type PlacementWorkflowsInsertInput = {
   reminder_sent_count?: InputMaybe<Scalars['Int']['input']>;
   sponsor_confirmed?: InputMaybe<Scalars['Boolean']['input']>;
   sponsor_id?: InputMaybe<Scalars['String']['input']>;
+  sponsor_profile?: InputMaybe<SponsorProfilesObjRelInsertInput>;
   status?: InputMaybe<Scalars['String']['input']>;
   trial_end_date?: InputMaybe<Scalars['timestamptz']['input']>;
   trial_outcome?: InputMaybe<Scalars['String']['input']>;
@@ -40114,6 +41595,7 @@ export type PlacementWorkflowsOnConflict = {
 export type PlacementWorkflowsOrderBy = {
   agency_confirmed?: InputMaybe<OrderBy>;
   agency_id?: InputMaybe<OrderBy>;
+  agency_profile?: InputMaybe<AgencyProfilesOrderBy>;
   contact_date?: InputMaybe<OrderBy>;
   created_at?: InputMaybe<OrderBy>;
   created_by?: InputMaybe<OrderBy>;
@@ -40128,6 +41610,7 @@ export type PlacementWorkflowsOrderBy = {
   interview_scheduled_date?: InputMaybe<OrderBy>;
   last_activity_date?: InputMaybe<OrderBy>;
   maid_id?: InputMaybe<OrderBy>;
+  maid_profile?: InputMaybe<MaidProfilesOrderBy>;
   metadata?: InputMaybe<OrderBy>;
   notes?: InputMaybe<OrderBy>;
   placement_confirmed_date?: InputMaybe<OrderBy>;
@@ -40136,6 +41619,7 @@ export type PlacementWorkflowsOrderBy = {
   reminder_sent_count?: InputMaybe<OrderBy>;
   sponsor_confirmed?: InputMaybe<OrderBy>;
   sponsor_id?: InputMaybe<OrderBy>;
+  sponsor_profile?: InputMaybe<SponsorProfilesOrderBy>;
   status?: InputMaybe<OrderBy>;
   trial_end_date?: InputMaybe<OrderBy>;
   trial_outcome?: InputMaybe<OrderBy>;
@@ -41965,6 +43449,8 @@ export type ProfileEditRequestsUpdates = {
 export type Profiles = {
   __typename?: 'profiles';
   active_requests?: Maybe<Scalars['Int']['output']>;
+  /** An object relationship */
+  agency_profile?: Maybe<AgencyProfiles>;
   available?: Maybe<Scalars['Boolean']['output']>;
   avatar_url?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
@@ -41991,6 +43477,8 @@ export type Profiles = {
   profile_completion?: Maybe<Scalars['Int']['output']>;
   rating?: Maybe<Scalars['numeric']['output']>;
   registration_complete?: Maybe<Scalars['Boolean']['output']>;
+  /** An object relationship */
+  sponsor_profile?: Maybe<SponsorProfiles>;
   subscription_status?: Maybe<Scalars['String']['output']>;
   total_reviews?: Maybe<Scalars['Int']['output']>;
   total_spent?: Maybe<Scalars['numeric']['output']>;
@@ -42053,6 +43541,7 @@ export type ProfilesBoolExp = {
   _not?: InputMaybe<ProfilesBoolExp>;
   _or?: InputMaybe<Array<ProfilesBoolExp>>;
   active_requests?: InputMaybe<IntComparisonExp>;
+  agency_profile?: InputMaybe<AgencyProfilesBoolExp>;
   available?: InputMaybe<BooleanComparisonExp>;
   avatar_url?: InputMaybe<StringComparisonExp>;
   country?: InputMaybe<StringComparisonExp>;
@@ -42078,6 +43567,7 @@ export type ProfilesBoolExp = {
   profile_completion?: InputMaybe<IntComparisonExp>;
   rating?: InputMaybe<NumericComparisonExp>;
   registration_complete?: InputMaybe<BooleanComparisonExp>;
+  sponsor_profile?: InputMaybe<SponsorProfilesBoolExp>;
   subscription_status?: InputMaybe<StringComparisonExp>;
   total_reviews?: InputMaybe<IntComparisonExp>;
   total_spent?: InputMaybe<NumericComparisonExp>;
@@ -42112,6 +43602,7 @@ export type ProfilesIncInput = {
 /** input type for inserting data into table "profiles" */
 export type ProfilesInsertInput = {
   active_requests?: InputMaybe<Scalars['Int']['input']>;
+  agency_profile?: InputMaybe<AgencyProfilesObjRelInsertInput>;
   available?: InputMaybe<Scalars['Boolean']['input']>;
   avatar_url?: InputMaybe<Scalars['String']['input']>;
   country?: InputMaybe<Scalars['String']['input']>;
@@ -42137,6 +43628,7 @@ export type ProfilesInsertInput = {
   profile_completion?: InputMaybe<Scalars['Int']['input']>;
   rating?: InputMaybe<Scalars['numeric']['input']>;
   registration_complete?: InputMaybe<Scalars['Boolean']['input']>;
+  sponsor_profile?: InputMaybe<SponsorProfilesObjRelInsertInput>;
   subscription_status?: InputMaybe<Scalars['String']['input']>;
   total_reviews?: InputMaybe<Scalars['Int']['input']>;
   total_spent?: InputMaybe<Scalars['numeric']['input']>;
@@ -42233,6 +43725,7 @@ export type ProfilesOnConflict = {
 /** Ordering options when selecting data from "profiles". */
 export type ProfilesOrderBy = {
   active_requests?: InputMaybe<OrderBy>;
+  agency_profile?: InputMaybe<AgencyProfilesOrderBy>;
   available?: InputMaybe<OrderBy>;
   avatar_url?: InputMaybe<OrderBy>;
   country?: InputMaybe<OrderBy>;
@@ -42258,6 +43751,7 @@ export type ProfilesOrderBy = {
   profile_completion?: InputMaybe<OrderBy>;
   rating?: InputMaybe<OrderBy>;
   registration_complete?: InputMaybe<OrderBy>;
+  sponsor_profile?: InputMaybe<SponsorProfilesOrderBy>;
   subscription_status?: InputMaybe<OrderBy>;
   total_reviews?: InputMaybe<OrderBy>;
   total_spent?: InputMaybe<OrderBy>;
@@ -42852,12 +44346,24 @@ export type QueryRoot = {
   country_codes_aggregate: CountryCodesAggregate;
   /** fetch data from the table: "country_codes" using primary key columns */
   country_codes_by_pk?: Maybe<CountryCodes>;
+  /** fetch data from the table: "crash_reports" */
+  crash_reports: Array<CrashReports>;
+  /** fetch aggregated fields from the table: "crash_reports" */
+  crash_reports_aggregate: CrashReportsAggregate;
+  /** fetch data from the table: "crash_reports" using primary key columns */
+  crash_reports_by_pk?: Maybe<CrashReports>;
   /** fetch data from the table: "credit_transactions" */
   credit_transactions: Array<CreditTransactions>;
   /** fetch aggregated fields from the table: "credit_transactions" */
   credit_transactions_aggregate: CreditTransactionsAggregate;
   /** fetch data from the table: "credit_transactions" using primary key columns */
   credit_transactions_by_pk?: Maybe<CreditTransactions>;
+  /** fetch data from the table: "customer_feedback" */
+  customer_feedback: Array<CustomerFeedback>;
+  /** fetch aggregated fields from the table: "customer_feedback" */
+  customer_feedback_aggregate: CustomerFeedbackAggregate;
+  /** fetch data from the table: "customer_feedback" using primary key columns */
+  customer_feedback_by_pk?: Maybe<CustomerFeedback>;
   /** fetch data from the table: "dispute_evidence" */
   dispute_evidence: Array<DisputeEvidence>;
   /** fetch aggregated fields from the table: "dispute_evidence" */
@@ -42924,9 +44430,9 @@ export type QueryRoot = {
   maid_bookings_aggregate: MaidBookingsAggregate;
   /** fetch data from the table: "maid_bookings" using primary key columns */
   maid_bookings_by_pk?: Maybe<MaidBookings>;
-  /** fetch data from the table: "maid_documents" */
+  /** An array relationship */
   maid_documents: Array<MaidDocuments>;
-  /** fetch aggregated fields from the table: "maid_documents" */
+  /** An aggregate relationship */
   maid_documents_aggregate: MaidDocumentsAggregate;
   /** fetch data from the table: "maid_documents" using primary key columns */
   maid_documents_by_pk?: Maybe<MaidDocuments>;
@@ -42964,6 +44470,12 @@ export type QueryRoot = {
   messages: Array<Messages>;
   /** An aggregate relationship */
   messages_aggregate: MessagesAggregate;
+  /** fetch data from the table: "monitor_reports" */
+  monitor_reports: Array<MonitorReports>;
+  /** fetch aggregated fields from the table: "monitor_reports" */
+  monitor_reports_aggregate: MonitorReportsAggregate;
+  /** fetch data from the table: "monitor_reports" using primary key columns */
+  monitor_reports_by_pk?: Maybe<MonitorReports>;
   /** An array relationship */
   news_items: Array<NewsItems>;
   /** An aggregate relationship */
@@ -44170,6 +45682,29 @@ export type QueryRootCountryCodesByPkArgs = {
 };
 
 
+export type QueryRootCrashReportsArgs = {
+  distinct_on?: InputMaybe<Array<CrashReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CrashReportsOrderBy>>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+
+export type QueryRootCrashReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CrashReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CrashReportsOrderBy>>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+
+export type QueryRootCrashReportsByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
 export type QueryRootCreditTransactionsArgs = {
   distinct_on?: InputMaybe<Array<CreditTransactionsSelectColumn>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -44189,6 +45724,29 @@ export type QueryRootCreditTransactionsAggregateArgs = {
 
 
 export type QueryRootCreditTransactionsByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type QueryRootCustomerFeedbackArgs = {
+  distinct_on?: InputMaybe<Array<CustomerFeedbackSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CustomerFeedbackOrderBy>>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
+};
+
+
+export type QueryRootCustomerFeedbackAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CustomerFeedbackSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CustomerFeedbackOrderBy>>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
+};
+
+
+export type QueryRootCustomerFeedbackByPkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -44599,6 +46157,29 @@ export type QueryRootMessagesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   order_by?: InputMaybe<Array<MessagesOrderBy>>;
   where?: InputMaybe<MessagesBoolExp>;
+};
+
+
+export type QueryRootMonitorReportsArgs = {
+  distinct_on?: InputMaybe<Array<MonitorReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MonitorReportsOrderBy>>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
+};
+
+
+export type QueryRootMonitorReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<MonitorReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MonitorReportsOrderBy>>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
+};
+
+
+export type QueryRootMonitorReportsByPkArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -48117,20 +49698,24 @@ export type SponsorProfiles = {
   background_check_completed?: Maybe<Scalars['Boolean']['output']>;
   children_ages?: Maybe<Array<Scalars['Int']['output']>>;
   city?: Maybe<Scalars['String']['output']>;
+  company?: Maybe<Scalars['String']['output']>;
+  contract_duration?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   currency?: Maybe<Scalars['String']['output']>;
   days_off_per_week?: Maybe<Scalars['Int']['output']>;
   elderly_care_needed?: Maybe<Scalars['Boolean']['output']>;
-  full_name: Scalars['String']['output'];
+  full_name?: Maybe<Scalars['String']['output']>;
   household_size?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
   identity_verified?: Maybe<Scalars['Boolean']['output']>;
   live_in_required?: Maybe<Scalars['Boolean']['output']>;
   number_of_children?: Maybe<Scalars['Int']['output']>;
+  occupation?: Maybe<Scalars['String']['output']>;
   onboarding_completed?: Maybe<Scalars['Boolean']['output']>;
   onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   overtime_available?: Maybe<Scalars['Boolean']['output']>;
+  payment_frequency?: Maybe<Scalars['String']['output']>;
   pet_types?: Maybe<Array<Scalars['String']['output']>>;
   pets?: Maybe<Scalars['Boolean']['output']>;
   phone_number?: Maybe<Scalars['String']['output']>;
@@ -48143,6 +49728,7 @@ export type SponsorProfiles = {
   profile_completed_at?: Maybe<Scalars['timestamptz']['output']>;
   religion?: Maybe<Scalars['String']['output']>;
   required_skills?: Maybe<Array<Scalars['String']['output']>>;
+  room_amenities?: Maybe<Scalars['jsonb']['output']>;
   salary_budget_max?: Maybe<Scalars['Int']['output']>;
   salary_budget_min?: Maybe<Scalars['Int']['output']>;
   total_hires?: Maybe<Scalars['Int']['output']>;
@@ -48150,6 +49736,12 @@ export type SponsorProfiles = {
   two_factor_method?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
   working_hours_per_day?: Maybe<Scalars['Int']['output']>;
+};
+
+
+/** columns and relationships of "sponsor_profiles" */
+export type SponsorProfilesRoomAmenitiesArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregated selection of "sponsor_profiles" */
@@ -48182,6 +49774,11 @@ export type SponsorProfilesAggregateFieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type SponsorProfilesAppendInput = {
+  room_amenities?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
 /** aggregate avg on columns */
 export type SponsorProfilesAvgFields = {
   __typename?: 'sponsor_profiles_avg_fields';
@@ -48211,6 +49808,8 @@ export type SponsorProfilesBoolExp = {
   background_check_completed?: InputMaybe<BooleanComparisonExp>;
   children_ages?: InputMaybe<IntArrayComparisonExp>;
   city?: InputMaybe<StringComparisonExp>;
+  company?: InputMaybe<StringComparisonExp>;
+  contract_duration?: InputMaybe<StringComparisonExp>;
   country?: InputMaybe<StringComparisonExp>;
   created_at?: InputMaybe<TimestamptzComparisonExp>;
   currency?: InputMaybe<StringComparisonExp>;
@@ -48222,9 +49821,11 @@ export type SponsorProfilesBoolExp = {
   identity_verified?: InputMaybe<BooleanComparisonExp>;
   live_in_required?: InputMaybe<BooleanComparisonExp>;
   number_of_children?: InputMaybe<IntComparisonExp>;
+  occupation?: InputMaybe<StringComparisonExp>;
   onboarding_completed?: InputMaybe<BooleanComparisonExp>;
   onboarding_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   overtime_available?: InputMaybe<BooleanComparisonExp>;
+  payment_frequency?: InputMaybe<StringComparisonExp>;
   pet_types?: InputMaybe<StringArrayComparisonExp>;
   pets?: InputMaybe<BooleanComparisonExp>;
   phone_number?: InputMaybe<StringComparisonExp>;
@@ -48237,6 +49838,7 @@ export type SponsorProfilesBoolExp = {
   profile_completed_at?: InputMaybe<TimestamptzComparisonExp>;
   religion?: InputMaybe<StringComparisonExp>;
   required_skills?: InputMaybe<StringArrayComparisonExp>;
+  room_amenities?: InputMaybe<JsonbComparisonExp>;
   salary_budget_max?: InputMaybe<IntComparisonExp>;
   salary_budget_min?: InputMaybe<IntComparisonExp>;
   total_hires?: InputMaybe<IntComparisonExp>;
@@ -48251,6 +49853,21 @@ export enum SponsorProfilesConstraint {
   /** unique or primary key constraint on columns "id" */
   SPONSOR_PROFILES_PKEY = 'sponsor_profiles_pkey'
 }
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type SponsorProfilesDeleteAtPathInput = {
+  room_amenities?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type SponsorProfilesDeleteElemInput = {
+  room_amenities?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type SponsorProfilesDeleteKeyInput = {
+  room_amenities?: InputMaybe<Scalars['String']['input']>;
+};
 
 /** input type for incrementing numeric columns in table "sponsor_profiles" */
 export type SponsorProfilesIncInput = {
@@ -48277,6 +49894,8 @@ export type SponsorProfilesInsertInput = {
   background_check_completed?: InputMaybe<Scalars['Boolean']['input']>;
   children_ages?: InputMaybe<Array<Scalars['Int']['input']>>;
   city?: InputMaybe<Scalars['String']['input']>;
+  company?: InputMaybe<Scalars['String']['input']>;
+  contract_duration?: InputMaybe<Scalars['String']['input']>;
   country?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -48288,9 +49907,11 @@ export type SponsorProfilesInsertInput = {
   identity_verified?: InputMaybe<Scalars['Boolean']['input']>;
   live_in_required?: InputMaybe<Scalars['Boolean']['input']>;
   number_of_children?: InputMaybe<Scalars['Int']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   overtime_available?: InputMaybe<Scalars['Boolean']['input']>;
+  payment_frequency?: InputMaybe<Scalars['String']['input']>;
   pet_types?: InputMaybe<Array<Scalars['String']['input']>>;
   pets?: InputMaybe<Scalars['Boolean']['input']>;
   phone_number?: InputMaybe<Scalars['String']['input']>;
@@ -48303,6 +49924,7 @@ export type SponsorProfilesInsertInput = {
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   religion?: InputMaybe<Scalars['String']['input']>;
   required_skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  room_amenities?: InputMaybe<Scalars['jsonb']['input']>;
   salary_budget_max?: InputMaybe<Scalars['Int']['input']>;
   salary_budget_min?: InputMaybe<Scalars['Int']['input']>;
   total_hires?: InputMaybe<Scalars['Int']['input']>;
@@ -48323,6 +49945,8 @@ export type SponsorProfilesMaxFields = {
   average_rating?: Maybe<Scalars['numeric']['output']>;
   children_ages?: Maybe<Array<Scalars['Int']['output']>>;
   city?: Maybe<Scalars['String']['output']>;
+  company?: Maybe<Scalars['String']['output']>;
+  contract_duration?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   currency?: Maybe<Scalars['String']['output']>;
@@ -48331,7 +49955,9 @@ export type SponsorProfilesMaxFields = {
   household_size?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   number_of_children?: Maybe<Scalars['Int']['output']>;
+  occupation?: Maybe<Scalars['String']['output']>;
   onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
+  payment_frequency?: Maybe<Scalars['String']['output']>;
   pet_types?: Maybe<Array<Scalars['String']['output']>>;
   phone_number?: Maybe<Scalars['String']['output']>;
   phone_verified_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -48360,6 +49986,8 @@ export type SponsorProfilesMinFields = {
   average_rating?: Maybe<Scalars['numeric']['output']>;
   children_ages?: Maybe<Array<Scalars['Int']['output']>>;
   city?: Maybe<Scalars['String']['output']>;
+  company?: Maybe<Scalars['String']['output']>;
+  contract_duration?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   currency?: Maybe<Scalars['String']['output']>;
@@ -48368,7 +49996,9 @@ export type SponsorProfilesMinFields = {
   household_size?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   number_of_children?: Maybe<Scalars['Int']['output']>;
+  occupation?: Maybe<Scalars['String']['output']>;
   onboarding_completed_at?: Maybe<Scalars['timestamptz']['output']>;
+  payment_frequency?: Maybe<Scalars['String']['output']>;
   pet_types?: Maybe<Array<Scalars['String']['output']>>;
   phone_number?: Maybe<Scalars['String']['output']>;
   phone_verified_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -48420,6 +50050,8 @@ export type SponsorProfilesOrderBy = {
   background_check_completed?: InputMaybe<OrderBy>;
   children_ages?: InputMaybe<OrderBy>;
   city?: InputMaybe<OrderBy>;
+  company?: InputMaybe<OrderBy>;
+  contract_duration?: InputMaybe<OrderBy>;
   country?: InputMaybe<OrderBy>;
   created_at?: InputMaybe<OrderBy>;
   currency?: InputMaybe<OrderBy>;
@@ -48431,9 +50063,11 @@ export type SponsorProfilesOrderBy = {
   identity_verified?: InputMaybe<OrderBy>;
   live_in_required?: InputMaybe<OrderBy>;
   number_of_children?: InputMaybe<OrderBy>;
+  occupation?: InputMaybe<OrderBy>;
   onboarding_completed?: InputMaybe<OrderBy>;
   onboarding_completed_at?: InputMaybe<OrderBy>;
   overtime_available?: InputMaybe<OrderBy>;
+  payment_frequency?: InputMaybe<OrderBy>;
   pet_types?: InputMaybe<OrderBy>;
   pets?: InputMaybe<OrderBy>;
   phone_number?: InputMaybe<OrderBy>;
@@ -48446,6 +50080,7 @@ export type SponsorProfilesOrderBy = {
   profile_completed_at?: InputMaybe<OrderBy>;
   religion?: InputMaybe<OrderBy>;
   required_skills?: InputMaybe<OrderBy>;
+  room_amenities?: InputMaybe<OrderBy>;
   salary_budget_max?: InputMaybe<OrderBy>;
   salary_budget_min?: InputMaybe<OrderBy>;
   total_hires?: InputMaybe<OrderBy>;
@@ -48458,6 +50093,11 @@ export type SponsorProfilesOrderBy = {
 /** primary key columns input for table: sponsor_profiles */
 export type SponsorProfilesPkColumnsInput = {
   id: Scalars['String']['input'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type SponsorProfilesPrependInput = {
+  room_amenities?: InputMaybe<Scalars['jsonb']['input']>;
 };
 
 /** select columns of table "sponsor_profiles" */
@@ -48481,6 +50121,10 @@ export enum SponsorProfilesSelectColumn {
   /** column name */
   CITY = 'city',
   /** column name */
+  COMPANY = 'company',
+  /** column name */
+  CONTRACT_DURATION = 'contract_duration',
+  /** column name */
   COUNTRY = 'country',
   /** column name */
   CREATED_AT = 'created_at',
@@ -48503,11 +50147,15 @@ export enum SponsorProfilesSelectColumn {
   /** column name */
   NUMBER_OF_CHILDREN = 'number_of_children',
   /** column name */
+  OCCUPATION = 'occupation',
+  /** column name */
   ONBOARDING_COMPLETED = 'onboarding_completed',
   /** column name */
   ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
   /** column name */
   OVERTIME_AVAILABLE = 'overtime_available',
+  /** column name */
+  PAYMENT_FREQUENCY = 'payment_frequency',
   /** column name */
   PET_TYPES = 'pet_types',
   /** column name */
@@ -48532,6 +50180,8 @@ export enum SponsorProfilesSelectColumn {
   RELIGION = 'religion',
   /** column name */
   REQUIRED_SKILLS = 'required_skills',
+  /** column name */
+  ROOM_AMENITIES = 'room_amenities',
   /** column name */
   SALARY_BUDGET_MAX = 'salary_budget_max',
   /** column name */
@@ -48559,6 +50209,8 @@ export type SponsorProfilesSetInput = {
   background_check_completed?: InputMaybe<Scalars['Boolean']['input']>;
   children_ages?: InputMaybe<Array<Scalars['Int']['input']>>;
   city?: InputMaybe<Scalars['String']['input']>;
+  company?: InputMaybe<Scalars['String']['input']>;
+  contract_duration?: InputMaybe<Scalars['String']['input']>;
   country?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -48570,9 +50222,11 @@ export type SponsorProfilesSetInput = {
   identity_verified?: InputMaybe<Scalars['Boolean']['input']>;
   live_in_required?: InputMaybe<Scalars['Boolean']['input']>;
   number_of_children?: InputMaybe<Scalars['Int']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   overtime_available?: InputMaybe<Scalars['Boolean']['input']>;
+  payment_frequency?: InputMaybe<Scalars['String']['input']>;
   pet_types?: InputMaybe<Array<Scalars['String']['input']>>;
   pets?: InputMaybe<Scalars['Boolean']['input']>;
   phone_number?: InputMaybe<Scalars['String']['input']>;
@@ -48585,6 +50239,7 @@ export type SponsorProfilesSetInput = {
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   religion?: InputMaybe<Scalars['String']['input']>;
   required_skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  room_amenities?: InputMaybe<Scalars['jsonb']['input']>;
   salary_budget_max?: InputMaybe<Scalars['Int']['input']>;
   salary_budget_min?: InputMaybe<Scalars['Int']['input']>;
   total_hires?: InputMaybe<Scalars['Int']['input']>;
@@ -48658,6 +50313,8 @@ export type SponsorProfilesStreamCursorValueInput = {
   background_check_completed?: InputMaybe<Scalars['Boolean']['input']>;
   children_ages?: InputMaybe<Array<Scalars['Int']['input']>>;
   city?: InputMaybe<Scalars['String']['input']>;
+  company?: InputMaybe<Scalars['String']['input']>;
+  contract_duration?: InputMaybe<Scalars['String']['input']>;
   country?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -48669,9 +50326,11 @@ export type SponsorProfilesStreamCursorValueInput = {
   identity_verified?: InputMaybe<Scalars['Boolean']['input']>;
   live_in_required?: InputMaybe<Scalars['Boolean']['input']>;
   number_of_children?: InputMaybe<Scalars['Int']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
   onboarding_completed?: InputMaybe<Scalars['Boolean']['input']>;
   onboarding_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   overtime_available?: InputMaybe<Scalars['Boolean']['input']>;
+  payment_frequency?: InputMaybe<Scalars['String']['input']>;
   pet_types?: InputMaybe<Array<Scalars['String']['input']>>;
   pets?: InputMaybe<Scalars['Boolean']['input']>;
   phone_number?: InputMaybe<Scalars['String']['input']>;
@@ -48684,6 +50343,7 @@ export type SponsorProfilesStreamCursorValueInput = {
   profile_completed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   religion?: InputMaybe<Scalars['String']['input']>;
   required_skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  room_amenities?: InputMaybe<Scalars['jsonb']['input']>;
   salary_budget_max?: InputMaybe<Scalars['Int']['input']>;
   salary_budget_min?: InputMaybe<Scalars['Int']['input']>;
   total_hires?: InputMaybe<Scalars['Int']['input']>;
@@ -48729,6 +50389,10 @@ export enum SponsorProfilesUpdateColumn {
   /** column name */
   CITY = 'city',
   /** column name */
+  COMPANY = 'company',
+  /** column name */
+  CONTRACT_DURATION = 'contract_duration',
+  /** column name */
   COUNTRY = 'country',
   /** column name */
   CREATED_AT = 'created_at',
@@ -48751,11 +50415,15 @@ export enum SponsorProfilesUpdateColumn {
   /** column name */
   NUMBER_OF_CHILDREN = 'number_of_children',
   /** column name */
+  OCCUPATION = 'occupation',
+  /** column name */
   ONBOARDING_COMPLETED = 'onboarding_completed',
   /** column name */
   ONBOARDING_COMPLETED_AT = 'onboarding_completed_at',
   /** column name */
   OVERTIME_AVAILABLE = 'overtime_available',
+  /** column name */
+  PAYMENT_FREQUENCY = 'payment_frequency',
   /** column name */
   PET_TYPES = 'pet_types',
   /** column name */
@@ -48781,6 +50449,8 @@ export enum SponsorProfilesUpdateColumn {
   /** column name */
   REQUIRED_SKILLS = 'required_skills',
   /** column name */
+  ROOM_AMENITIES = 'room_amenities',
+  /** column name */
   SALARY_BUDGET_MAX = 'salary_budget_max',
   /** column name */
   SALARY_BUDGET_MIN = 'salary_budget_min',
@@ -48797,8 +50467,18 @@ export enum SponsorProfilesUpdateColumn {
 }
 
 export type SponsorProfilesUpdates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<SponsorProfilesAppendInput>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<SponsorProfilesDeleteAtPathInput>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<SponsorProfilesDeleteElemInput>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<SponsorProfilesDeleteKeyInput>;
   /** increments the numeric columns with given value of the filtered values */
   _inc?: InputMaybe<SponsorProfilesIncInput>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<SponsorProfilesPrependInput>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<SponsorProfilesSetInput>;
   /** filter the rows which have to be updated */
@@ -50572,6 +52252,14 @@ export type SubscriptionRoot = {
   country_codes_by_pk?: Maybe<CountryCodes>;
   /** fetch data from the table in a streaming manner: "country_codes" */
   country_codes_stream: Array<CountryCodes>;
+  /** fetch data from the table: "crash_reports" */
+  crash_reports: Array<CrashReports>;
+  /** fetch aggregated fields from the table: "crash_reports" */
+  crash_reports_aggregate: CrashReportsAggregate;
+  /** fetch data from the table: "crash_reports" using primary key columns */
+  crash_reports_by_pk?: Maybe<CrashReports>;
+  /** fetch data from the table in a streaming manner: "crash_reports" */
+  crash_reports_stream: Array<CrashReports>;
   /** fetch data from the table: "credit_transactions" */
   credit_transactions: Array<CreditTransactions>;
   /** fetch aggregated fields from the table: "credit_transactions" */
@@ -50580,6 +52268,14 @@ export type SubscriptionRoot = {
   credit_transactions_by_pk?: Maybe<CreditTransactions>;
   /** fetch data from the table in a streaming manner: "credit_transactions" */
   credit_transactions_stream: Array<CreditTransactions>;
+  /** fetch data from the table: "customer_feedback" */
+  customer_feedback: Array<CustomerFeedback>;
+  /** fetch aggregated fields from the table: "customer_feedback" */
+  customer_feedback_aggregate: CustomerFeedbackAggregate;
+  /** fetch data from the table: "customer_feedback" using primary key columns */
+  customer_feedback_by_pk?: Maybe<CustomerFeedback>;
+  /** fetch data from the table in a streaming manner: "customer_feedback" */
+  customer_feedback_stream: Array<CustomerFeedback>;
   /** fetch data from the table: "dispute_evidence" */
   dispute_evidence: Array<DisputeEvidence>;
   /** fetch aggregated fields from the table: "dispute_evidence" */
@@ -50668,9 +52364,9 @@ export type SubscriptionRoot = {
   maid_bookings_by_pk?: Maybe<MaidBookings>;
   /** fetch data from the table in a streaming manner: "maid_bookings" */
   maid_bookings_stream: Array<MaidBookings>;
-  /** fetch data from the table: "maid_documents" */
+  /** An array relationship */
   maid_documents: Array<MaidDocuments>;
-  /** fetch aggregated fields from the table: "maid_documents" */
+  /** An aggregate relationship */
   maid_documents_aggregate: MaidDocumentsAggregate;
   /** fetch data from the table: "maid_documents" using primary key columns */
   maid_documents_by_pk?: Maybe<MaidDocuments>;
@@ -50722,6 +52418,14 @@ export type SubscriptionRoot = {
   messages_aggregate: MessagesAggregate;
   /** fetch data from the table in a streaming manner: "messages" */
   messages_stream: Array<Messages>;
+  /** fetch data from the table: "monitor_reports" */
+  monitor_reports: Array<MonitorReports>;
+  /** fetch aggregated fields from the table: "monitor_reports" */
+  monitor_reports_aggregate: MonitorReportsAggregate;
+  /** fetch data from the table: "monitor_reports" using primary key columns */
+  monitor_reports_by_pk?: Maybe<MonitorReports>;
+  /** fetch data from the table in a streaming manner: "monitor_reports" */
+  monitor_reports_stream: Array<MonitorReports>;
   /** An array relationship */
   news_items: Array<NewsItems>;
   /** An aggregate relationship */
@@ -52303,6 +54007,36 @@ export type SubscriptionRootCountryCodesStreamArgs = {
 };
 
 
+export type SubscriptionRootCrashReportsArgs = {
+  distinct_on?: InputMaybe<Array<CrashReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CrashReportsOrderBy>>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+
+export type SubscriptionRootCrashReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CrashReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CrashReportsOrderBy>>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+
+export type SubscriptionRootCrashReportsByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type SubscriptionRootCrashReportsStreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<CrashReportsStreamCursorInput>>;
+  where?: InputMaybe<CrashReportsBoolExp>;
+};
+
+
 export type SubscriptionRootCreditTransactionsArgs = {
   distinct_on?: InputMaybe<Array<CreditTransactionsSelectColumn>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -52330,6 +54064,36 @@ export type SubscriptionRootCreditTransactionsStreamArgs = {
   batch_size: Scalars['Int']['input'];
   cursor: Array<InputMaybe<CreditTransactionsStreamCursorInput>>;
   where?: InputMaybe<CreditTransactionsBoolExp>;
+};
+
+
+export type SubscriptionRootCustomerFeedbackArgs = {
+  distinct_on?: InputMaybe<Array<CustomerFeedbackSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CustomerFeedbackOrderBy>>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
+};
+
+
+export type SubscriptionRootCustomerFeedbackAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CustomerFeedbackSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<CustomerFeedbackOrderBy>>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
+};
+
+
+export type SubscriptionRootCustomerFeedbackByPkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type SubscriptionRootCustomerFeedbackStreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<CustomerFeedbackStreamCursorInput>>;
+  where?: InputMaybe<CustomerFeedbackBoolExp>;
 };
 
 
@@ -52865,6 +54629,36 @@ export type SubscriptionRootMessagesStreamArgs = {
   batch_size: Scalars['Int']['input'];
   cursor: Array<InputMaybe<MessagesStreamCursorInput>>;
   where?: InputMaybe<MessagesBoolExp>;
+};
+
+
+export type SubscriptionRootMonitorReportsArgs = {
+  distinct_on?: InputMaybe<Array<MonitorReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MonitorReportsOrderBy>>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
+};
+
+
+export type SubscriptionRootMonitorReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<MonitorReportsSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<MonitorReportsOrderBy>>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
+};
+
+
+export type SubscriptionRootMonitorReportsByPkArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type SubscriptionRootMonitorReportsStreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<MonitorReportsStreamCursorInput>>;
+  where?: InputMaybe<MonitorReportsBoolExp>;
 };
 
 
@@ -57771,7 +59565,9 @@ export type SystemSettingsBoolExp = {
 /** unique or primary key constraints on table "system_settings" */
 export enum SystemSettingsConstraint {
   /** unique or primary key constraint on columns "id" */
-  SYSTEM_SETTINGS_PKEY = 'system_settings_pkey'
+  SYSTEM_SETTINGS_PKEY = 'system_settings_pkey',
+  /** unique or primary key constraint on columns "setting_key" */
+  SYSTEM_SETTINGS_SETTING_KEY_KEY = 'system_settings_setting_key_key'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -61973,7 +63769,7 @@ export type CreateAgencyProfileMutationVariables = Exact<{
 }>;
 
 
-export type CreateAgencyProfileMutation = { __typename?: 'mutation_root', insert_agency_profiles_one?: { __typename?: 'agency_profiles', id: string, full_name: string, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, subscription_tier?: string | null, created_at?: string | null } | null };
+export type CreateAgencyProfileMutation = { __typename?: 'mutation_root', insert_agency_profiles_one?: { __typename?: 'agency_profiles', id: string, full_name?: string | null, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, subscription_tier?: string | null, created_at?: string | null } | null };
 
 export type UpdateAgencyProfileMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -61981,7 +63777,7 @@ export type UpdateAgencyProfileMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgencyProfileMutation = { __typename?: 'mutation_root', update_agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name: string, license_number?: string | null, registration_country?: string | null, established_year?: number | null, business_address?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, contact_person_name?: string | null, contact_person_title?: string | null, head_office_address?: string | null, agency_description?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, authorized_person_id_number?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, guarantee_period_months?: number | null, license_verified?: boolean | null, accreditation_bodies?: Array<string> | null, certifications?: Array<string> | null, license_expiry_date?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, average_rating?: any | null, subscription_tier?: string | null, subscription_expires_at?: string | null, logo_url?: string | null, logo_file_preview?: string | null, trade_license_document?: string | null, authorized_person_id_document?: string | null, agency_contract_template?: string | null, trade_license_verification_status?: string | null, authorized_person_id_verification_status?: string | null, contract_template_verification_status?: string | null, updated_at?: string | null } | null };
+export type UpdateAgencyProfileMutation = { __typename?: 'mutation_root', update_agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name?: string | null, license_number?: string | null, registration_country?: string | null, established_year?: number | null, business_address?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, contact_person_name?: string | null, contact_person_title?: string | null, head_office_address?: string | null, agency_description?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, authorized_person_id_number?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, guarantee_period_months?: number | null, license_verified?: boolean | null, accreditation_bodies?: Array<string> | null, certifications?: Array<string> | null, license_expiry_date?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, average_rating?: any | null, subscription_tier?: string | null, subscription_expires_at?: string | null, logo_url?: string | null, logo_file_preview?: string | null, trade_license_document?: string | null, authorized_person_id_document?: string | null, agency_contract_template?: string | null, trade_license_verification_status?: string | null, authorized_person_id_verification_status?: string | null, contract_template_verification_status?: string | null, updated_at?: string | null } | null };
 
 export type DeleteAgencyProfileMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -62645,7 +64441,7 @@ export type CreateSponsorProfileMutationVariables = Exact<{
 }>;
 
 
-export type CreateSponsorProfileMutation = { __typename?: 'mutation_root', insert_sponsor_profiles_one?: { __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, created_at?: string | null, updated_at?: string | null } | null };
+export type CreateSponsorProfileMutation = { __typename?: 'mutation_root', insert_sponsor_profiles_one?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type UpdateSponsorProfileMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -62653,7 +64449,7 @@ export type UpdateSponsorProfileMutationVariables = Exact<{
 }>;
 
 
-export type UpdateSponsorProfileMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, updated_at?: string | null } | null };
+export type UpdateSponsorProfileMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, profile_completed?: boolean | null, profile_completed_at?: string | null, onboarding_completed?: boolean | null, onboarding_completed_at?: string | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, updated_at?: string | null } | null };
 
 export type DeleteSponsorProfileMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -62667,14 +64463,14 @@ export type IncrementActiveJobPostingsMutationVariables = Exact<{
 }>;
 
 
-export type IncrementActiveJobPostingsMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, active_job_postings?: number | null } | null };
+export type IncrementActiveJobPostingsMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, profile_completed?: boolean | null, profile_completed_at?: string | null, onboarding_completed?: boolean | null, onboarding_completed_at?: string | null, active_job_postings?: number | null } | null };
 
 export type DecrementActiveJobPostingsMutationVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type DecrementActiveJobPostingsMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, active_job_postings?: number | null } | null };
+export type DecrementActiveJobPostingsMutation = { __typename?: 'mutation_root', update_sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, profile_completed?: boolean | null, profile_completed_at?: string | null, onboarding_completed?: boolean | null, onboarding_completed_at?: string | null, active_job_postings?: number | null } | null };
 
 export type IncrementTotalHiresMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -62774,19 +64570,29 @@ export type BulkDeleteWhatsAppMessagesMutationVariables = Exact<{
 
 export type BulkDeleteWhatsAppMessagesMutation = { __typename?: 'mutation_root', delete_whatsapp_messages?: { __typename?: 'whatsapp_messages_mutation_response', affected_rows: number } | null };
 
+export type GetAdminDashboardDataQueryVariables = Exact<{
+  activityLimit: Scalars['Int']['input'];
+  transactionsLimit: Scalars['Int']['input'];
+  startOfMonth: Scalars['timestamptz']['input'];
+  weekAgo: Scalars['timestamptz']['input'];
+}>;
+
+
+export type GetAdminDashboardDataQuery = { __typename?: 'query_root', total_profiles: { __typename?: 'profiles_aggregate', aggregate?: { __typename?: 'profiles_aggregate_fields', count: number } | null }, new_profiles_this_week: { __typename?: 'profiles_aggregate', aggregate?: { __typename?: 'profiles_aggregate_fields', count: number } | null }, admin_activity_logs: Array<{ __typename?: 'admin_activity_logs', id: string, action: string, resource_type: string, resource_id?: string | null, created_at?: string | null, admin_user: { __typename?: 'admin_users', full_name: string } }>, maid_profiles_aggregate: { __typename?: 'maid_profiles_aggregate', aggregate?: { __typename?: 'maid_profiles_aggregate_fields', count: number } | null }, agency_profiles_aggregate: { __typename?: 'agency_profiles_aggregate', aggregate?: { __typename?: 'agency_profiles_aggregate_fields', count: number } | null }, sponsor_profiles_aggregate: { __typename?: 'sponsor_profiles_aggregate', aggregate?: { __typename?: 'sponsor_profiles_aggregate_fields', count: number } | null }, pending_verifications: { __typename?: 'maid_profiles_aggregate', aggregate?: { __typename?: 'maid_profiles_aggregate_fields', count: number } | null }, pending_jobs: { __typename?: 'jobs_aggregate', aggregate?: { __typename?: 'jobs_aggregate_fields', count: number } | null }, open_tickets: { __typename?: 'support_tickets_aggregate', aggregate?: { __typename?: 'support_tickets_aggregate_fields', count: number } | null }, high_priority_tickets: { __typename?: 'support_tickets_aggregate', aggregate?: { __typename?: 'support_tickets_aggregate_fields', count: number } | null }, placement_fee_transactions_aggregate: { __typename?: 'placement_fee_transactions_aggregate', aggregate?: { __typename?: 'placement_fee_transactions_aggregate_fields', count: number, sum?: { __typename?: 'placement_fee_transactions_sum_fields', fee_amount?: any | null, amount_charged?: any | null } | null } | null }, placement_fee_transactions: Array<{ __typename?: 'placement_fee_transactions', id: string, fee_amount: any, amount_charged: any, credits_applied?: any | null, currency?: string | null, fee_status: string, created_at?: string | null, agency_id: string }> };
+
 export type GetAgencyProfileCompleteQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetAgencyProfileCompleteQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name: string, license_number?: string | null, registration_country?: string | null, established_year?: number | null, business_address?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, contact_person_name?: string | null, contact_person_title?: string | null, head_office_address?: string | null, agency_description?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, authorized_person_id_number?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, guarantee_period_months?: number | null, license_verified?: boolean | null, accreditation_bodies?: Array<string> | null, certifications?: Array<string> | null, license_expiry_date?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, average_rating?: any | null, subscription_tier?: string | null, subscription_expires_at?: string | null, logo_url?: string | null, logo_file_preview?: string | null, trade_license_document?: string | null, authorized_person_id_document?: string | null, agency_contract_template?: string | null, trade_license_verification_status?: string | null, authorized_person_id_verification_status?: string | null, contract_template_verification_status?: string | null, created_at?: string | null, updated_at?: string | null } | null };
+export type GetAgencyProfileCompleteQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name?: string | null, license_number?: string | null, registration_country?: string | null, established_year?: number | null, business_address?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, contact_person_name?: string | null, contact_person_title?: string | null, head_office_address?: string | null, agency_description?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, authorized_person_id_number?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, placement_fee_percentage?: any | null, guarantee_period_months?: number | null, license_verified?: boolean | null, accreditation_bodies?: Array<string> | null, certifications?: Array<string> | null, license_expiry_date?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, average_rating?: any | null, subscription_tier?: string | null, subscription_expires_at?: string | null, logo_url?: string | null, logo_file_preview?: string | null, trade_license_document?: string | null, authorized_person_id_document?: string | null, agency_contract_template?: string | null, trade_license_verification_status?: string | null, authorized_person_id_verification_status?: string | null, contract_template_verification_status?: string | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type GetAgencyProfileQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetAgencyProfileQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name: string, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, subscription_tier?: string | null, created_at?: string | null, updated_at?: string | null } | null };
+export type GetAgencyProfileQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name?: string | null, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, active_listings?: number | null, subscription_tier?: string | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type ListAgencyProfilesQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -62796,14 +64602,14 @@ export type ListAgencyProfilesQueryVariables = Exact<{
 }>;
 
 
-export type ListAgencyProfilesQuery = { __typename?: 'query_root', agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name: string, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, website_url?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, license_verified?: boolean | null, subscription_tier?: string | null, created_at?: string | null }>, agency_profiles_aggregate: { __typename?: 'agency_profiles_aggregate', aggregate?: { __typename?: 'agency_profiles_aggregate_fields', count: number } | null } };
+export type ListAgencyProfilesQuery = { __typename?: 'query_root', agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name?: string | null, license_number?: string | null, registration_country?: string | null, business_phone?: string | null, website_url?: string | null, specialization?: Array<string> | null, service_countries?: Array<string> | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, license_verified?: boolean | null, subscription_tier?: string | null, created_at?: string | null }>, agency_profiles_aggregate: { __typename?: 'agency_profiles_aggregate', aggregate?: { __typename?: 'agency_profiles_aggregate_fields', count: number } | null } };
 
 export type GetAgencySettingsQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetAgencySettingsQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name: string, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, head_office_address?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, logo_url?: string | null, created_at?: string | null, updated_at?: string | null } | null };
+export type GetAgencySettingsQuery = { __typename?: 'query_root', agency_profiles_by_pk?: { __typename?: 'agency_profiles', id: string, full_name?: string | null, business_phone?: string | null, business_email?: string | null, website_url?: string | null, agency_description?: string | null, head_office_address?: string | null, support_hours_start?: string | null, support_hours_end?: string | null, emergency_contact_phone?: string | null, authorized_person_name?: string | null, authorized_person_position?: string | null, authorized_person_phone?: string | null, authorized_person_email?: string | null, contact_phone_verified?: boolean | null, official_email_verified?: boolean | null, authorized_person_phone_verified?: boolean | null, authorized_person_email_verified?: boolean | null, logo_url?: string | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type SearchAgenciesQueryVariables = Exact<{
   searchTerm: Scalars['String']['input'];
@@ -62811,7 +64617,7 @@ export type SearchAgenciesQueryVariables = Exact<{
 }>;
 
 
-export type SearchAgenciesQuery = { __typename?: 'query_root', agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name: string, registration_country?: string | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, specialization?: Array<string> | null, service_countries?: Array<string> | null }> };
+export type SearchAgenciesQuery = { __typename?: 'query_root', agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name?: string | null, registration_country?: string | null, average_rating?: any | null, total_maids_managed?: number | null, successful_placements?: number | null, specialization?: Array<string> | null, service_countries?: Array<string> | null }> };
 
 export type GetBookingRequestCompleteQueryVariables = Exact<{
   id: Scalars['uuid']['input'];
@@ -62950,7 +64756,7 @@ export type GetJobCompleteQueryVariables = Exact<{
 }>;
 
 
-export type GetJobCompleteQuery = { __typename?: 'query_root', jobs_by_pk?: { __typename?: 'jobs', id: string, title: string, description?: string | null, job_type?: string | null, country?: string | null, city?: string | null, address?: string | null, required_skills?: Array<string> | null, preferred_nationality?: Array<string> | null, languages_required?: Array<string> | null, minimum_experience_years?: number | null, age_preference_min?: number | null, age_preference_max?: number | null, education_requirement?: string | null, working_hours_per_day?: number | null, working_days_per_week?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, live_in_required?: boolean | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, salary_period?: string | null, benefits?: Array<string> | null, contract_duration_months?: number | null, start_date?: any | null, end_date?: any | null, probation_period_months?: number | null, status: string, urgency_level?: string | null, max_applications?: number | null, auto_expire_days?: number | null, requires_approval?: boolean | null, featured?: boolean | null, featured_until?: string | null, expires_at?: string | null, applications_count?: number | null, views_count?: number | null, created_at?: string | null, updated_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string, phone_number?: string | null, avatar_url?: string | null, country?: string | null } | null, applications: Array<{ __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, maid_profile?: { __typename?: 'maid_profiles', id: string, first_name?: string | null, last_name?: string | null, profile_photo_url?: string | null, verification_status?: string | null } | null }> } | null };
+export type GetJobCompleteQuery = { __typename?: 'query_root', jobs_by_pk?: { __typename?: 'jobs', id: string, title: string, description?: string | null, job_type?: string | null, country?: string | null, city?: string | null, address?: string | null, required_skills?: Array<string> | null, preferred_nationality?: Array<string> | null, languages_required?: Array<string> | null, minimum_experience_years?: number | null, age_preference_min?: number | null, age_preference_max?: number | null, education_requirement?: string | null, working_hours_per_day?: number | null, working_days_per_week?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, live_in_required?: boolean | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, salary_period?: string | null, benefits?: Array<string> | null, contract_duration_months?: number | null, start_date?: any | null, end_date?: any | null, probation_period_months?: number | null, status: string, urgency_level?: string | null, max_applications?: number | null, auto_expire_days?: number | null, requires_approval?: boolean | null, featured?: boolean | null, featured_until?: string | null, expires_at?: string | null, applications_count?: number | null, views_count?: number | null, created_at?: string | null, updated_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, phone_number?: string | null, avatar_url?: string | null, country?: string | null } | null, applications: Array<{ __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, maid_profile?: { __typename?: 'maid_profiles', id: string, first_name?: string | null, last_name?: string | null, profile_photo_url?: string | null, verification_status?: string | null } | null }> } | null };
 
 export type GetJobsWithFiltersQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -62960,7 +64766,7 @@ export type GetJobsWithFiltersQueryVariables = Exact<{
 }>;
 
 
-export type GetJobsWithFiltersQuery = { __typename?: 'query_root', jobs: Array<{ __typename?: 'jobs', id: string, title: string, description?: string | null, job_type?: string | null, country?: string | null, city?: string | null, required_skills?: Array<string> | null, languages_required?: Array<string> | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, salary_period?: string | null, status: string, urgency_level?: string | null, applications_count?: number | null, views_count?: number | null, featured?: boolean | null, expires_at?: string | null, created_at?: string | null, live_in_required?: boolean | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string, avatar_url?: string | null } | null }>, jobs_aggregate: { __typename?: 'jobs_aggregate', aggregate?: { __typename?: 'jobs_aggregate_fields', count: number } | null } };
+export type GetJobsWithFiltersQuery = { __typename?: 'query_root', jobs: Array<{ __typename?: 'jobs', id: string, title: string, description?: string | null, job_type?: string | null, country?: string | null, city?: string | null, required_skills?: Array<string> | null, languages_required?: Array<string> | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, salary_period?: string | null, status: string, urgency_level?: string | null, applications_count?: number | null, views_count?: number | null, featured?: boolean | null, expires_at?: string | null, created_at?: string | null, live_in_required?: boolean | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, avatar_url?: string | null } | null }>, jobs_aggregate: { __typename?: 'jobs_aggregate', aggregate?: { __typename?: 'jobs_aggregate_fields', count: number } | null } };
 
 export type GetSponsorJobsQueryVariables = Exact<{
   sponsorId: Scalars['String']['input'];
@@ -62988,14 +64794,14 @@ export type GetMaidApplicationsQueryVariables = Exact<{
 }>;
 
 
-export type GetMaidApplicationsQuery = { __typename?: 'query_root', applications: Array<{ __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, job?: { __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, job_type?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string, avatar_url?: string | null } | null } | null }>, applications_aggregate: { __typename?: 'applications_aggregate', aggregate?: { __typename?: 'applications_aggregate_fields', count: number } | null } };
+export type GetMaidApplicationsQuery = { __typename?: 'query_root', applications: Array<{ __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, job?: { __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, job_type?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, avatar_url?: string | null } | null } | null }>, applications_aggregate: { __typename?: 'applications_aggregate', aggregate?: { __typename?: 'applications_aggregate_fields', count: number } | null } };
 
 export type GetApplicationByIdQueryVariables = Exact<{
   id: Scalars['uuid']['input'];
 }>;
 
 
-export type GetApplicationByIdQuery = { __typename?: 'query_root', applications_by_pk?: { __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, maid_profile?: { __typename?: 'maid_profiles', id: string, first_name?: string | null, last_name?: string | null, profile_photo_url?: string | null, verification_status?: string | null } | null, job?: { __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, sponsor_id?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string, avatar_url?: string | null } | null } | null } | null };
+export type GetApplicationByIdQuery = { __typename?: 'query_root', applications_by_pk?: { __typename?: 'applications', id: string, status?: string | null, application_status?: string | null, cover_letter?: string | null, notes?: string | null, match_score?: number | null, offer_amount?: number | null, offer_currency?: string | null, created_at?: string | null, updated_at?: string | null, maid_profile?: { __typename?: 'maid_profiles', id: string, first_name?: string | null, last_name?: string | null, profile_photo_url?: string | null, verification_status?: string | null } | null, job?: { __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, sponsor_id?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, avatar_url?: string | null } | null } | null } | null };
 
 export type GetSponsorJobStatsQueryVariables = Exact<{
   sponsorId: Scalars['String']['input'];
@@ -63011,7 +64817,7 @@ export type GetAvailableJobsQueryVariables = Exact<{
 }>;
 
 
-export type GetAvailableJobsQuery = { __typename?: 'query_root', jobs: Array<{ __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, job_type?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, created_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string } | null }>, jobs_aggregate: { __typename?: 'jobs_aggregate', aggregate?: { __typename?: 'jobs_aggregate_fields', count: number } | null } };
+export type GetAvailableJobsQuery = { __typename?: 'query_root', jobs: Array<{ __typename?: 'jobs', id: string, title: string, description?: string | null, country?: string | null, city?: string | null, job_type?: string | null, salary_min?: number | null, salary_max?: number | null, currency?: string | null, status: string, created_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null } | null }>, jobs_aggregate: { __typename?: 'jobs_aggregate', aggregate?: { __typename?: 'jobs_aggregate_fields', count: number } | null } };
 
 export type GetMaidProfileCompleteQueryVariables = Exact<{
   id: Scalars['String']['input'];
@@ -63236,14 +65042,14 @@ export type GetSponsorProfileDataQueryVariables = Exact<{
 }>;
 
 
-export type GetSponsorProfileDataQuery = { __typename?: 'query_root', profiles_by_pk?: { __typename?: 'profiles', id: string, email: string, full_name?: string | null, phone?: string | null, country?: string | null, avatar_url?: string | null, user_type: string, created_at?: string | null, updated_at?: string | null } | null, sponsor_profiles: Array<{ __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, phone_number?: string | null, religion?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null }> };
+export type GetSponsorProfileDataQuery = { __typename?: 'query_root', profiles_by_pk?: { __typename?: 'profiles', id: string, email: string, full_name?: string | null, phone?: string | null, country?: string | null, avatar_url?: string | null, user_type: string, created_at?: string | null, updated_at?: string | null } | null, sponsor_profiles: Array<{ __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, phone_number?: string | null, religion?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null }> };
 
 export type GetAgencyProfileDataQueryVariables = Exact<{
   userId: Scalars['String']['input'];
 }>;
 
 
-export type GetAgencyProfileDataQuery = { __typename?: 'query_root', profiles_by_pk?: { __typename?: 'profiles', id: string, email: string, full_name?: string | null, phone?: string | null, country?: string | null, avatar_url?: string | null, user_type: string, created_at?: string | null, updated_at?: string | null } | null, agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name: string, agency_description?: string | null, license_number?: string | null, license_expiry_date?: any | null, business_email?: string | null, business_phone?: string | null, address?: string | null, city?: string | null, country?: string | null, website_url?: string | null, logo_url?: string | null, authorized_person_name?: string | null, authorized_person_email?: string | null, authorized_person_phone?: string | null, service_countries?: Array<string> | null, specialization?: Array<string> | null, total_maids?: number | null, active_listings?: number | null, successful_placements?: number | null, average_rating?: any | null, verification_status?: string | null, verified?: boolean | null }> };
+export type GetAgencyProfileDataQuery = { __typename?: 'query_root', profiles_by_pk?: { __typename?: 'profiles', id: string, email: string, full_name?: string | null, phone?: string | null, country?: string | null, avatar_url?: string | null, user_type: string, created_at?: string | null, updated_at?: string | null } | null, agency_profiles: Array<{ __typename?: 'agency_profiles', id: string, full_name?: string | null, agency_description?: string | null, license_number?: string | null, license_expiry_date?: any | null, business_email?: string | null, business_phone?: string | null, address?: string | null, city?: string | null, country?: string | null, website_url?: string | null, logo_url?: string | null, authorized_person_name?: string | null, authorized_person_email?: string | null, authorized_person_phone?: string | null, service_countries?: Array<string> | null, specialization?: Array<string> | null, total_maids?: number | null, active_listings?: number | null, successful_placements?: number | null, average_rating?: any | null, verification_status?: string | null, verified?: boolean | null }> };
 
 export type GetUserProfileDataQueryVariables = Exact<{
   userId: Scalars['String']['input'];
@@ -63257,14 +65063,14 @@ export type GetSponsorProfileCompleteQueryVariables = Exact<{
 }>;
 
 
-export type GetSponsorProfileCompleteQuery = { __typename?: 'query_root', sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null, updated_at?: string | null } | null };
+export type GetSponsorProfileCompleteQuery = { __typename?: 'query_root', sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, children_ages?: Array<number> | null, elderly_care_needed?: boolean | null, pets?: boolean | null, pet_types?: Array<string> | null, city?: string | null, country?: string | null, address?: string | null, accommodation_type?: string | null, preferred_nationality?: Array<string> | null, preferred_experience_years?: number | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, live_in_required?: boolean | null, working_hours_per_day?: number | null, days_off_per_week?: number | null, overtime_available?: boolean | null, additional_benefits?: Array<string> | null, religion?: string | null, avatar_url?: string | null, phone_number?: string | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type GetSponsorProfileQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetSponsorProfileQuery = { __typename?: 'query_root', sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, preferred_nationality?: Array<string> | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null, updated_at?: string | null } | null };
+export type GetSponsorProfileQuery = { __typename?: 'query_root', sponsor_profiles_by_pk?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, preferred_nationality?: Array<string> | null, required_skills?: Array<string> | null, preferred_languages?: Array<string> | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, identity_verified?: boolean | null, background_check_completed?: boolean | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null, updated_at?: string | null } | null };
 
 export type ListSponsorProfilesQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -63274,7 +65080,7 @@ export type ListSponsorProfilesQueryVariables = Exact<{
 }>;
 
 
-export type ListSponsorProfilesQuery = { __typename?: 'query_root', sponsor_profiles: Array<{ __typename?: 'sponsor_profiles', id: string, full_name: string, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null }>, sponsor_profiles_aggregate: { __typename?: 'sponsor_profiles_aggregate', aggregate?: { __typename?: 'sponsor_profiles_aggregate_fields', count: number } | null } };
+export type ListSponsorProfilesQuery = { __typename?: 'query_root', sponsor_profiles: Array<{ __typename?: 'sponsor_profiles', id: string, full_name?: string | null, household_size?: number | null, number_of_children?: number | null, city?: string | null, country?: string | null, salary_budget_min?: number | null, salary_budget_max?: number | null, currency?: string | null, active_job_postings?: number | null, total_hires?: number | null, average_rating?: any | null, created_at?: string | null }>, sponsor_profiles_aggregate: { __typename?: 'sponsor_profiles_aggregate', aggregate?: { __typename?: 'sponsor_profiles_aggregate_fields', count: number } | null } };
 
 export type GetWhatsAppMessagesQueryVariables = Exact<{
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
@@ -63429,7 +65235,7 @@ export type OnBookingRequestsSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnBookingRequestsSubscription = { __typename?: 'subscription_root', bookings: Array<{ __typename?: 'bookings', id: string, status: string, start_date: any, end_date?: any | null, salary_amount?: any | null, salary_currency?: string | null, created_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name: string } | null }> };
+export type OnBookingRequestsSubscription = { __typename?: 'subscription_root', bookings: Array<{ __typename?: 'bookings', id: string, status: string, start_date: any, end_date?: any | null, salary_amount?: any | null, salary_currency?: string | null, created_at?: string | null, sponsor_profile?: { __typename?: 'sponsor_profiles', id: string, full_name?: string | null } | null }> };
 
 export type OnJobInteractionsSubscriptionVariables = Exact<{
   sponsorId: Scalars['String']['input'];
@@ -63627,10 +65433,10 @@ export const UpdateSponsorProfileDataDocument = {"kind":"Document","definitions"
 export const UpdateAgencyProfileDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateAgencyProfileData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"profileData"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"profiles_set_input"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"agencyData"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"agency_profiles_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"profileData"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"update_agency_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"agencyData"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<UpdateAgencyProfileDataMutation, UpdateAgencyProfileDataMutationVariables>;
 export const UpdateProfileAvatarUrlDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateProfileAvatarUrl"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"avatarUrl"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"avatar_url"},"value":{"kind":"Variable","name":{"kind":"Name","value":"avatarUrl"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"avatar_url"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<UpdateProfileAvatarUrlMutation, UpdateProfileAvatarUrlMutationVariables>;
 export const CreateSponsorProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateSponsorProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"sponsor_profiles_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_sponsor_profiles_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<CreateSponsorProfileMutation, CreateSponsorProfileMutationVariables>;
-export const UpdateSponsorProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSponsorProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"sponsor_profiles_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"children_ages"}},{"kind":"Field","name":{"kind":"Name","value":"elderly_care_needed"}},{"kind":"Field","name":{"kind":"Name","value":"pets"}},{"kind":"Field","name":{"kind":"Name","value":"pet_types"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"accommodation_type"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_experience_years"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"live_in_required"}},{"kind":"Field","name":{"kind":"Name","value":"working_hours_per_day"}},{"kind":"Field","name":{"kind":"Name","value":"days_off_per_week"}},{"kind":"Field","name":{"kind":"Name","value":"overtime_available"}},{"kind":"Field","name":{"kind":"Name","value":"additional_benefits"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<UpdateSponsorProfileMutation, UpdateSponsorProfileMutationVariables>;
+export const UpdateSponsorProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSponsorProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"sponsor_profiles_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"children_ages"}},{"kind":"Field","name":{"kind":"Name","value":"elderly_care_needed"}},{"kind":"Field","name":{"kind":"Name","value":"pets"}},{"kind":"Field","name":{"kind":"Name","value":"pet_types"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"accommodation_type"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_experience_years"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"live_in_required"}},{"kind":"Field","name":{"kind":"Name","value":"working_hours_per_day"}},{"kind":"Field","name":{"kind":"Name","value":"days_off_per_week"}},{"kind":"Field","name":{"kind":"Name","value":"overtime_available"}},{"kind":"Field","name":{"kind":"Name","value":"additional_benefits"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<UpdateSponsorProfileMutation, UpdateSponsorProfileMutationVariables>;
 export const DeleteSponsorProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSponsorProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteSponsorProfileMutation, DeleteSponsorProfileMutationVariables>;
-export const IncrementActiveJobPostingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"IncrementActiveJobPostings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_inc"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"active_job_postings"},"value":{"kind":"IntValue","value":"1"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}}]}}]}}]} as unknown as DocumentNode<IncrementActiveJobPostingsMutation, IncrementActiveJobPostingsMutationVariables>;
-export const DecrementActiveJobPostingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DecrementActiveJobPostings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_inc"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"active_job_postings"},"value":{"kind":"IntValue","value":"-1"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}}]}}]}}]} as unknown as DocumentNode<DecrementActiveJobPostingsMutation, DecrementActiveJobPostingsMutationVariables>;
+export const IncrementActiveJobPostingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"IncrementActiveJobPostings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_inc"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"active_job_postings"},"value":{"kind":"IntValue","value":"1"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}}]}}]}}]} as unknown as DocumentNode<IncrementActiveJobPostingsMutation, IncrementActiveJobPostingsMutationVariables>;
+export const DecrementActiveJobPostingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DecrementActiveJobPostings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_inc"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"active_job_postings"},"value":{"kind":"IntValue","value":"-1"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed"}},{"kind":"Field","name":{"kind":"Name","value":"profile_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed"}},{"kind":"Field","name":{"kind":"Name","value":"onboarding_completed_at"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}}]}}]}}]} as unknown as DocumentNode<DecrementActiveJobPostingsMutation, DecrementActiveJobPostingsMutationVariables>;
 export const IncrementTotalHiresDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"IncrementTotalHires"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_inc"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"total_hires"},"value":{"kind":"IntValue","value":"1"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}}]}}]}}]} as unknown as DocumentNode<IncrementTotalHiresMutation, IncrementTotalHiresMutationVariables>;
 export const UpdateSponsorAverageRatingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSponsorAverageRating"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rating"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"numeric"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"average_rating"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rating"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}}]}}]}}]} as unknown as DocumentNode<UpdateSponsorAverageRatingMutation, UpdateSponsorAverageRatingMutationVariables>;
 export const InsertWhatsAppMessageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertWhatsAppMessage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"whatsapp_messages_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_whatsapp_messages_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"phone_number"}},{"kind":"Field","name":{"kind":"Name","value":"message_content"}},{"kind":"Field","name":{"kind":"Name","value":"message_type"}},{"kind":"Field","name":{"kind":"Name","value":"sender"}},{"kind":"Field","name":{"kind":"Name","value":"received_at"}},{"kind":"Field","name":{"kind":"Name","value":"ai_response"}},{"kind":"Field","name":{"kind":"Name","value":"processed"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}}]}}]} as unknown as DocumentNode<InsertWhatsAppMessageMutation, InsertWhatsAppMessageMutationVariables>;
@@ -63644,6 +65450,7 @@ export const UpdatePlatformSettingsDocument = {"kind":"Document","definitions":[
 export const InsertPlatformSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPlatformSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"platform_settings_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_platform_settings_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"platform_name"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}}]}}]} as unknown as DocumentNode<InsertPlatformSettingsMutation, InsertPlatformSettingsMutationVariables>;
 export const DeleteWhatsAppMessageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteWhatsAppMessage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_whatsapp_messages_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteWhatsAppMessageMutation, DeleteWhatsAppMessageMutationVariables>;
 export const BulkDeleteWhatsAppMessagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"BulkDeleteWhatsAppMessages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"phoneNumber"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_whatsapp_messages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"phone_number"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"phoneNumber"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"affected_rows"}}]}}]}}]} as unknown as DocumentNode<BulkDeleteWhatsAppMessagesMutation, BulkDeleteWhatsAppMessagesMutationVariables>;
+export const GetAdminDashboardDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAdminDashboardData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"activityLimit"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"transactionsLimit"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startOfMonth"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"timestamptz"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"weekAgo"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"timestamptz"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"total_profiles"},"name":{"kind":"Name","value":"profiles_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"is_active"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"BooleanValue","value":true}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"new_profiles_this_week"},"name":{"kind":"Name","value":"profiles_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"is_active"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"BooleanValue","value":true}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"weekAgo"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"admin_activity_logs"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"EnumValue","value":"desc"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"activityLimit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"action"}},{"kind":"Field","name":{"kind":"Name","value":"resource_type"}},{"kind":"Field","name":{"kind":"Name","value":"resource_id"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"admin_user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"full_name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"maid_profiles_aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"agency_profiles_aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles_aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"pending_verifications"},"name":{"kind":"Name","value":"maid_profiles_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"verification_status"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"StringValue","value":"pending","block":false}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"pending_jobs"},"name":{"kind":"Name","value":"jobs_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_in"},"value":{"kind":"ListValue","values":[{"kind":"StringValue","value":"pending","block":false},{"kind":"StringValue","value":"pending_review","block":false},{"kind":"StringValue","value":"draft","block":false}]}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"open_tickets"},"name":{"kind":"Name","value":"support_tickets_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_in"},"value":{"kind":"ListValue","values":[{"kind":"StringValue","value":"open","block":false},{"kind":"StringValue","value":"in_progress","block":false},{"kind":"StringValue","value":"waiting_user","block":false}]}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"high_priority_tickets"},"name":{"kind":"Name","value":"support_tickets_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_in"},"value":{"kind":"ListValue","values":[{"kind":"StringValue","value":"open","block":false},{"kind":"StringValue","value":"in_progress","block":false}]}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"priority"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_in"},"value":{"kind":"ListValue","values":[{"kind":"StringValue","value":"high","block":false},{"kind":"StringValue","value":"urgent","block":false}]}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"placement_fee_transactions_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startOfMonth"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"sum"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fee_amount"}},{"kind":"Field","name":{"kind":"Name","value":"amount_charged"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"placement_fee_transactions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"EnumValue","value":"desc"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"transactionsLimit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fee_amount"}},{"kind":"Field","name":{"kind":"Name","value":"amount_charged"}},{"kind":"Field","name":{"kind":"Name","value":"credits_applied"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"fee_status"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"agency_id"}}]}}]}}]} as unknown as DocumentNode<GetAdminDashboardDataQuery, GetAdminDashboardDataQueryVariables>;
 export const GetAgencyProfileCompleteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAgencyProfileComplete"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"agency_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"license_number"}},{"kind":"Field","name":{"kind":"Name","value":"registration_country"}},{"kind":"Field","name":{"kind":"Name","value":"established_year"}},{"kind":"Field","name":{"kind":"Name","value":"business_address"}},{"kind":"Field","name":{"kind":"Name","value":"business_phone"}},{"kind":"Field","name":{"kind":"Name","value":"business_email"}},{"kind":"Field","name":{"kind":"Name","value":"website_url"}},{"kind":"Field","name":{"kind":"Name","value":"contact_person_name"}},{"kind":"Field","name":{"kind":"Name","value":"contact_person_title"}},{"kind":"Field","name":{"kind":"Name","value":"head_office_address"}},{"kind":"Field","name":{"kind":"Name","value":"agency_description"}},{"kind":"Field","name":{"kind":"Name","value":"support_hours_start"}},{"kind":"Field","name":{"kind":"Name","value":"support_hours_end"}},{"kind":"Field","name":{"kind":"Name","value":"emergency_contact_phone"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_name"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_position"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_phone"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_email"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_id_number"}},{"kind":"Field","name":{"kind":"Name","value":"contact_phone_verified"}},{"kind":"Field","name":{"kind":"Name","value":"official_email_verified"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_phone_verified"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_email_verified"}},{"kind":"Field","name":{"kind":"Name","value":"specialization"}},{"kind":"Field","name":{"kind":"Name","value":"service_countries"}},{"kind":"Field","name":{"kind":"Name","value":"placement_fee_percentage"}},{"kind":"Field","name":{"kind":"Name","value":"guarantee_period_months"}},{"kind":"Field","name":{"kind":"Name","value":"license_verified"}},{"kind":"Field","name":{"kind":"Name","value":"accreditation_bodies"}},{"kind":"Field","name":{"kind":"Name","value":"certifications"}},{"kind":"Field","name":{"kind":"Name","value":"license_expiry_date"}},{"kind":"Field","name":{"kind":"Name","value":"total_maids_managed"}},{"kind":"Field","name":{"kind":"Name","value":"successful_placements"}},{"kind":"Field","name":{"kind":"Name","value":"active_listings"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"subscription_tier"}},{"kind":"Field","name":{"kind":"Name","value":"subscription_expires_at"}},{"kind":"Field","name":{"kind":"Name","value":"logo_url"}},{"kind":"Field","name":{"kind":"Name","value":"logo_file_preview"}},{"kind":"Field","name":{"kind":"Name","value":"trade_license_document"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_id_document"}},{"kind":"Field","name":{"kind":"Name","value":"agency_contract_template"}},{"kind":"Field","name":{"kind":"Name","value":"trade_license_verification_status"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_id_verification_status"}},{"kind":"Field","name":{"kind":"Name","value":"contract_template_verification_status"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetAgencyProfileCompleteQuery, GetAgencyProfileCompleteQueryVariables>;
 export const GetAgencyProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAgencyProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"agency_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"license_number"}},{"kind":"Field","name":{"kind":"Name","value":"registration_country"}},{"kind":"Field","name":{"kind":"Name","value":"business_phone"}},{"kind":"Field","name":{"kind":"Name","value":"business_email"}},{"kind":"Field","name":{"kind":"Name","value":"website_url"}},{"kind":"Field","name":{"kind":"Name","value":"agency_description"}},{"kind":"Field","name":{"kind":"Name","value":"specialization"}},{"kind":"Field","name":{"kind":"Name","value":"service_countries"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"total_maids_managed"}},{"kind":"Field","name":{"kind":"Name","value":"successful_placements"}},{"kind":"Field","name":{"kind":"Name","value":"active_listings"}},{"kind":"Field","name":{"kind":"Name","value":"subscription_tier"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetAgencyProfileQuery, GetAgencyProfileQueryVariables>;
 export const ListAgencyProfilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListAgencyProfiles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"20"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"0"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"where"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"agency_profiles_bool_exp"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"agency_profiles_order_by"}}}},"defaultValue":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"EnumValue","value":"desc"}}]}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"agency_profiles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"where"}}},{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"license_number"}},{"kind":"Field","name":{"kind":"Name","value":"registration_country"}},{"kind":"Field","name":{"kind":"Name","value":"business_phone"}},{"kind":"Field","name":{"kind":"Name","value":"website_url"}},{"kind":"Field","name":{"kind":"Name","value":"specialization"}},{"kind":"Field","name":{"kind":"Name","value":"service_countries"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"total_maids_managed"}},{"kind":"Field","name":{"kind":"Name","value":"successful_placements"}},{"kind":"Field","name":{"kind":"Name","value":"license_verified"}},{"kind":"Field","name":{"kind":"Name","value":"subscription_tier"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"agency_profiles_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"where"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}}]}}]} as unknown as DocumentNode<ListAgencyProfilesQuery, ListAgencyProfilesQueryVariables>;
@@ -63704,7 +65511,7 @@ export const GetMaidProfileDataDocument = {"kind":"Document","definitions":[{"ki
 export const GetSponsorProfileDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSponsorProfileData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"avatar_url"}},{"kind":"Field","name":{"kind":"Name","value":"user_type"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"1"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"children_ages"}},{"kind":"Field","name":{"kind":"Name","value":"elderly_care_needed"}},{"kind":"Field","name":{"kind":"Name","value":"pets"}},{"kind":"Field","name":{"kind":"Name","value":"pet_types"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"phone_number"}},{"kind":"Field","name":{"kind":"Name","value":"religion"}},{"kind":"Field","name":{"kind":"Name","value":"accommodation_type"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_experience_years"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"live_in_required"}},{"kind":"Field","name":{"kind":"Name","value":"working_hours_per_day"}},{"kind":"Field","name":{"kind":"Name","value":"days_off_per_week"}},{"kind":"Field","name":{"kind":"Name","value":"overtime_available"}},{"kind":"Field","name":{"kind":"Name","value":"additional_benefits"}}]}}]}}]} as unknown as DocumentNode<GetSponsorProfileDataQuery, GetSponsorProfileDataQueryVariables>;
 export const GetAgencyProfileDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAgencyProfileData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"avatar_url"}},{"kind":"Field","name":{"kind":"Name","value":"user_type"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"agency_profiles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"1"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"agency_description"}},{"kind":"Field","name":{"kind":"Name","value":"license_number"}},{"kind":"Field","name":{"kind":"Name","value":"license_expiry_date"}},{"kind":"Field","name":{"kind":"Name","value":"business_email"}},{"kind":"Field","name":{"kind":"Name","value":"business_phone"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"website_url"}},{"kind":"Field","name":{"kind":"Name","value":"logo_url"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_name"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_email"}},{"kind":"Field","name":{"kind":"Name","value":"authorized_person_phone"}},{"kind":"Field","name":{"kind":"Name","value":"service_countries"}},{"kind":"Field","name":{"kind":"Name","value":"specialization"}},{"kind":"Field","name":{"kind":"Name","value":"total_maids"}},{"kind":"Field","name":{"kind":"Name","value":"active_listings"}},{"kind":"Field","name":{"kind":"Name","value":"successful_placements"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"verification_status"}},{"kind":"Field","name":{"kind":"Name","value":"verified"}}]}}]}}]} as unknown as DocumentNode<GetAgencyProfileDataQuery, GetAgencyProfileDataQueryVariables>;
 export const GetUserProfileDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserProfileData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"avatar_url"}},{"kind":"Field","name":{"kind":"Name","value":"user_type"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetUserProfileDataQuery, GetUserProfileDataQueryVariables>;
-export const GetSponsorProfileCompleteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSponsorProfileComplete"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"children_ages"}},{"kind":"Field","name":{"kind":"Name","value":"elderly_care_needed"}},{"kind":"Field","name":{"kind":"Name","value":"pets"}},{"kind":"Field","name":{"kind":"Name","value":"pet_types"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"accommodation_type"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_experience_years"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"live_in_required"}},{"kind":"Field","name":{"kind":"Name","value":"working_hours_per_day"}},{"kind":"Field","name":{"kind":"Name","value":"days_off_per_week"}},{"kind":"Field","name":{"kind":"Name","value":"overtime_available"}},{"kind":"Field","name":{"kind":"Name","value":"additional_benefits"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetSponsorProfileCompleteQuery, GetSponsorProfileCompleteQueryVariables>;
+export const GetSponsorProfileCompleteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSponsorProfileComplete"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"children_ages"}},{"kind":"Field","name":{"kind":"Name","value":"elderly_care_needed"}},{"kind":"Field","name":{"kind":"Name","value":"pets"}},{"kind":"Field","name":{"kind":"Name","value":"pet_types"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"accommodation_type"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_experience_years"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"live_in_required"}},{"kind":"Field","name":{"kind":"Name","value":"working_hours_per_day"}},{"kind":"Field","name":{"kind":"Name","value":"days_off_per_week"}},{"kind":"Field","name":{"kind":"Name","value":"overtime_available"}},{"kind":"Field","name":{"kind":"Name","value":"additional_benefits"}},{"kind":"Field","name":{"kind":"Name","value":"religion"}},{"kind":"Field","name":{"kind":"Name","value":"avatar_url"}},{"kind":"Field","name":{"kind":"Name","value":"phone_number"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetSponsorProfileCompleteQuery, GetSponsorProfileCompleteQueryVariables>;
 export const GetSponsorProfileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSponsorProfile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_nationality"}},{"kind":"Field","name":{"kind":"Name","value":"required_skills"}},{"kind":"Field","name":{"kind":"Name","value":"preferred_languages"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"identity_verified"}},{"kind":"Field","name":{"kind":"Name","value":"background_check_completed"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetSponsorProfileQuery, GetSponsorProfileQueryVariables>;
 export const ListSponsorProfilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListSponsorProfiles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"20"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"0"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"where"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"sponsor_profiles_bool_exp"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"sponsor_profiles_order_by"}}}},"defaultValue":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"EnumValue","value":"desc"}}]}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"where"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}},{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"full_name"}},{"kind":"Field","name":{"kind":"Name","value":"household_size"}},{"kind":"Field","name":{"kind":"Name","value":"number_of_children"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"country"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_min"}},{"kind":"Field","name":{"kind":"Name","value":"salary_budget_max"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"active_job_postings"}},{"kind":"Field","name":{"kind":"Name","value":"total_hires"}},{"kind":"Field","name":{"kind":"Name","value":"average_rating"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"sponsor_profiles_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"where"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}}]}}]} as unknown as DocumentNode<ListSponsorProfilesQuery, ListSponsorProfilesQueryVariables>;
 export const GetWhatsAppMessagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetWhatsAppMessages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"phoneNumber"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sender"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"50"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"0"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"whatsapp_messages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_and"},"value":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"phone_number"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"phoneNumber"}}}]}}]},{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"sender"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sender"}}}]}}]}]}}]}},{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"received_at"},"value":{"kind":"EnumValue","value":"desc"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"phone_number"}},{"kind":"Field","name":{"kind":"Name","value":"message_content"}},{"kind":"Field","name":{"kind":"Name","value":"message_type"}},{"kind":"Field","name":{"kind":"Name","value":"received_at"}},{"kind":"Field","name":{"kind":"Name","value":"sender"}},{"kind":"Field","name":{"kind":"Name","value":"ai_response"}},{"kind":"Field","name":{"kind":"Name","value":"processed"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}},{"kind":"Field","name":{"kind":"Name","value":"whatsapp_messages_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_and"},"value":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"phone_number"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"phoneNumber"}}}]}}]},{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"sender"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sender"}}}]}}]}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}}]}}]} as unknown as DocumentNode<GetWhatsAppMessagesQuery, GetWhatsAppMessagesQueryVariables>;

@@ -463,7 +463,7 @@ const AdminContentListingsPage = () => {
                   <p className="text-muted-foreground">Salary Range</p>
                   <p className="font-medium">
                     {selectedListing.salary_min && selectedListing.salary_max
-                      ? `${selectedListing.salary_min}-${selectedListing.salary_max} ${selectedListing.currency || 'USD'}`
+                      ? `${selectedListing.salary_min}-${selectedListing.salary_max} ${selectedListing.currency || 'AED'}`
                       : selectedListing.salary_min || selectedListing.salary_max || 'N/A'}
                   </p>
                 </div>

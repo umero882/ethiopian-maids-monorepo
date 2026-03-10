@@ -103,7 +103,7 @@ const JobCard = ({ job, index, onApply, onSave, user, navigate }) => {
           <div className='grid grid-cols-2 gap-3 text-sm'>
             <div className='flex items-center'>
               <DollarSign className='w-4 h-4 mr-2 text-green-500' />
-              <span className='font-medium'>{job.salaryDisplay || `${job.salary_min || 'N/A'}-${job.salary_max || 'N/A'} ${job.currency || 'USD'}`}/mo</span>
+              <span className='font-medium'>{job.salaryDisplay || `${job.salary_min || 'N/A'}-${job.salary_max || 'N/A'} ${job.currency || 'AED'}`}/mo</span>
             </div>
             <div className='flex items-center'>
               <Clock className='w-4 h-4 mr-2 text-blue-500' />

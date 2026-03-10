@@ -8,11 +8,12 @@
 import * as functions from 'firebase-functions';
 import { GraphQLClient, gql } from 'graphql-request';
 
-// Hasura config
+// Hasura config - prefer process.env over deprecated functions.config()
+const _hasuraLegacy = (() => { try { return functions.config()?.hasura || {}; } catch { return {} as any; } })();
 const HASURA_ENDPOINT =
-  functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
+  process.env.HASURA_GRAPHQL_ENDPOINT || _hasuraLegacy.endpoint;
 const HASURA_ADMIN_SECRET =
-  functions.config().hasura?.admin_secret || process.env.HASURA_ADMIN_SECRET;
+  process.env.HASURA_ADMIN_SECRET || _hasuraLegacy.admin_secret;
 
 function getAdminClient(): GraphQLClient {
   if (!HASURA_ENDPOINT || !HASURA_ADMIN_SECRET) {

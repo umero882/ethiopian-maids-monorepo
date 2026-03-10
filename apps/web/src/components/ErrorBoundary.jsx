@@ -23,6 +23,17 @@ class ErrorBoundary extends React.Component {
     };
   }
 
+  componentDidUpdate(prevProps) {
+    // Reset error state when resetKey changes (e.g. on route navigation)
+    if (this.props.resetKey !== prevProps.resetKey && this.state.hasError) {
+      this.setState({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+      });
+    }
+  }
+
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
 

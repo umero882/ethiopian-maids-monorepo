@@ -1304,7 +1304,7 @@ function SponsorProfileSection({ profile, isEditing, onChange }) {
             {profile.salary_budget_min && (
               <InfoRow
                 label="Budget"
-                value={`${profile.currency || 'USD'} ${profile.salary_budget_min} - ${profile.salary_budget_max}`}
+                value={`${profile.currency || 'AED'} ${profile.salary_budget_min} - ${profile.salary_budget_max}`}
                 icon={DollarSign}
               />
             )}

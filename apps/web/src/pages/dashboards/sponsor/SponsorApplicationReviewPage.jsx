@@ -291,7 +291,7 @@ const SponsorApplicationReviewPage = () => {
               </CardHeader>
               <CardContent>
                 <p className='text-2xl font-bold text-gray-900'>
-                  {application.proposed_salary} {application.proposed_currency || 'USD'}
+                  {application.proposed_salary} {application.proposed_currency || 'AED'}
                 </p>
               </CardContent>
             </Card>

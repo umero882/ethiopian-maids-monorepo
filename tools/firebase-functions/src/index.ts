@@ -54,6 +54,12 @@ import { adminNotifyHandler } from './notifications/adminNotify';
 import { sendNotificationEmailHandler } from './notifications/sendNotificationEmail';
 import { sendWhatsAppNotificationHandler } from './notifications/sendWhatsAppNotification';
 
+// Import handlers - WhatsApp Flows
+import { whatsappFlowEndpointHandler } from './whatsapp/flowEndpoint';
+
+// Import handlers - WhatsApp Webhook (Auto-Reply)
+import { whatsappWebhookHandler } from './whatsapp/webhookHandler';
+
 // Import handlers - Jobs
 import { manageJob } from './jobs/createJob';
 
@@ -259,6 +265,24 @@ export const notificationSendEmail = functions.https.onCall(sendNotificationEmai
  */
 export const notificationSendWhatsApp = functions.https.onCall(sendWhatsAppNotificationHandler);
 
+// =====================================================
+// WHATSAPP FLOWS (Interactive Onboarding)
+// =====================================================
+
+/**
+ * HTTP endpoint: WhatsApp Flow data exchange endpoint.
+ * Receives encrypted requests from Meta, decrypts, processes, encrypts response.
+ * Used for interactive onboarding (maid/sponsor/agency registration via WhatsApp).
+ */
+export const whatsappFlowEndpoint = functions.https.onRequest(whatsappFlowEndpointHandler);
+
+/**
+ * HTTP endpoint: WhatsApp Webhook for auto-reply.
+ * GET: Webhook verification (hub.verify_token challenge)
+ * POST: Incoming message processing → auto-reply with welcome + registration flow
+ */
+export const whatsappWebhook = functions.https.onRequest(whatsappWebhookHandler);
+
 /**
  * Scheduled: Error digest every 6 hours
  * Queries error_logs for recent errors and sends a summary to Telegram.
@@ -270,8 +294,11 @@ export const scheduledErrorDigest = functions.pubsub
     const { formatErrorDigest } = await import('./notifications/adminMessages');
     const { GraphQLClient, gql } = await import('graphql-request');
 
-    const endpoint = functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
-    const adminSecret = functions.config().hasura?.admin_secret || process.env.HASURA_ADMIN_SECRET;
+    // Prefer process.env over deprecated functions.config()
+    let _legacy: Record<string, any> = {};
+    try { _legacy = functions.config()?.hasura || {}; } catch { /* deprecated */ }
+    const endpoint = process.env.HASURA_GRAPHQL_ENDPOINT || _legacy.endpoint;
+    const adminSecret = process.env.HASURA_ADMIN_SECRET || _legacy.admin_secret;
 
     if (!endpoint || !adminSecret) {
       console.warn('[ErrorDigest] Hasura config not set, skipping');

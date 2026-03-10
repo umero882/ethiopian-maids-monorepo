@@ -504,7 +504,7 @@ const MaidProfileTab = ({
               ) : (
                 <p className="text-sm py-2">
                   {maidProfile.preferred_salary_min
-                    ? `${maidProfile.preferred_currency || 'USD'} ${maidProfile.preferred_salary_min}`
+                    ? `${maidProfile.preferred_currency || 'AED'} ${maidProfile.preferred_salary_min}`
                     : 'N/A'}
                 </p>
               )}
@@ -521,7 +521,7 @@ const MaidProfileTab = ({
               ) : (
                 <p className="text-sm py-2">
                   {maidProfile.preferred_salary_max
-                    ? `${maidProfile.preferred_currency || 'USD'} ${maidProfile.preferred_salary_max}`
+                    ? `${maidProfile.preferred_currency || 'AED'} ${maidProfile.preferred_salary_max}`
                     : 'N/A'}
                 </p>
               )}

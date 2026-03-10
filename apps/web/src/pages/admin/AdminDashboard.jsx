@@ -22,139 +22,75 @@ import {
   WifiOff
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import {
-  useOnAdminProfileStatsSubscription,
-  useOnAdminActivityLogsSubscription,
-  useOnMaidCountSubscription,
-  useOnAgencyCountSubscription,
-  useOnSponsorCountSubscription,
-  useOnPendingMaidVerificationsSubscription,
-  useOnPendingJobListingsSubscription,
-  useOnOpenSupportTicketsSubscription,
-  useOnHighPrioritySupportTicketsSubscription,
-  useOnMonthlyFinancialStatsSubscription,
-  useOnRecentTransactionsSubscription
-} from '@ethio/api-client';
+import { useGetAdminDashboardDataQuery } from '@ethio/api-client';
 import { createLogger } from '@/utils/logger';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const log = createLogger('AdminDashboard');
 
+const POLL_INTERVAL = 300000; // 5 minutes
+
 const AdminDashboard = () => {
   usePageTitle('Admin Dashboard');
   const { adminUser, logAdminActivity } = useAdminAuth();
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [isConnected, setIsConnected] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Calculate start of current month for financial stats
-  const startOfMonth = useMemo(() => {
+  // Calculate start of current month and week ago for stats
+  const { startOfMonth, weekAgo } = useMemo(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    return {
+      startOfMonth: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      weekAgo: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    };
   }, []);
 
-  // Real-time subscriptions
+  // Single combined query — replaces 11 separate polling queries
+  // This prevents exhausting the browser connection pool
   const {
-    data: profilesData,
-    loading: profilesLoading,
-    error: profilesError
-  } = useOnAdminProfileStatsSubscription({
-    skip: refreshing,
+    data,
+    loading: dashboardLoading,
+    error: dashboardError,
+    refetch
+  } = useGetAdminDashboardDataQuery({
+    variables: { activityLimit: 10, transactionsLimit: 10, startOfMonth, weekAgo },
+    pollInterval: POLL_INTERVAL,
     onError: (error) => {
-      log.error('Profile stats subscription error:', error);
-      setIsConnected(false);
-    },
-    onData: () => {
-      setLastUpdated(new Date());
-      setIsConnected(true);
+      log.error('Dashboard query error:', error);
     }
   });
 
-  const {
-    data: activityData,
-    loading: activityLoading
-  } = useOnAdminActivityLogsSubscription({
-    skip: refreshing,
-    variables: { limit: 10 },
-    onData: () => setLastUpdated(new Date())
-  });
+  const isConnected = !dashboardError;
 
-  const { data: maidCountData } = useOnMaidCountSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: agencyCountData } = useOnAgencyCountSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: sponsorCountData } = useOnSponsorCountSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: pendingMaidData } = useOnPendingMaidVerificationsSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: pendingJobsData } = useOnPendingJobListingsSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: openTicketsData } = useOnOpenSupportTicketsSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: highPriorityTicketsData } = useOnHighPrioritySupportTicketsSubscription({
-    skip: refreshing,
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: financialData } = useOnMonthlyFinancialStatsSubscription({
-    skip: refreshing,
-    variables: { startOfMonth },
-    onData: () => setLastUpdated(new Date())
-  });
-
-  const { data: recentTransactionsData } = useOnRecentTransactionsSubscription({
-    skip: refreshing,
-    variables: { limit: 10 },
-    onData: () => setLastUpdated(new Date())
-  });
+  // Update the lastUpdated timestamp when data changes
+  useEffect(() => {
+    if (data) {
+      setLastUpdated(new Date());
+    }
+  }, [data]);
 
   useEffect(() => {
     logAdminActivity('dashboard_view', 'dashboard', 'main');
   }, [logAdminActivity]);
 
-  // Compute derived stats from real-time data
+  // Compute derived stats from combined query data (all aggregates, no row fetching)
   const userStats = useMemo(() => {
-    const profiles = profilesData?.profiles || [];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
     return {
-      total: profiles.length,
-      active: profiles.filter(p => p.is_active).length,
+      total: data?.total_profiles?.aggregate?.count || 0,
+      active: data?.total_profiles?.aggregate?.count || 0,
       byType: {
-        maid: maidCountData?.maid_profiles_aggregate?.aggregate?.count || 0,
-        agency: agencyCountData?.agency_profiles_aggregate?.aggregate?.count || 0,
-        sponsor: sponsorCountData?.sponsor_profiles_aggregate?.aggregate?.count || 0,
+        maid: data?.maid_profiles_aggregate?.aggregate?.count || 0,
+        agency: data?.agency_profiles_aggregate?.aggregate?.count || 0,
+        sponsor: data?.sponsor_profiles_aggregate?.aggregate?.count || 0,
       },
-      newThisWeek: profiles.filter(p => {
-        const createdAt = new Date(p.created_at);
-        return createdAt > weekAgo;
-      }).length
+      newThisWeek: data?.new_profiles_this_week?.aggregate?.count || 0,
     };
-  }, [profilesData, maidCountData, agencyCountData, sponsorCountData]);
+  }, [data]);
 
   const pendingActions = useMemo(() => {
-    const pendingMaids = pendingMaidData?.maid_profiles_aggregate?.aggregate?.count || 0;
-    const pendingJobs = pendingJobsData?.jobs_aggregate?.aggregate?.count || 0;
-    const openTickets = openTicketsData?.support_tickets_aggregate?.aggregate?.count || 0;
-    const highPriorityTickets = highPriorityTicketsData?.support_tickets_aggregate?.aggregate?.count || 0;
+    const pendingMaids = data?.pending_verifications?.aggregate?.count || 0;
+    const pendingJobs = data?.pending_jobs?.aggregate?.count || 0;
+    const openTickets = data?.open_tickets?.aggregate?.count || 0;
+    const highPriorityTickets = data?.high_priority_tickets?.aggregate?.count || 0;
 
     return [
       {
@@ -176,23 +112,23 @@ const AdminDashboard = () => {
         description: 'Support tickets awaiting response'
       }
     ].filter(action => action.count > 0);
-  }, [pendingMaidData, pendingJobsData, openTicketsData, highPriorityTicketsData]);
+  }, [data]);
 
   const financialMetrics = useMemo(() => {
-    const aggregate = financialData?.placement_fee_transactions_aggregate?.aggregate;
+    const aggregate = data?.placement_fee_transactions_aggregate?.aggregate;
     const monthlyRevenue = aggregate?.sum?.fee_amount || 0;
     const transactionCount = aggregate?.count || 0;
 
     return {
       monthlyRevenue,
-      revenueGrowth: 0, // Would need historical data to calculate
+      revenueGrowth: 0,
       totalTransactions: transactionCount,
       averageTransactionValue: transactionCount > 0 ? monthlyRevenue / transactionCount : 0
     };
-  }, [financialData]);
+  }, [data]);
 
   const recentActivity = useMemo(() => {
-    const activities = activityData?.admin_activity_logs || [];
+    const activities = data?.admin_activity_logs || [];
     return activities.map(activity => ({
       id: activity.id,
       action: activity.action,
@@ -201,18 +137,23 @@ const AdminDashboard = () => {
       resourceType: activity.resource_type,
       resourceId: activity.resource_id
     }));
-  }, [activityData]);
+  }, [data]);
 
-  // Manual refresh - unsubscribe and resubscribe to get fresh data
-  const handleRefresh = useCallback(() => {
-    log.info('Manual refresh triggered - restarting subscriptions');
+  // Manual refresh - refetch all queries immediately
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    log.info('Manual refresh triggered');
     setRefreshing(true);
-    // Brief skip causes all subscriptions to unsubscribe, then re-subscribe with fresh data
-    setTimeout(() => {
-      setRefreshing(false);
+    try {
+      await refetch();
       setLastUpdated(new Date());
-    }, 100);
-  }, []);
+    } catch (err) {
+      log.error('Refresh failed:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const MetricCard = ({ title, value, change, changeType, icon: Icon, description }) => (
     <Card>
@@ -242,9 +183,7 @@ const AdminDashboard = () => {
     </Card>
   );
 
-  const loading = profilesLoading || activityLoading;
-
-  if (loading && !profilesData && !activityData) {
+  if (dashboardLoading && !data) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
@@ -277,12 +216,12 @@ const AdminDashboard = () => {
             {isConnected ? (
               <>
                 <Wifi className="h-4 w-4 text-green-500" />
-                <span className="text-green-600">Live</span>
+                <span className="text-green-600">Connected</span>
               </>
             ) : (
               <>
                 <WifiOff className="h-4 w-4 text-red-500" />
-                <span className="text-red-600">Reconnecting...</span>
+                <span className="text-red-600">Connection issues</span>
               </>
             )}
           </div>
@@ -329,7 +268,7 @@ const AdminDashboard = () => {
           title="System Health"
           value={isConnected ? "Healthy" : "Degraded"}
           icon={isConnected ? CheckCircle2 : AlertTriangle}
-          description={isConnected ? "Real-time sync active" : "Connection issues"}
+          description={isConnected ? "Polling every 5m" : "Query errors detected"}
         />
       </div>
 
@@ -338,7 +277,7 @@ const AdminDashboard = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>User Distribution</CardTitle>
-            <CardDescription>Breakdown by user type (real-time)</CardDescription>
+            <CardDescription>Breakdown by user type (refreshes every 5m)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -379,7 +318,7 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Pending Actions</CardTitle>
-            <CardDescription>Items requiring attention (live)</CardDescription>
+            <CardDescription>Items requiring attention</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -417,7 +356,7 @@ const AdminDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Recent Admin Activity</CardTitle>
-          <CardDescription>Latest administrative actions (real-time)</CardDescription>
+          <CardDescription>Latest administrative actions (refreshes every 5m)</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

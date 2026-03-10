@@ -218,17 +218,7 @@ const OnboardingFlow = () => {
 
   return (
     <>
-      {/* Incomplete onboarding banner for returning users */}
-      {isReturningIncompleteUser && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 shadow-lg">
-          <div className="max-w-2xl mx-auto flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <p className="text-sm font-medium">
-              Your onboarding is incomplete. Please finish setting up your profile to access the platform.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Incomplete onboarding banner removed - users can complete profile from dashboard */}
 
       {/* Draft Recovery Modal */}
       <DraftRecoveryModal

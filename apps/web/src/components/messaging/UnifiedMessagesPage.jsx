@@ -1143,11 +1143,16 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
     );
   };
 
-  // Filter conversations
+  // Filter conversations by participant name or message preview
   const filteredConversations = conversations.filter((conv) => {
     if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
     const preview = conv.last_message_preview || '';
-    return preview.toLowerCase().includes(searchQuery.toLowerCase());
+    if (preview.toLowerCase().includes(query)) return true;
+    // Also search by participant name
+    const other = getOtherParticipant(conv);
+    const name = other?.name || '';
+    return name.toLowerCase().includes(query);
   });
 
   // Get total unread count
@@ -1630,14 +1635,13 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
         </Card>
       </div>
 
- aria-label='Send message'
       {/* Image Viewer Modal */}
       <Dialog open={!!viewerImage} onOpenChange={() => setViewerImage(null)}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95">
           <div className="relative">
             <Button
               variant="ghost"
-              size="icon" aria-label="Send message"
+              size="icon" aria-label="Close image viewer"
               onClick={() => setViewerImage(null)}
               className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
             >

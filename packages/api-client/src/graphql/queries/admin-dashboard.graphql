@@ -1,0 +1,123 @@
+# =====================================================
+# Admin Dashboard - Single Combined Query
+# Fetches all dashboard data in ONE request to avoid
+# exhausting browser connection pool (was 11 queries)
+# =====================================================
+
+query GetAdminDashboardData($activityLimit: Int!, $transactionsLimit: Int!, $startOfMonth: timestamptz!, $weekAgo: timestamptz!) {
+  # Total active profiles count
+  total_profiles: profiles_aggregate(where: { is_active: { _eq: true } }) {
+    aggregate {
+      count
+    }
+  }
+
+  # New profiles this week
+  new_profiles_this_week: profiles_aggregate(
+    where: { is_active: { _eq: true }, created_at: { _gte: $weekAgo } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Admin activity logs
+  admin_activity_logs(order_by: { created_at: desc }, limit: $activityLimit) {
+    id
+    action
+    resource_type
+    resource_id
+    created_at
+    admin_user {
+      full_name
+    }
+  }
+
+  # Maid count
+  maid_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+
+  # Agency count
+  agency_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+
+  # Sponsor count
+  sponsor_profiles_aggregate {
+    aggregate {
+      count
+    }
+  }
+
+  # Pending maid verifications
+  pending_verifications: maid_profiles_aggregate(
+    where: { verification_status: { _eq: "pending" } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Pending job listings
+  pending_jobs: jobs_aggregate(
+    where: { status: { _in: ["pending", "pending_review", "draft"] } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Open support tickets
+  open_tickets: support_tickets_aggregate(
+    where: { status: { _in: ["open", "in_progress", "waiting_user"] } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # High priority support tickets
+  high_priority_tickets: support_tickets_aggregate(
+    where: {
+      status: { _in: ["open", "in_progress"] }
+      priority: { _in: ["high", "urgent"] }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+
+  # Monthly financial stats
+  placement_fee_transactions_aggregate(
+    where: { created_at: { _gte: $startOfMonth } }
+  ) {
+    aggregate {
+      count
+      sum {
+        fee_amount
+        amount_charged
+      }
+    }
+  }
+
+  # Recent transactions
+  placement_fee_transactions(
+    order_by: { created_at: desc }
+    limit: $transactionsLimit
+  ) {
+    id
+    fee_amount
+    amount_charged
+    credits_applied
+    currency
+    fee_status
+    created_at
+    agency_id
+  }
+}

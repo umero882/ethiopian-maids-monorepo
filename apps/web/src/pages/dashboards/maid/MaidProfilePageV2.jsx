@@ -63,6 +63,8 @@ import {
   Bell,
   ExternalLink,
   DollarSign,
+  Phone,
+  Mail,
 } from 'lucide-react';
 
 import MultiSelect from '@/components/ui/multi-select';
@@ -690,7 +692,7 @@ const ProfileField = ({ label, value, icon: FieldIcon, isEditing, editComponent,
 // =====================================================
 // SECTION 1: PERSONAL INFO
 // =====================================================
-const PersonalInfoSection = ({ profile, isEditing, editData, updateEditData, onEdit, onSave, onCancel, saving }) => {
+const PersonalInfoSection = ({ profile, user, isEditing, editData, updateEditData, onEdit, onSave, onCancel, saving }) => {
   const age = profile?.date_of_birth
     ? differenceInYears(new Date(), new Date(profile.date_of_birth))
     : null;
@@ -766,6 +768,21 @@ const PersonalInfoSection = ({ profile, isEditing, editData, updateEditData, onE
               </SelectContent>
             </Select>
           }
+        />
+        <ProfileField
+          label="Phone Number" icon={Phone}
+          value={profile?.phone_number ? `${profile?.phone_country_code || ''} ${profile.phone_number}` : null}
+          isEditing={isEditing}
+          editComponent={
+            <div className="flex gap-2">
+              <Input className="w-24" value={editData.phone_country_code || ''} onChange={(e) => updateEditData('phone_country_code', e.target.value)} placeholder="+251" />
+              <Input className="flex-1" value={editData.phone_number || ''} onChange={(e) => updateEditData('phone_number', e.target.value)} placeholder="Phone number" />
+            </div>
+          }
+        />
+        <ProfileField
+          label="Email" icon={Mail}
+          value={user?.email}
         />
       </div>
     </SectionWrapper>
@@ -1951,6 +1968,8 @@ const MaidProfilePageV2 = () => {
             nationality: editData.nationality,
             religion: editData.religion,
             marital_status: editData.marital_status,
+            phone_country_code: editData.phone_country_code,
+            phone_number: editData.phone_number,
           };
           break;
         case 'location':
@@ -2124,7 +2143,7 @@ const MaidProfilePageV2 = () => {
 
         {/* Content */}
         <div className="flex-1 space-y-4 min-w-0">
-          <PersonalInfoSection profile={profile} {...sectionEditProps('personal')} />
+          <PersonalInfoSection profile={profile} user={user} {...sectionEditProps('personal')} />
           <IdentitySection profile={profile} documents={documents} userId={user.id} onProfileUpdate={handleProfileUpdate} onDocumentsUpdate={handleDocumentsUpdate} />
           <LocationSection profile={profile} {...sectionEditProps('location')} />
           <ProfessionSection profile={profile} {...sectionEditProps('profession')} />

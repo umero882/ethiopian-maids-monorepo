@@ -145,7 +145,7 @@ const AdminContentListingsPage = () => {
   };
 
   // Format salary
-  const formatSalary = (min, max, currency = 'USD') => {
+  const formatSalary = (min, max, currency = 'AED') => {
     if (!min && !max) return 'Not specified';
     if (min && max) return `${currency} ${min.toLocaleString()} - ${max.toLocaleString()}`;
     if (min) return `${currency} ${min.toLocaleString()}+`;

@@ -285,8 +285,12 @@ export const AdminAuthProvider = ({ children }) => {
   }, [adminUser, logAdminActivity]);
 
   useEffect(() => {
+    let isFirstLoad = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
+      // Only show loading spinner on initial load, not on token refreshes
+      if (isFirstLoad) {
+        setLoading(true);
+      }
 
       if (user) {
         // Ensure we have a fresh token stored for Apollo client
@@ -314,6 +318,7 @@ export const AdminAuthProvider = ({ children }) => {
       }
 
       setLoading(false);
+      isFirstLoad = false;
     });
 
     return () => unsubscribe();

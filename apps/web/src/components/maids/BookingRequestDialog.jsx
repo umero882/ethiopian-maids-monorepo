@@ -241,7 +241,7 @@ const BookingRequestDialog = ({ open, onClose, maid }) => {
             )}
             {maid?.min_salary && (
               <p className="text-sm text-gray-500">
-                Maid's expected salary: {maid.min_salary} {maid.currency || 'USD'} / month
+                Maid's expected salary: {maid.min_salary} {maid.currency || 'AED'} / month
               </p>
             )}
           </div>

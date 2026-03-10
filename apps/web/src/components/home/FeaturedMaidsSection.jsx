@@ -26,7 +26,7 @@ const FeaturedCard = ({ maid, onClick }) => {
     .join(', ') || 'GCC Region';
   const skills = (maid.skills || []).slice(0, 2);
   const salary = maid.preferred_salary_min
-    ? `$${maid.preferred_salary_min.toLocaleString()}/mo`
+    ? `AED ${maid.preferred_salary_min.toLocaleString()}/mo`
     : 'Negotiable';
 
   return (

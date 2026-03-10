@@ -405,7 +405,7 @@ export function useAdminListings(initialFilters = {}) {
       listing.city || '',
       listing.salary_min || '',
       listing.salary_max || '',
-      listing.currency || 'USD',
+      listing.currency || 'AED',
       listing.featured ? 'Yes' : 'No',
       listing.urgent ? 'Yes' : 'No',
       listing.created_at ? new Date(listing.created_at).toLocaleDateString() : '',

@@ -353,8 +353,8 @@ export function useAdminUnreadCount() {
 
   useEffect(() => {
     fetchCount();
-    // Refresh every 30 seconds
-    const intervalId = setInterval(fetchCount, 30000);
+    // Refresh every 5 minutes to avoid exhausting browser connections
+    const intervalId = setInterval(fetchCount, 300000);
     return () => clearInterval(intervalId);
   }, [fetchCount]);
 

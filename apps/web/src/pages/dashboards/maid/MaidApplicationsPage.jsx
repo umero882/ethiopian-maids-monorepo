@@ -331,9 +331,9 @@ const MaidApplicationsPage = () => {
                                 <DollarSign className="w-4 h-4 mr-2" />
                                 {application.job?.salary_min &&
                                 application.job?.salary_max
-                                  ? `$${application.job.salary_min} - $${application.job.salary_max}`
+                                  ? `AED ${application.job.salary_min} - AED ${application.job.salary_max}`
                                   : application.job?.salary_min
-                                  ? `$${application.job.salary_min}+`
+                                  ? `AED ${application.job.salary_min}+`
                                   : 'Not specified'}
                               </div>
                             </div>
@@ -354,7 +354,7 @@ const MaidApplicationsPage = () => {
                             {application.proposed_salary && (
                               <div className="flex items-center text-sm text-purple-600">
                                 <DollarSign className="w-4 h-4 mr-2" />
-                                Your proposed salary: $
+                                Your proposed salary: AED{' '}
                                 {application.proposed_salary}{' '}
                                 {application.proposed_currency}
                               </div>

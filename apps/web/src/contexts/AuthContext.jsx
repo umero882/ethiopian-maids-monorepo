@@ -329,7 +329,7 @@ const createOrUpdateMaidProfile = async (userId, profileData) => {
           ? parseInt(profileData.salaryExpectations)
           : null,
       preferred_salary_max: null,
-      preferred_currency: profileData.currency || 'USD',
+      preferred_currency: profileData.currency || 'AED',
       available_from:
         profileData.availability === 'immediately'
           ? new Date().toISOString().slice(0, 10)
@@ -636,7 +636,7 @@ const createOrUpdateSponsorProfile = async (userId, profileData) => {
         profileData.salary_budget_max !== ''
           ? parseInt(profileData.salary_budget_max)
           : null,
-      currency: profileData.currency || 'USD',
+      currency: profileData.currency || 'AED',
       live_in_required: profileData.live_in_required !== false,
       working_hours_per_day:
         profileData.working_hours_per_day !== undefined

@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { gql } from '@apollo/client';
+import { apolloClient } from '@ethio/api-client';
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  deleteUser,
+} from 'firebase/auth';
+import { auth } from '@/lib/firebaseClient';
+import { uploadProfilePicture } from '@/lib/firebaseStorage';
+import { notificationSettingsService } from '@/services/notificationSettingsService';
 import {
   Card,
   CardContent,
@@ -37,12 +48,66 @@ import {
 } from 'lucide-react';
 import { countries } from '@/data/countryStateData';
 
+// --- GraphQL queries/mutations used locally ---
+const GET_MAID_PROFILE_FOR_SETTINGS = gql`
+  query GetMaidProfileForSettings($id: String!) {
+    maid_profiles_by_pk(id: $id) {
+      id
+      full_name
+      date_of_birth
+      current_location
+      about_me
+      profile_photo_url
+    }
+    profiles_by_pk(id: $id) {
+      id
+      full_name
+      email
+      phone
+      country
+      avatar_url
+    }
+  }
+`;
+
+const UPDATE_MAID_SETTINGS_PROFILE = gql`
+  mutation UpdateMaidSettingsProfile(
+    $userId: String!
+    $profileData: profiles_set_input!
+    $maidData: maid_profiles_set_input!
+  ) {
+    update_profiles_by_pk(pk_columns: { id: $userId }, _set: $profileData) {
+      id
+      full_name
+      phone
+      country
+      avatar_url
+      updated_at
+    }
+    update_maid_profiles_by_pk(pk_columns: { id: $userId }, _set: $maidData) {
+      id
+      full_name
+      current_location
+      date_of_birth
+      about_me
+      profile_photo_url
+      updated_at
+    }
+  }
+`;
+
+const PRIVACY_STORAGE_KEY = 'maid_privacy_settings';
+const LANGUAGE_STORAGE_KEY = 'maid_language_settings';
+
 const MaidSettingsPage = () => {
-  const { user, updateUserProfileData } = useAuth();
+  const { user, updateUserProfileData, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const [profileData, setProfileData] = useState({
     name: '',
@@ -64,13 +129,13 @@ const MaidSettingsPage = () => {
 
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
-    smsNotifications: true,
+    smsNotifications: false,
     pushNotifications: true,
     bookingAlerts: true,
     messageAlerts: true,
+    jobRecommendations: true,
     promotionalEmails: false,
     weeklyDigest: true,
-    jobRecommendations: true,
   });
 
   const [privacySettings, setPrivacySettings] = useState({
@@ -91,21 +156,99 @@ const MaidSettingsPage = () => {
     currency: 'AED',
   });
 
-  useEffect(() => {
-    if (user) {
-      setProfileData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        country: user.country || '',
-        city: user.city || '',
-        dateOfBirth: user.dateOfBirth || '',
-        bio: user.bio || '',
-        profilePhoto: null,
-        profilePhotoPreview: user.profilePhoto || null,
+  // --- Load maid profile data from DB ---
+  const loadProfileData = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_MAID_PROFILE_FOR_SETTINGS,
+        variables: { id: user.id },
+        fetchPolicy: 'network-only',
       });
+
+      const profile = data?.profiles_by_pk;
+      const maidProfile = data?.maid_profiles_by_pk;
+
+      setProfileData({
+        name: maidProfile?.full_name || profile?.full_name || user.full_name || '',
+        email: profile?.email || user.email || '',
+        phone: profile?.phone || user.phone || '',
+        country: profile?.country || user.country || '',
+        city: maidProfile?.current_location || '',
+        dateOfBirth: maidProfile?.date_of_birth || '',
+        bio: maidProfile?.about_me || '',
+        profilePhoto: null,
+        profilePhotoPreview:
+          maidProfile?.profile_photo_url || profile?.avatar_url || null,
+      });
+    } catch (err) {
+      console.error('Failed to load profile data:', err);
     }
   }, [user]);
+
+  // --- Load notification settings from DB ---
+  const loadNotificationSettings = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const { data } = await notificationSettingsService.getSettings(user.id);
+      if (data) {
+        setNotificationSettings({
+          emailNotifications: data.email_enabled ?? true,
+          smsNotifications: data.sms_enabled ?? false,
+          pushNotifications: data.push_enabled ?? true,
+          bookingAlerts: data.notification_types?.booking_created?.inApp ?? true,
+          messageAlerts: data.notification_types?.message_received?.inApp ?? true,
+          jobRecommendations: data.notification_types?.job_posted?.inApp ?? true,
+          promotionalEmails: data.notification_types?.system_announcement?.email ?? false,
+          weeklyDigest: data.email_frequency === 'weekly',
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load notification settings:', err);
+    }
+  }, [user]);
+
+  // --- Load privacy settings from localStorage ---
+  const loadPrivacySettings = useCallback(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`${PRIVACY_STORAGE_KEY}_${user.id}`);
+      if (stored) {
+        setPrivacySettings(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error('Failed to load privacy settings:', err);
+    }
+  }, [user]);
+
+  // --- Load language settings from localStorage ---
+  const loadLanguageSettings = useCallback(() => {
+    if (!user?.id) return;
+    try {
+      const stored = localStorage.getItem(`${LANGUAGE_STORAGE_KEY}_${user.id}`);
+      if (stored) {
+        setLanguageSettings(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error('Failed to load language settings:', err);
+    }
+  }, [user]);
+
+  // --- Initial data load ---
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      setInitialLoading(true);
+      await Promise.all([
+        loadProfileData(),
+        loadNotificationSettings(),
+      ]);
+      loadPrivacySettings();
+      loadLanguageSettings();
+      setInitialLoading(false);
+    };
+    load();
+  }, [user, loadProfileData, loadNotificationSettings, loadPrivacySettings, loadLanguageSettings]);
 
   const handleProfileInputChange = (e) => {
     const { name, value } = e.target;
@@ -164,19 +307,80 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 2 & 8: Real profile save with photo upload ---
   const handleSaveProfile = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
-      await updateUserProfileData(profileData);
+      let photoUrl = null;
+
+      // Upload photo if a new file was selected
+      if (profileData.profilePhoto) {
+        try {
+          const result = await uploadProfilePicture(user.id, profileData.profilePhoto);
+          photoUrl = result.url;
+        } catch (uploadErr) {
+          console.error('Photo upload failed:', uploadErr);
+          toast({
+            title: 'Photo upload failed',
+            description: 'Profile saved without photo. Please try uploading again.',
+            variant: 'destructive',
+          });
+        }
+      }
+
+      // Build update payloads
+      const profilePayload = {
+        full_name: profileData.name,
+        phone: profileData.phone,
+        country: profileData.country,
+        updated_at: new Date().toISOString(),
+      };
+      if (photoUrl) {
+        profilePayload.avatar_url = photoUrl;
+      }
+
+      const maidPayload = {
+        full_name: profileData.name,
+        current_location: profileData.city,
+        date_of_birth: profileData.dateOfBirth || null,
+        about_me: profileData.bio,
+        updated_at: new Date().toISOString(),
+      };
+      if (photoUrl) {
+        maidPayload.profile_photo_url = photoUrl;
+      }
+
+      await apolloClient.mutate({
+        mutation: UPDATE_MAID_SETTINGS_PROFILE,
+        variables: {
+          userId: user.id,
+          profileData: profilePayload,
+          maidData: maidPayload,
+        },
+      });
+
+      // Also update AuthContext's local user state
+      try {
+        await updateUserProfileData({
+          name: profileData.name,
+          phone: profileData.phone,
+          country: profileData.country,
+        });
+      } catch (_) {
+        // Non-critical: AuthContext update may fail but DB is already saved
+      }
+
       toast({
         title: 'Profile updated',
         description: 'Your profile has been updated successfully.',
         variant: 'default',
       });
     } catch (error) {
+      console.error('Profile save failed:', error);
       toast({
         title: 'Update failed',
-        description: 'Failed to update profile. Please try again.',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -184,6 +388,7 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 3: Real password change via Firebase Auth ---
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
@@ -203,8 +408,32 @@ const MaidSettingsPage = () => {
       return;
     }
 
+    if (!passwordData.currentPassword) {
+      toast({
+        title: 'Current password required',
+        description: 'Please enter your current password.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser || !firebaseUser.email) {
+        throw new Error('No authenticated user found. Please log in again.');
+      }
+
+      // Re-authenticate with current password
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        passwordData.currentPassword
+      );
+      await reauthenticateWithCredential(firebaseUser, credential);
+
+      // Update to new password
+      await updatePassword(firebaseUser, passwordData.newPassword);
+
       toast({
         title: 'Password changed',
         description: 'Your password has been changed successfully.',
@@ -217,9 +446,18 @@ const MaidSettingsPage = () => {
         confirmPassword: '',
       });
     } catch (error) {
+      console.error('Password change failed:', error);
+      let message = 'Failed to change password. Please try again.';
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = 'Current password is incorrect.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'New password is too weak. Please choose a stronger password.';
+      } else if (error.code === 'auth/requires-recent-login') {
+        message = 'Session expired. Please log out and log in again before changing your password.';
+      }
       toast({
         title: 'Password change failed',
-        description: 'Failed to change password. Please try again.',
+        description: message,
         variant: 'destructive',
       });
     } finally {
@@ -227,15 +465,48 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 5: Real notification settings persistence ---
   const handleSaveNotifications = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
+      await notificationSettingsService.saveSettings(user.id, {
+        email_enabled: notificationSettings.emailNotifications,
+        push_enabled: notificationSettings.pushNotifications,
+        sms_enabled: notificationSettings.smsNotifications,
+        in_app_enabled: true,
+        email_frequency: notificationSettings.weeklyDigest ? 'weekly' : 'instant',
+        notification_types: {
+          booking_created: {
+            email: notificationSettings.emailNotifications,
+            push: notificationSettings.pushNotifications,
+            inApp: notificationSettings.bookingAlerts,
+          },
+          message_received: {
+            email: notificationSettings.emailNotifications,
+            push: notificationSettings.pushNotifications,
+            inApp: notificationSettings.messageAlerts,
+          },
+          job_posted: {
+            email: notificationSettings.promotionalEmails,
+            push: false,
+            inApp: notificationSettings.jobRecommendations,
+          },
+          system_announcement: {
+            email: notificationSettings.promotionalEmails,
+            push: false,
+            inApp: true,
+          },
+        },
+      });
+
       toast({
         title: 'Notification settings saved',
         description: 'Your notification preferences have been updated.',
         variant: 'default',
       });
     } catch (error) {
+      console.error('Notification settings save failed:', error);
       toast({
         title: 'Save failed',
         description: 'Failed to save notification settings.',
@@ -246,15 +517,22 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 6: Privacy settings persistence via localStorage ---
   const handleSavePrivacy = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
+      localStorage.setItem(
+        `${PRIVACY_STORAGE_KEY}_${user.id}`,
+        JSON.stringify(privacySettings)
+      );
       toast({
         title: 'Privacy settings saved',
         description: 'Your privacy preferences have been updated.',
         variant: 'default',
       });
     } catch (error) {
+      console.error('Privacy settings save failed:', error);
       toast({
         title: 'Save failed',
         description: 'Failed to save privacy settings.',
@@ -265,9 +543,15 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 7: Language settings persistence via localStorage ---
   const handleSaveLanguage = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
+      localStorage.setItem(
+        `${LANGUAGE_STORAGE_KEY}_${user.id}`,
+        JSON.stringify(languageSettings)
+      );
       toast({
         title: 'Language settings saved',
         description:
@@ -275,6 +559,7 @@ const MaidSettingsPage = () => {
         variant: 'default',
       });
     } catch (error) {
+      console.error('Language settings save failed:', error);
       toast({
         title: 'Save failed',
         description: 'Failed to save language settings.',
@@ -285,31 +570,66 @@ const MaidSettingsPage = () => {
     }
   };
 
+  // --- Fix 4: Real account deletion with proper confirmation ---
   const handleDeleteAccount = async () => {
-    if (
-      window.confirm(
-        'Are you sure you want to delete your account? This action cannot be undone.'
-      )
-    ) {
-      setLoading(true);
-      try {
-        toast({
-          title: 'Account deletion requested',
-          description:
-            'Your account deletion request has been submitted. You will receive a confirmation email.',
-          variant: 'default',
-        });
-      } catch (error) {
-        toast({
-          title: 'Deletion failed',
-          description: 'Failed to process account deletion request.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+    if (deleteConfirmText !== 'DELETE') {
+      toast({
+        title: 'Confirmation required',
+        description: 'Please type DELETE to confirm account deletion.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        throw new Error('No authenticated user found.');
       }
+
+      // Delete the Firebase user (this also invalidates the session)
+      await deleteUser(firebaseUser);
+
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been permanently deleted.',
+        variant: 'default',
+      });
+
+      // Logout and redirect
+      await logout();
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      let message = 'Failed to delete account. Please try again.';
+      if (error.code === 'auth/requires-recent-login') {
+        message = 'For security, please log out and log back in before deleting your account.';
+      }
+      toast({
+        title: 'Deletion failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className='space-y-6'>
+        <div>
+          <h1 className='text-3xl font-bold text-gray-800'>Settings</h1>
+          <p className='text-gray-500 mt-1'>Loading your settings...</p>
+        </div>
+        <div className='flex items-center justify-center py-12'>
+          <div className='animate-spin h-8 w-8 border-4 border-primary border-b-transparent rounded-full' />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='space-y-6'>
@@ -415,6 +735,7 @@ const MaidSettingsPage = () => {
                   />
                 </div>
 
+                {/* Fix 9: Email is read-only */}
                 <div className='space-y-2'>
                   <Label htmlFor='email'>Email Address</Label>
                   <Input
@@ -422,9 +743,12 @@ const MaidSettingsPage = () => {
                     name='email'
                     type='email'
                     value={profileData.email}
-                    onChange={handleProfileInputChange}
-                    placeholder='Enter your email'
+                    disabled
+                    className='bg-gray-50'
                   />
+                  <p className='text-xs text-gray-500'>
+                    Email cannot be changed here. Contact support if needed.
+                  </p>
                 </div>
 
                 <div className='space-y-2'>
@@ -665,7 +989,7 @@ const MaidSettingsPage = () => {
 
               <Separator />
 
-              {/* Account Deletion */}
+              {/* Account Deletion - Fix 4: Proper confirmation dialog */}
               <div className='space-y-4'>
                 <div>
                   <h3 className='text-lg font-medium text-red-600'>
@@ -685,17 +1009,52 @@ const MaidSettingsPage = () => {
                       </h4>
                       <p className='text-sm text-red-600 mt-1'>
                         Once you delete your account, there is no going back.
-                        Please be certain.
+                        All your data will be permanently removed.
                       </p>
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={handleDeleteAccount}
-                        disabled={loading}
-                        className='mt-3'
-                      >
-                        Delete Account
-                      </Button>
+
+                      {!showDeleteConfirm ? (
+                        <Button
+                          variant='destructive'
+                          size='sm'
+                          onClick={() => setShowDeleteConfirm(true)}
+                          disabled={loading}
+                          className='mt-3'
+                        >
+                          Delete Account
+                        </Button>
+                      ) : (
+                        <div className='mt-3 space-y-3 p-3 bg-red-100 rounded-md'>
+                          <p className='text-sm font-medium text-red-800'>
+                            Type <strong>DELETE</strong> to confirm:
+                          </p>
+                          <Input
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder='Type DELETE'
+                            className='bg-white'
+                          />
+                          <div className='flex space-x-2'>
+                            <Button
+                              variant='destructive'
+                              size='sm'
+                              onClick={handleDeleteAccount}
+                              disabled={loading || deleteConfirmText !== 'DELETE'}
+                            >
+                              {loading ? 'Deleting...' : 'Permanently Delete'}
+                            </Button>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeleteConfirmText('');
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

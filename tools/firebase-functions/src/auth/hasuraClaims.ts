@@ -28,9 +28,10 @@ import * as functions from 'firebase-functions';
 import { sendTelegramMessage, sendMonitorTelegramMessage } from '../notifications/telegramService';
 import { formatNewRegistration } from '../notifications/adminMessages';
 
-// Hasura GraphQL endpoint from environment
-const HASURA_ENDPOINT = functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
-const HASURA_ADMIN_SECRET = functions.config().hasura?.admin_secret || process.env.HASURA_ADMIN_SECRET;
+// Hasura GraphQL endpoint - prefer process.env over deprecated functions.config()
+const _hasuraLegacy = (() => { try { return functions.config()?.hasura || {}; } catch { return {}; } })();
+const HASURA_ENDPOINT = process.env.HASURA_GRAPHQL_ENDPOINT || (_hasuraLegacy as any).endpoint;
+const HASURA_ADMIN_SECRET = process.env.HASURA_ADMIN_SECRET || (_hasuraLegacy as any).admin_secret;
 
 // GraphQL query to get user profile type
 const GET_USER_PROFILE = gql`

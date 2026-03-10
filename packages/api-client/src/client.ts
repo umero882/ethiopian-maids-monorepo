@@ -275,41 +275,40 @@ const httpLink = new HttpLink({
 
 /**
  * WebSocket link for subscriptions (real-time)
- * Uses same authentication logic as HTTP link
+ * DISABLED: WebSocket connections fail with nginx 1.24 + HTTP/2.
+ * All admin features now use polling queries instead of subscriptions.
+ * The wsLink is created lazily only if a subscription is actually used.
  */
-const wsLink = new GraphQLWsLink(
-  createClient({
-    url: HASURA_WS_ENDPOINT,
-    connectionParams: () => {
-      const token = getAuthToken();
-
-      // Build auth headers - JWT only
-      const authHeaders: Record<string, string> = {};
-
-      if (token) {
-        authHeaders['authorization'] = `Bearer ${token}`;
-      }
-
-      return { headers: authHeaders };
-    },
-    // Reconnect on connection drop
-    shouldRetry: () => true,
-    retryAttempts: 5,
-  })
-);
+let _wsLink: GraphQLWsLink | null = null;
+function getWsLink(): GraphQLWsLink {
+  if (!_wsLink) {
+    _wsLink = new GraphQLWsLink(
+      createClient({
+        url: HASURA_WS_ENDPOINT,
+        connectionParams: () => {
+          const token = getAuthToken();
+          const authHeaders: Record<string, string> = {};
+          if (token) {
+            authHeaders['authorization'] = `Bearer ${token}`;
+          }
+          return { headers: authHeaders };
+        },
+        shouldRetry: () => true,
+        retryAttempts: 3,
+      })
+    );
+  }
+  return _wsLink;
+}
 
 /**
  * Apollo Client 4 Link Chain Configuration
  *
- * Apollo Client 4 migrated from zen-observable to RxJS Observable.
- * Use ApolloLink.from() and ApolloLink.split() static methods for proper compatibility.
+ * HTTP-only link chain — WebSocket is lazy-loaded only if subscriptions are used.
+ * This prevents WebSocket connection attempts from consuming browser resources.
  *
- * Link chain order: performanceLink -> errorLink -> authLink -> httpLink
- * For subscriptions: wsLink (WebSocket)
+ * Link chain order: performanceLink -> errorLink -> retryLink -> authLink -> httpLink
  */
-
-// HTTP link chain using ApolloLink.from() for Apollo 4 compatibility
-// Order: performance -> error (with token refresh) -> retry -> auth -> http
 const httpLinkChain = ApolloLink.from([
   performanceLink,
   errorLink,
@@ -319,8 +318,7 @@ const httpLinkChain = ApolloLink.from([
 ]);
 
 /**
- * Split link - uses WebSocket for subscriptions, HTTP for queries/mutations
- * Using ApolloLink.split() static method for Apollo Client 4 compatibility
+ * Split link - routes subscriptions to WebSocket (lazy), everything else to HTTP
  */
 const splitLink = ApolloLink.split(
   ({ query }) => {
@@ -330,7 +328,8 @@ const splitLink = ApolloLink.split(
       definition.operation === 'subscription'
     );
   },
-  wsLink,
+  // Lazy WebSocket link — only created when a subscription is actually used
+  new ApolloLink((operation, forward) => getWsLink().request(operation, forward)),
   httpLinkChain
 );
 

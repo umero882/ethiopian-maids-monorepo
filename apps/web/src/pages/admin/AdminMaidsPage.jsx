@@ -1515,7 +1515,7 @@ Ethiopian Maids Platform Team`
     bio: { label: 'Biography', icon: MessageSquare },
   };
 
-  const MaidDetailDialog = ({ maid: initialMaid, open, onOpenChange, onPreviewDocument, onMaidRefreshed }) => {
+  const MaidDetailDialog = ({ maid: initialMaid, open, onOpenChange, onPreviewDocument, onMaidRefreshed, emailMap: parentEmailMap }) => {
     const [selectedMissingItems, setSelectedMissingItems] = useState(new Set());
     const scrollContainerRef = useRef(null);
     const [maidDocuments, setMaidDocuments] = useState([]);
@@ -1541,11 +1541,14 @@ Ethiopian Maids Platform Team`
           fetchPolicy: 'network-only',
         });
 
-        if (!errors && data?.maid_documents) {
-          logger.info('Fetched maid documents:', data.maid_documents);
+        if (errors) {
+          logger.warn('GraphQL warnings/errors fetching documents:', errors);
+        }
+
+        // Return data even if there are partial errors (errorPolicy: 'all')
+        if (data?.maid_documents) {
+          logger.info('Fetched maid documents:', data.maid_documents.length, 'docs');
           return data.maid_documents;
-        } else if (errors) {
-          logger.error('GraphQL errors fetching documents:', errors);
         }
       } catch (error) {
         logger.error('Error fetching maid documents:', error);
@@ -1604,6 +1607,14 @@ Ethiopian Maids Platform Team`
     // for additional fields (passport details, work history, etc.)
     const loadedMaidIdRef = useRef(null);
 
+    // Reset loaded ref and documents when dialog closes
+    useEffect(() => {
+      if (!open) {
+        loadedMaidIdRef.current = null;
+        setMaidDocuments([]);
+      }
+    }, [open]);
+
     useEffect(() => {
       if (!initialMaid?.id || !open) return;
 
@@ -1614,52 +1625,65 @@ Ethiopian Maids Platform Team`
 
       const loadFullProfile = async () => {
         setDocumentsLoading(true);
-        loadedMaidIdRef.current = initialMaid.id;
         const maidId = initialMaid.id;
 
-        // Fetch full maid profile and documents in parallel
-        const [profileResult, docsResult] = await Promise.allSettled([
-          apolloClient.query({
-            query: GET_MAID_BY_ID,
-            variables: { id: maidId },
-            fetchPolicy: 'network-only',
-          }),
-          fetchDocuments(maidId),
-        ]);
+        try {
+          // Fetch full maid profile and documents in parallel
+          const [profileResult, docsResult] = await Promise.allSettled([
+            apolloClient.query({
+              query: GET_MAID_BY_ID,
+              variables: { id: maidId },
+              fetchPolicy: 'network-only',
+            }),
+            fetchDocuments(maidId),
+          ]);
 
-        if (cancelled) return;
+          if (cancelled) return;
 
-        // Apply profile data if successful
-        if (profileResult.status === 'fulfilled') {
-          const { data: profileData, errors: profileErrors } = profileResult.value;
-          if (!profileErrors && profileData?.maid_profiles_by_pk) {
-            const maidProfile = profileData.maid_profiles_by_pk;
-            // Also fetch email from profiles table
-            try {
-              const { data: emailData } = await apolloClient.query({
-                query: GET_EMAILS_BY_IDS,
-                variables: { ids: [maidId] },
-                fetchPolicy: 'cache-first'
-              });
-              const email = emailData?.profiles?.[0]?.email;
-              if (email) maidProfile.email = email;
-            } catch (e) { /* email fetch is non-critical */ }
-            setMaidData(maidProfile);
-          } else if (profileErrors) {
-            logger.error('GraphQL errors fetching full profile:', profileErrors);
+          // Apply profile data if successful
+          if (profileResult.status === 'fulfilled') {
+            const { data: profileData, errors: profileErrors } = profileResult.value;
+            if (profileErrors) {
+              logger.warn('GraphQL warnings fetching profile:', profileErrors);
+            }
+            if (profileData?.maid_profiles_by_pk) {
+              // Spread into a new object — Apollo cache objects are frozen/non-extensible
+              const maidProfile = { ...profileData.maid_profiles_by_pk };
+              // Also fetch email from profiles table
+              try {
+                const { data: emailData } = await apolloClient.query({
+                  query: GET_EMAILS_BY_IDS,
+                  variables: { ids: [maidId] },
+                  fetchPolicy: 'network-only'
+                });
+                const email = emailData?.profiles?.[0]?.email;
+                if (email) maidProfile.email = email;
+              } catch (e) { /* email fetch is non-critical */ }
+              // Fallback to parent emailMap if email still not set
+              if (!maidProfile.email && parentEmailMap?.[maidId]) {
+                maidProfile.email = parentEmailMap[maidId];
+              }
+              setMaidData(maidProfile);
+            }
+          } else {
+            logger.error('Error fetching full maid profile:', profileResult.reason);
           }
-        } else {
-          logger.error('Error fetching full maid profile:', profileResult.reason);
-        }
 
-        // Apply documents data if successful
-        if (docsResult.status === 'fulfilled') {
-          setMaidDocuments(docsResult.value || []);
-        } else {
-          logger.error('Error fetching maid documents:', docsResult.reason);
-        }
+          // Apply documents data if successful
+          if (docsResult.status === 'fulfilled') {
+            setMaidDocuments(docsResult.value || []);
+          } else {
+            logger.error('Error fetching maid documents:', docsResult.reason);
+          }
 
-        setDocumentsLoading(false);
+          loadedMaidIdRef.current = maidId;
+        } catch (error) {
+          logger.error('Error in loadFullProfile:', error);
+        } finally {
+          if (!cancelled) {
+            setDocumentsLoading(false);
+          }
+        }
       };
 
       loadFullProfile();
@@ -1667,28 +1691,36 @@ Ethiopian Maids Platform Team`
       return () => { cancelled = true; };
     }, [initialMaid?.id, open]);
 
-    // Reset loaded ref when dialog closes so re-opening fetches fresh data
-    useEffect(() => {
-      if (!open) {
-        loadedMaidIdRef.current = null;
-      }
-    }, [open]);
-
-    // Get identity documents (passport/national_id) - check both document_type and type fields
-    // Also filter to only include documents that have a valid URL
-    const identityDocuments = maidDocuments.filter(doc => {
+    // Helper to check if a document is an identity document
+    const isIdentityDoc = (doc) => {
       const docType = (doc.document_type || doc.type || '').toLowerCase();
       return docType === 'passport' ||
         docType === 'national_id' ||
         docType === 'passport_photo_page' ||
+        docType === 'id_front' ||
+        docType === 'id_back' ||
+        docType === 'passport_front' ||
+        docType === 'passport_back' ||
         docType.includes('passport') ||
-        docType.includes('national') ||
-        docType.includes('id');
-    }).map(doc => ({
+        docType.includes('national_id');
+    };
+
+    const mapDocUrl = (doc) => ({
       ...doc,
-      // Use whichever URL field has a value
       url: doc.document_url || doc.file_url || null
-    }));
+    });
+
+    // Get identity documents (passport/national_id)
+    const identityDocuments = maidDocuments.filter(isIdentityDoc).map(mapDocUrl);
+
+    // Get all other documents (non-identity, non-gallery)
+    const otherDocuments = maidDocuments.filter(doc => !isIdentityDoc(doc) && (doc.document_type || doc.type || '').toLowerCase() !== 'gallery_photo').map(mapDocUrl);
+
+    // Get gallery photos
+    const galleryDocuments = maidDocuments.filter(doc => (doc.document_type || doc.type || '').toLowerCase() === 'gallery_photo').map(mapDocUrl);
+
+    // All non-identity documents combined for the "Other Documents" section
+    const allOtherDocuments = [...otherDocuments, ...galleryDocuments];
 
     // Check if identity documents with valid URLs exist
     const hasValidIdentityDocument = identityDocuments.some(doc => doc.url);
@@ -1995,25 +2027,33 @@ Ethiopian Maids Platform Team`;
                       }`}>
                         <div className="text-center">
                           <p className="text-xs font-medium text-slate-600 mb-2">Video CV</p>
-                          <div className={`w-20 h-20 mx-auto rounded-lg flex items-center justify-center ${
-                            maid.introduction_video_url ? 'bg-green-100' : 'bg-red-100'
-                          }`}>
-                            {maid.introduction_video_url ? (
-                              <div className="text-center">
-                                <Activity className="h-8 w-8 text-green-600 mx-auto" />
-                                {maid.video_duration && (
-                                  <p className="text-xs text-green-700 mt-1 font-medium">
-                                    {Math.floor(maid.video_duration / 60)}:{String(maid.video_duration % 60).padStart(2, '0')}
-                                  </p>
-                                )}
+                          {maid.introduction_video_url ? (
+                            <div className="w-full">
+                              <video
+                                src={maid.introduction_video_url}
+                                controls
+                                preload="metadata"
+                                className="w-full rounded-lg border border-green-200 max-h-40"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  const fallback = e.target.nextElementSibling;
+                                  if (fallback) fallback.style.display = 'flex';
+                                }}
+                              />
+                              <div className="hidden w-full h-20 items-center justify-center bg-red-50 rounded-lg flex-col">
+                                <AlertTriangle className="h-6 w-6 text-red-400" />
+                                <span className="text-xs text-red-500 mt-1">Video failed to load</span>
                               </div>
-                            ) : (
-                              <XCircle className="h-8 w-8 text-red-400" />
-                            )}
-                          </div>
-                          <Badge className={`mt-2 ${maid.introduction_video_url ? 'bg-green-600' : 'bg-red-600'}`}>
-                            {maid.introduction_video_url ? 'Available' : 'Missing'}
-                          </Badge>
+                              <Badge className="mt-2 bg-green-600">Available</Badge>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="w-20 h-20 mx-auto rounded-lg flex items-center justify-center bg-red-100">
+                                <XCircle className="h-8 w-8 text-red-400" />
+                              </div>
+                              <Badge className="mt-2 bg-red-600">Missing</Badge>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -2148,11 +2188,78 @@ Ethiopian Maids Platform Team`;
                       </div>
                     )}
 
+                    {/* Other Documents Section */}
+                    {allOtherDocuments.length > 0 && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div className="flex items-center gap-2 mb-3">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <h4 className="text-sm font-semibold text-blue-800">Other Documents</h4>
+                          <Badge variant="outline" className="text-xs border-blue-400 text-blue-700">
+                            {allOtherDocuments.length} file(s)
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {allOtherDocuments.map((doc) => (
+                            <div
+                              key={doc.id}
+                              className="relative group cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onPreviewDocument(doc, maid.full_name);
+                              }}
+                            >
+                              <div className={`aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all ${
+                                doc.url ? 'border-slate-200 hover:border-blue-400 bg-slate-100' : 'border-orange-200 bg-orange-50'
+                              }`}>
+                                {doc.url ? (
+                                  <>
+                                    <img
+                                      src={doc.url}
+                                      alt={doc.document_name || doc.title || doc.document_type || doc.type}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        const errorDiv = document.getElementById(`other-doc-error-${doc.id}`);
+                                        if (errorDiv) errorDiv.style.display = 'flex';
+                                      }}
+                                    />
+                                    <div id={`other-doc-error-${doc.id}`} className="hidden w-full h-full items-center justify-center bg-red-50 flex-col">
+                                      <AlertTriangle className="h-6 w-6 text-red-400" />
+                                      <span className="text-xs text-red-500 mt-1">404 Error</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center">
+                                    <FileText className="h-6 w-6 text-orange-400" />
+                                    <span className="text-xs text-orange-500 mt-1">No URL</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <Eye className="h-6 w-6 text-white drop-shadow-lg" />
+                              </div>
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                <Badge variant="secondary" className="text-xs capitalize">
+                                  {(doc.document_type || doc.type || 'Document').replace(/_/g, ' ')}
+                                </Badge>
+                                {doc.verified && (
+                                  <Badge className="text-xs bg-green-600">Verified</Badge>
+                                )}
+                                {!doc.url && (
+                                  <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">Missing File</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {documentsLoading && (
                       <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 text-slate-600 animate-spin" />
-                          <p className="text-sm text-slate-600">Loading identity documents...</p>
+                          <p className="text-sm text-slate-600">Loading documents...</p>
                         </div>
                       </div>
                     )}
@@ -2172,10 +2279,10 @@ Ethiopian Maids Platform Team`;
                     <CardContent className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-slate-500">Email</span>
-                        <span className={`text-sm font-medium flex items-center gap-1 ${!maid.email ? 'text-amber-500' : ''}`} title={maid.email || ''}>
+                        <span className={`text-sm font-medium flex items-center gap-1 ${!(maid.email || parentEmailMap?.[maid.id]) ? 'text-amber-500' : ''}`} title={maid.email || parentEmailMap?.[maid.id] || ''}>
                           <Mail className="h-3 w-3 text-blue-500" />
-                          {maid.email ? (
-                            <span className="truncate max-w-[160px]">{maid.email}</span>
+                          {(maid.email || parentEmailMap?.[maid.id]) ? (
+                            <span className="truncate max-w-[160px]">{maid.email || parentEmailMap[maid.id]}</span>
                           ) : 'Not set'}
                         </span>
                       </div>
@@ -2290,7 +2397,7 @@ Ethiopian Maids Platform Team`;
                         <span className="text-xs text-slate-500">Salary</span>
                         <span className="text-sm text-slate-600">
                           {maid.preferred_salary_min
-                            ? `${maid.preferred_currency || '$'}${maid.preferred_salary_min}${maid.preferred_salary_max ? `-${maid.preferred_salary_max}` : ''}`
+                            ? `${maid.preferred_currency || 'AED'} ${maid.preferred_salary_min}${maid.preferred_salary_max ? `-${maid.preferred_salary_max}` : ''}`
                             : '—'}
                         </span>
                       </div>
@@ -3130,6 +3237,7 @@ Ethiopian Maids Platform Team`;
         maid={selectedMaid}
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
+        emailMap={emailMap}
         onPreviewDocument={(doc, maidName) => {
           setDocumentPreview({ open: true, document: doc, maidName });
         }}

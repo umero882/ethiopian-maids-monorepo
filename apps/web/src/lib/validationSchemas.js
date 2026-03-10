@@ -143,7 +143,7 @@ export const maidProfileSchema = {
       (data.expectedSalary < 100 || data.expectedSalary > 10000)
     ) {
       errors.expectedSalary =
-        'Expected salary must be between $100 and $10,000';
+        'Expected salary must be between AED 100 and AED 10,000';
     }
 
     return {
@@ -316,7 +316,7 @@ export const jobPostingSchema = {
     if (!data.salaryMin) {
       errors.salaryMin = 'Minimum salary is required';
     } else if (data.salaryMin < 100) {
-      errors.salaryMin = 'Minimum salary must be at least $100';
+      errors.salaryMin = 'Minimum salary must be at least AED 100';
     }
 
     if (data.salaryMax && data.salaryMax < data.salaryMin) {

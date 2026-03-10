@@ -14,13 +14,14 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { GraphQLClient, gql } from 'graphql-request';
 
-// Hasura config
+// Hasura config - prefer process.env over deprecated functions.config()
+const _hasuraLegacy = (() => { try { return functions.config()?.hasura || {}; } catch { return {} as any; } })();
 const HASURA_ENDPOINT =
-  functions.config().hasura?.endpoint || process.env.HASURA_GRAPHQL_ENDPOINT;
+  process.env.HASURA_GRAPHQL_ENDPOINT || _hasuraLegacy.endpoint;
 const HASURA_ADMIN_SECRET =
-  functions.config().hasura?.admin_secret || process.env.HASURA_ADMIN_SECRET;
+  process.env.HASURA_ADMIN_SECRET || _hasuraLegacy.admin_secret;
 
-function getAdminClient(): GraphQLClient {
+export function getAdminClient(): GraphQLClient {
   if (!HASURA_ENDPOINT || !HASURA_ADMIN_SECRET) {
     throw new functions.https.HttpsError(
       'failed-precondition',
@@ -34,7 +35,7 @@ function getAdminClient(): GraphQLClient {
 
 // ---- GraphQL Mutations ----
 
-const UPSERT_PROFILE = gql`
+export const UPSERT_PROFILE = gql`
   mutation UpsertProfile($data: profiles_insert_input!) {
     insert_profiles_one(
       object: $data
@@ -60,7 +61,7 @@ const UPSERT_PROFILE = gql`
   }
 `;
 
-const UPSERT_MAID_PROFILE = gql`
+export const UPSERT_MAID_PROFILE = gql`
   mutation UpsertMaidProfile($data: maid_profiles_insert_input!) {
     insert_maid_profiles_one(
       object: $data
@@ -129,7 +130,7 @@ const UPSERT_MAID_PROFILE = gql`
   }
 `;
 
-const UPSERT_SPONSOR_PROFILE = gql`
+export const UPSERT_SPONSOR_PROFILE = gql`
   mutation UpsertSponsorProfile($data: sponsor_profiles_insert_input!) {
     insert_sponsor_profiles_one(
       object: $data
@@ -185,7 +186,7 @@ const UPSERT_SPONSOR_PROFILE = gql`
   }
 `;
 
-const UPSERT_AGENCY_PROFILE = gql`
+export const UPSERT_AGENCY_PROFILE = gql`
   mutation UpsertAgencyProfile($data: agency_profiles_insert_input!) {
     insert_agency_profiles_one(
       object: $data
@@ -244,8 +245,9 @@ interface SaveOnboardingRequest {
 }
 
 // ---- Helper: Normalize sponsor data ----
+// Exported for reuse by WhatsApp Flow onboarding
 
-function normalizeSponsorData(userId: string, data: ProfileData): Record<string, unknown> {
+export function normalizeSponsorData(userId: string, data: ProfileData): Record<string, unknown> {
   return {
     id: userId,
     full_name: (data.full_name as string) || (data.fullName as string) || '',
@@ -295,7 +297,7 @@ function normalizeSponsorData(userId: string, data: ProfileData): Record<string,
       data.salary_budget_max !== undefined && data.salary_budget_max !== ''
         ? parseInt(String(data.salary_budget_max))
         : null,
-    currency: data.currency || 'USD',
+    currency: data.currency || 'AED',
     live_in_required: data.live_in_required !== false,
     working_hours_per_day: parseInt(String(data.working_hours_per_day || 8)) || 8,
     days_off_per_week: parseInt(String(data.days_off_per_week || 1)) || 1,
@@ -325,8 +327,9 @@ function normalizeSponsorData(userId: string, data: ProfileData): Record<string,
 }
 
 // ---- Helper: Normalize maid data ----
+// Exported for reuse by WhatsApp Flow onboarding
 
-function normalizeMaidData(userId: string, data: ProfileData): Record<string, unknown> {
+export function normalizeMaidData(userId: string, data: ProfileData): Record<string, unknown> {
   const maidData: Record<string, unknown> = {
     id: userId,
     user_id: userId,
@@ -347,7 +350,7 @@ function normalizeMaidData(userId: string, data: ProfileData): Record<string, un
     education_level: data.education_level || data.educationLevel || null,
     preferred_salary_min: data.preferred_salary_min !== undefined ? parseInt(String(data.preferred_salary_min)) || null : null,
     preferred_salary_max: data.preferred_salary_max !== undefined ? parseInt(String(data.preferred_salary_max)) || null : null,
-    preferred_currency: data.preferred_currency || data.currency || 'USD',
+    preferred_currency: data.preferred_currency || data.currency || 'AED',
     available_from: data.available_from || null,
     availability_status: data.availability_status || data.availability || 'available',
     contract_duration_preference: data.contract_duration_preference || data.contractDuration || null,
@@ -392,8 +395,9 @@ function normalizeMaidData(userId: string, data: ProfileData): Record<string, un
 }
 
 // ---- Helper: Normalize agency data ----
+// Exported for reuse by WhatsApp Flow onboarding
 
-function normalizeAgencyData(userId: string, data: ProfileData): Record<string, unknown> {
+export function normalizeAgencyData(userId: string, data: ProfileData): Record<string, unknown> {
   const agencyName = (data.agencyName as string) || (data.full_name as string) || '';
   const phoneVal = data.contactPhone || data.business_phone || data.phone || null;
   const emailVal = data.officialEmail || data.business_email || data.email || null;

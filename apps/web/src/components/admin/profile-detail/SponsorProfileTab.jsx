@@ -501,7 +501,7 @@ const SponsorProfileTab = ({
               ) : (
                 <p className="text-sm py-2">
                   {sponsorProfile.salary_budget_min
-                    ? `${sponsorProfile.currency || 'USD'} ${sponsorProfile.salary_budget_min}`
+                    ? `${sponsorProfile.currency || 'AED'} ${sponsorProfile.salary_budget_min}`
                     : 'N/A'}
                 </p>
               )}
@@ -518,7 +518,7 @@ const SponsorProfileTab = ({
               ) : (
                 <p className="text-sm py-2">
                   {sponsorProfile.salary_budget_max
-                    ? `${sponsorProfile.currency || 'USD'} ${sponsorProfile.salary_budget_max}`
+                    ? `${sponsorProfile.currency || 'AED'} ${sponsorProfile.salary_budget_max}`
                     : 'N/A'}
                 </p>
               )}
