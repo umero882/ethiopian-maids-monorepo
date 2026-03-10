@@ -284,7 +284,7 @@ const UserListModal = ({
   // Check existing connections for displayed users
   useEffect(() => {
     const checkConnections = async () => {
-      if (!users.length || !user?.uid) return;
+      if (!users.length || !userId) return;
 
       const connections = {};
       for (const u of users) {
@@ -297,7 +297,7 @@ const UserListModal = ({
     };
 
     checkConnections();
-  }, [users, user?.uid]);
+  }, [users, userId]);
 
   const handleSendInterest = async (targetUser) => {
     try {

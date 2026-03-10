@@ -231,10 +231,6 @@ const CREATE_CONVERSATION = gql`
         participant2_type: $participant2Type
         status: "active"
       }
-      on_conflict: {
-        constraint: unique_conversation
-        update_columns: [status]
-      }
     ) {
       id
       participant1_id
@@ -546,6 +542,17 @@ class InterestService {
       });
 
       const senderType = profileData?.profiles?.[0]?.user_type;
+
+      // Check if conversation already exists (avoids unique constraint violation)
+      const { data: existingData } = await apolloClient.query({
+        query: CHECK_EXISTING_CONVERSATION,
+        variables: { userId1: user.uid, userId2: recipientId },
+        fetchPolicy: 'network-only',
+      });
+
+      if (existingData?.conversations?.length > 0) {
+        return existingData.conversations[0];
+      }
 
       const { data, errors } = await apolloClient.mutate({
         mutation: CREATE_CONVERSATION,

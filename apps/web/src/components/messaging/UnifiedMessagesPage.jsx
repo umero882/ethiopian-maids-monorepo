@@ -1168,11 +1168,16 @@ const UnifiedMessagesPage = ({ userType = 'maid' }) => {
   };
 
   // Handle conversation created from modal
-  const handleConversationCreated = (conversationId) => {
-    refetchConversations();
-    const newConv = conversations.find(c => c.id === conversationId);
-    if (newConv) {
-      setSelectedConversation(newConv);
+  const handleConversationCreated = async (conversationId) => {
+    try {
+      const { data: refetchedData } = await refetchConversations();
+      const updatedConversations = refetchedData?.conversations || [];
+      const newConv = updatedConversations.find(c => c.id === conversationId);
+      if (newConv) {
+        setSelectedConversation(newConv);
+      }
+    } catch (error) {
+      console.error('Error selecting new conversation:', error);
     }
   };
 
