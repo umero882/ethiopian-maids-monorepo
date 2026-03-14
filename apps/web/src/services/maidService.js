@@ -104,6 +104,16 @@ export const maidService = {
     return graphqlMaidService.subscribeMaidProfiles?.(callback, filters) || (() => {});
   },
 
+  async getMaidDocuments(maidId) {
+    log.debug('Fetching maid documents via GraphQL', { maidId });
+    return graphqlMaidService.getMaidDocuments(maidId);
+  },
+
+  async incrementProfileViews(maidId) {
+    log.debug('Incrementing profile views via GraphQL', { maidId });
+    return graphqlMaidService.incrementProfileViews(maidId);
+  },
+
   subscribeUserProfile(callback, userId) {
     log.debug('Subscribing to user profile via GraphQL');
     return graphqlMaidService.subscribeUserProfile?.(callback, userId) || (() => {});

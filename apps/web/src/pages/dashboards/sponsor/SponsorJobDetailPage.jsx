@@ -42,7 +42,7 @@ import {
   Phone,
   FileText,
 } from 'lucide-react';
-import { getJobById, deleteJob, changeJobStatus, getJobApplications, toggleJobFeatured } from '@/services/jobService';
+import { getJobById, deleteJob, changeJobStatus, getJobApplications, getJobViews, toggleJobFeatured } from '@/services/jobService';
 import { formatDistanceToNow, format } from 'date-fns';
 
 const SponsorJobDetailPage = () => {
@@ -50,12 +50,15 @@ const SponsorJobDetailPage = () => {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [views, setViews] = useState([]);
+  const [viewsTotal, setViewsTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadJobDetails();
     loadApplications();
+    loadViews();
   }, [jobId]);
 
   const loadJobDetails = async () => {
@@ -87,6 +90,16 @@ const SponsorJobDetailPage = () => {
       setApplications(data || []);
     } catch (error) {
       console.error('Error loading applications:', error);
+    }
+  };
+
+  const loadViews = async () => {
+    try {
+      const { data, total } = await getJobViews(jobId);
+      setViews(data || []);
+      setViewsTotal(total || 0);
+    } catch (error) {
+      console.error('Error loading views:', error);
     }
   };
 
@@ -343,7 +356,9 @@ const SponsorJobDetailPage = () => {
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-sm font-medium text-gray-600'>Applications</p>
-                <p className='text-2xl font-bold text-gray-900'>{job.applications_count || 0}</p>
+                <p className='text-2xl font-bold text-gray-900'>
+                  {applications.length || job.applications_aggregate?.aggregate?.count || job.applications_count || 0}
+                </p>
               </div>
               <Users className='h-8 w-8 text-blue-500 opacity-50' />
             </div>
@@ -355,7 +370,7 @@ const SponsorJobDetailPage = () => {
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-sm font-medium text-gray-600'>Views</p>
-                <p className='text-2xl font-bold text-gray-900'>{job.views_count || 0}</p>
+                <p className='text-2xl font-bold text-gray-900'>{viewsTotal || job.views_count || 0}</p>
               </div>
               <Eye className='h-8 w-8 text-green-500 opacity-50' />
             </div>
@@ -399,6 +414,9 @@ const SponsorJobDetailPage = () => {
           <TabsTrigger value='details'>Job Details</TabsTrigger>
           <TabsTrigger value='applications'>
             Applications ({applications.length})
+          </TabsTrigger>
+          <TabsTrigger value='views'>
+            Views ({viewsTotal})
           </TabsTrigger>
         </TabsList>
 
@@ -628,44 +646,124 @@ const SponsorJobDetailPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {applications.map((application) => (
-                      <TableRow key={application.id}>
+                    {applications.map((application) => {
+                      const maid = application.maid_profile;
+                      const maidName = maid
+                        ? (maid.full_name || `${maid.first_name || ''} ${maid.last_name || ''}`.trim() || 'Unnamed')
+                        : 'Unknown';
+                      return (
+                        <TableRow key={application.id}>
+                          <TableCell>
+                            <div className='flex items-center gap-3'>
+                              <Avatar>
+                                <AvatarImage src={maid?.profile_photo_url} />
+                                <AvatarFallback>
+                                  {maidName.charAt(0) || 'M'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className='font-medium'>{maidName}</p>
+                                {maid?.verification_status === 'verified' && (
+                                  <Badge variant='outline' className='text-xs text-green-600 border-green-300'>
+                                    Verified
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className='text-sm text-gray-600'>
+                              {formatDistanceToNow(new Date(application.created_at), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {application.offer_amount ? (
+                              <span className='font-medium'>
+                                {application.offer_amount} {application.offer_currency || ''}
+                              </span>
+                            ) : (
+                              <span className='text-gray-400'>—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{getApplicationStatusBadge(application.status)}</TableCell>
+                          <TableCell className='text-right'>
+                            <Button variant='ghost' size='sm' asChild>
+                              <Link to={`/dashboard/sponsor/applications/${application.id}`}>
+                                <Eye className='h-4 w-4 mr-1' />
+                                Review
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value='views' className='space-y-6'>
+          <Card>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <Eye className='h-5 w-5' />
+                Job Views
+              </CardTitle>
+              <CardDescription>
+                {viewsTotal} total view{viewsTotal !== 1 ? 's' : ''} on this job posting
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {views.length === 0 ? (
+                <div className='text-center py-12'>
+                  <Eye className='h-16 w-16 text-gray-300 mx-auto mb-4' />
+                  <h3 className='text-lg font-semibold text-gray-700 mb-2'>No views yet</h3>
+                  <p className='text-gray-500'>
+                    Views will appear here when users visit this job posting
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Viewer</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Viewed</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {views.map((view) => (
+                      <TableRow key={view.id}>
                         <TableCell>
                           <div className='flex items-center gap-3'>
-                            <Avatar>
-                              <AvatarImage src={application.maid?.avatar_url} />
+                            <Avatar className='h-8 w-8'>
+                              <AvatarImage src={view.viewer_avatar_url} />
                               <AvatarFallback>
-                                {application.maid?.name?.charAt(0) || 'M'}
+                                {view.viewer_name
+                                  ? view.viewer_name.charAt(0).toUpperCase()
+                                  : view.viewer_role === 'maid' ? 'M' : 'U'}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <p className='font-medium'>{application.maid?.name}</p>
-                              <p className='text-sm text-gray-500'>{application.maid?.email}</p>
-                            </div>
+                            <p className='font-medium'>
+                              {view.viewer_name || 'Anonymous User'}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
+                          <Badge variant='outline' className='capitalize'>
+                            {view.viewer_role || 'visitor'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           <span className='text-sm text-gray-600'>
-                            {formatDistanceToNow(new Date(application.created_at), {
+                            {formatDistanceToNow(new Date(view.viewed_at), {
                               addSuffix: true,
                             })}
                           </span>
-                        </TableCell>
-                        <TableCell>
-                          {application.proposed_salary && (
-                            <span className='font-medium'>
-                              {application.proposed_salary} {application.proposed_currency}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>{getApplicationStatusBadge(application.status)}</TableCell>
-                        <TableCell className='text-right'>
-                          <Button variant='ghost' size='sm' asChild>
-                            <Link to={`/dashboard/sponsor/applications/${application.id}`}>
-                              <Eye className='h-4 w-4 mr-1' />
-                              Review
-                            </Link>
-                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

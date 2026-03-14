@@ -54,6 +54,9 @@ import { adminNotifyHandler } from './notifications/adminNotify';
 import { sendNotificationEmailHandler } from './notifications/sendNotificationEmail';
 import { sendWhatsAppNotificationHandler } from './notifications/sendWhatsAppNotification';
 
+// Import handlers - Onboarding Welcome Notifications
+import { sendOnboardingWelcomeHandler } from './notifications/sendOnboardingWelcome';
+
 // Import handlers - WhatsApp Flows
 import { whatsappFlowEndpointHandler } from './whatsapp/flowEndpoint';
 
@@ -62,6 +65,10 @@ import { whatsappWebhookHandler } from './whatsapp/webhookHandler';
 
 // Import handlers - Jobs
 import { manageJob } from './jobs/createJob';
+import { manageApplication } from './jobs/manageApplication';
+
+// Import handlers - Profile
+import { incrementViews } from './profiles/incrementViews';
 
 // =====================================================
 // STRIPE FUNCTIONS
@@ -245,6 +252,18 @@ export const profileEnsureExists = functions.https.onCall(ensureProfileExists);
  */
 export const jobManage = functions.https.onCall(manageJob);
 
+/**
+ * Callable: Submit/manage job applications using admin secret
+ * Bypasses Hasura JWT permission issues for the applications table.
+ */
+export const jobApplicationManage = functions.https.onCall(manageApplication);
+
+/**
+ * Callable: Increment maid profile views using admin secret
+ * Bypasses Hasura row-level permissions (viewers can't update other users' rows).
+ */
+export const profileIncrementViews = functions.https.onCall(incrementViews);
+
 // =====================================================
 // ADMIN NOTIFICATIONS (Telegram)
 // =====================================================
@@ -264,6 +283,12 @@ export const notificationSendEmail = functions.https.onCall(sendNotificationEmai
  * Callable: Send WhatsApp notification via Meta Cloud API (admin only)
  */
 export const notificationSendWhatsApp = functions.https.onCall(sendWhatsAppNotificationHandler);
+
+/**
+ * Callable: Send onboarding welcome notifications (any authenticated user)
+ * Sends in-app, WhatsApp, and email to user + admin Telegram/in-app notification
+ */
+export const notificationSendOnboardingWelcome = functions.https.onCall(sendOnboardingWelcomeHandler);
 
 // =====================================================
 // WHATSAPP FLOWS (Interactive Onboarding)

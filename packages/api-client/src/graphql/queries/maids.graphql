@@ -9,21 +9,29 @@ query GetMaidProfileComplete($id: String!) {
     # Personal Information
     id
     full_name
+    first_name
+    last_name
     date_of_birth
     nationality
+    country
     current_location
     marital_status
     children_count
     iso_country_code
     religion
+    phone_number
 
     # Professional Information
     experience_years
     previous_countries
     skills
+    special_skills
     languages
     education_level
     primary_profession
+    primary_profession_other
+    key_responsibilities
+    work_history
 
     # Work Preferences
     preferred_salary_min
@@ -32,6 +40,7 @@ query GetMaidProfileComplete($id: String!) {
     available_from
     contract_duration_preference
     live_in_preference
+    work_preferences
 
     # Documents & Verification
     passport_number
@@ -46,6 +55,8 @@ query GetMaidProfileComplete($id: String!) {
     verification_status
     is_agency_managed
     agency_id
+    hired_status
+    hired_by_sponsor_id
 
     # Metadata
     profile_views

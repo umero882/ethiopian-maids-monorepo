@@ -45,7 +45,7 @@ function buildJobFilters(filters) {
 
   // Accommodation/live-in filter
   if (filters.accommodation && filters.accommodation !== 'all') {
-    const liveInRequired = filters.accommodation === 'live-in';
+    const liveInRequired = filters.accommodation.toLowerCase() === 'live-in';
     where._and.push({ live_in_required: { _eq: liveInRequired } });
   }
 
@@ -121,14 +121,66 @@ export const graphqlJobService = {
         });
       }
 
+      // Use inline query to ensure all needed fields are included
+      const GET_JOBS_INLINE = gql`
+        query GetJobsInline(
+          $limit: Int = 100
+          $offset: Int = 0
+          $where: jobs_bool_exp
+          $orderBy: [jobs_order_by!] = [{ created_at: desc }]
+        ) {
+          jobs(
+            where: $where
+            limit: $limit
+            offset: $offset
+            order_by: $orderBy
+          ) {
+            id
+            title
+            description
+            job_type
+            country
+            city
+            address
+            required_skills
+            preferred_nationality
+            languages_required
+            salary_min
+            salary_max
+            currency
+            salary_period
+            status
+            urgency_level
+            applications_count
+            views_count
+            featured
+            expires_at
+            created_at
+            live_in_required
+            benefits
+            sponsor_profile {
+              id
+              full_name
+              avatar_url
+            }
+          }
+          jobs_aggregate(where: $where) {
+            aggregate {
+              count
+            }
+          }
+        }
+      `;
+
       const { data } = await apolloClient.query({
-        query: GetJobsWithFiltersDocument,
+        query: GET_JOBS_INLINE,
         variables: {
           where,
           orderBy,
-          limit: 100, // Default limit
+          limit: 100,
           offset: 0,
         },
+        fetchPolicy: 'network-only',
       });
 
       const jobs = data?.jobs || [];
@@ -150,6 +202,8 @@ export const graphqlJobService = {
           employer: sponsorProfile?.full_name || 'Sponsor',
           sponsor_name: sponsorProfile?.full_name || 'Sponsor',
           sponsor: sponsorProfile,
+          location: [job.city, job.country].filter(Boolean).join(', '),
+          urgent: job.urgency_level === 'urgent',
           salaryDisplay:
             typeof getSalaryString === 'function' && salaryRangeString
               ? getSalaryString(job.country, salaryRangeString, job.country, job.currency)
@@ -173,6 +227,7 @@ export const graphqlJobService = {
       const { data } = await apolloClient.query({
         query: GetJobCompleteDocument,
         variables: { id: jobId },
+        fetchPolicy: 'network-only',
       });
 
       const job = data?.jobs_by_pk;
@@ -436,6 +491,7 @@ export const graphqlJobService = {
       const orderByClause = [{ [orderBy]: orderDirection === 'asc' ? 'asc' : 'desc' }];
 
       // Inline query to avoid the generated one that breaks with null status
+      // Uses applications_aggregate for real count (applications_count stored counter may be stale)
       const GET_SPONSOR_JOBS = gql`
         query GetSponsorJobsInline(
           $where: jobs_bool_exp!
@@ -459,6 +515,11 @@ export const graphqlJobService = {
             featured
             created_at
             updated_at
+            applications_aggregate {
+              aggregate {
+                count
+              }
+            }
           }
           jobs_aggregate(where: $where) {
             aggregate {
@@ -487,9 +548,45 @@ export const graphqlJobService = {
    */
   async getJobApplications(jobId) {
     try {
+      // Use inline query to ensure full_name is included (generated document may be stale)
+      const GET_JOB_APPS = gql`
+        query GetJobApplicationsInline($jobId: uuid!) {
+          applications(
+            where: { job_id: { _eq: $jobId } }
+            order_by: { created_at: desc }
+          ) {
+            id
+            status
+            application_status
+            cover_letter
+            notes
+            match_score
+            offer_amount
+            offer_currency
+            message
+            created_at
+            updated_at
+            maid_profile {
+              id
+              full_name
+              first_name
+              last_name
+              profile_photo_url
+              verification_status
+            }
+            job {
+              id
+              title
+              sponsor_id
+            }
+          }
+        }
+      `;
+
       const { data } = await apolloClient.query({
-        query: GetJobApplicationsDocument,
+        query: GET_JOB_APPS,
         variables: { jobId },
+        fetchPolicy: 'network-only',
       });
 
       log.debug('[GraphQL] Loaded job applications:', data?.applications?.length || 0);
@@ -501,24 +598,121 @@ export const graphqlJobService = {
   },
 
   /**
+   * Get job views (who viewed this job)
+   */
+  async getJobViews(jobId) {
+    try {
+      const GET_JOB_VIEWS = gql`
+        query GetJobViews($jobId: uuid!) {
+          job_views(
+            where: { job_id: { _eq: $jobId } }
+            order_by: { viewed_at: desc }
+            limit: 100
+          ) {
+            id
+            viewer_id
+            viewer_role
+            viewer_name
+            viewer_avatar_url
+            viewed_at
+          }
+          job_views_aggregate(where: { job_id: { _eq: $jobId } }) {
+            aggregate {
+              count
+            }
+          }
+        }
+      `;
+
+      const { data } = await apolloClient.query({
+        query: GET_JOB_VIEWS,
+        variables: { jobId },
+        fetchPolicy: 'network-only',
+      });
+
+      log.debug('[GraphQL] Loaded job views:', data?.job_views?.length || 0);
+      return {
+        data: data?.job_views || [],
+        total: data?.job_views_aggregate?.aggregate?.count || 0,
+        error: null,
+      };
+    } catch (error) {
+      log.error('[GraphQL] Error fetching job views:', error);
+      return { data: [], total: 0, error };
+    }
+  },
+
+  /**
    * Get maid's applications
    */
   async getMaidApplications(options = {}) {
     try {
-      const { status = null, limit = 50, offset = 0, orderBy = 'created_at', orderDirection = 'desc' } = options;
+      const { status = null, limit = 50, offset = 0 } = options;
 
-      if (!options.maidId) {
-        return { data: null, error: new Error('Maid ID is required') };
+      // Resolve maidId from options or from current Firebase auth user
+      const maidId = options.maidId || auth?.currentUser?.uid;
+      if (!maidId) {
+        return { data: null, error: new Error('Not authenticated. Please log in.') };
       }
 
+      // Build where clause manually to handle optional status filter
+      const where = { maid_id: { _eq: maidId } };
+      if (status) {
+        where.status = { _eq: status };
+      }
+
+      const GET_MAID_APPS = gql`
+        query GetMaidApplicationsDynamic(
+          $where: applications_bool_exp!
+          $limit: Int = 50
+          $offset: Int = 0
+        ) {
+          applications(
+            where: $where
+            limit: $limit
+            offset: $offset
+            order_by: { created_at: desc }
+          ) {
+            id
+            status
+            application_status
+            cover_letter
+            notes
+            match_score
+            offer_amount
+            offer_currency
+            created_at
+            updated_at
+            job {
+              id
+              title
+              description
+              country
+              city
+              job_type
+              salary_min
+              salary_max
+              currency
+              status
+              sponsor_profile {
+                id
+                full_name
+                avatar_url
+              }
+            }
+          }
+          applications_aggregate(where: $where) {
+            aggregate {
+              count
+            }
+          }
+        }
+      `;
+
       const { data } = await apolloClient.query({
-        query: GetMaidApplicationsDocument,
-        variables: {
-          maidId: options.maidId,
-          status,
-          limit,
-          offset,
-        },
+        query: GET_MAID_APPS,
+        variables: { where, limit, offset },
+        fetchPolicy: 'network-only',
       });
 
       log.debug('[GraphQL] Loaded maid applications:', data?.applications?.length || 0);
@@ -534,9 +728,56 @@ export const graphqlJobService = {
    */
   async getApplicationById(applicationId) {
     try {
+      // Use inline query to ensure full_name is included (generated document may be stale)
+      const GET_APP_BY_ID = gql`
+        query GetApplicationByIdInline($id: uuid!) {
+          applications_by_pk(id: $id) {
+            id
+            job_id
+            maid_id
+            status
+            application_status
+            cover_letter
+            message
+            notes
+            match_score
+            offer_amount
+            offer_currency
+            created_at
+            updated_at
+            maid_profile {
+              id
+              full_name
+              first_name
+              last_name
+              profile_photo_url
+              verification_status
+            }
+            job {
+              id
+              title
+              description
+              country
+              city
+              salary_min
+              salary_max
+              currency
+              status
+              sponsor_id
+              sponsor_profile {
+                id
+                full_name
+                avatar_url
+              }
+            }
+          }
+        }
+      `;
+
       const { data } = await apolloClient.query({
-        query: GetApplicationByIdDocument,
+        query: GET_APP_BY_ID,
         variables: { id: applicationId },
+        fetchPolicy: 'network-only',
       });
 
       log.debug('[GraphQL] Loaded application by ID:', applicationId);
@@ -552,17 +793,75 @@ export const graphqlJobService = {
    */
   async submitApplication(jobId, applicationData) {
     try {
+      const currentUser = auth?.currentUser;
+      if (!currentUser?.uid) {
+        return { data: null, error: new Error('Not authenticated. Please log in to apply.') };
+      }
+
       const applicationPayload = {
         job_id: jobId,
+        maid_id: currentUser.uid,
         cover_letter: applicationData.coverLetter,
         status: 'pending',
         application_status: 'new',
       };
 
-      const { data } = await apolloClient.mutate({
+      // Include optional fields if provided
+      if (applicationData.proposedSalary) {
+        applicationPayload.offer_amount = parseInt(applicationData.proposedSalary, 10);
+      }
+      if (applicationData.availableFrom) {
+        applicationPayload.message = `Available from: ${applicationData.availableFrom}`;
+      }
+
+      // PRIMARY: Use Cloud Function with admin secret to bypass Hasura permission issues
+      try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const functions = getFunctions();
+        const callable = httpsCallable(functions, 'jobApplicationManage');
+        const result = await callable({ action: 'submit', applicationData: applicationPayload });
+        const cfData = result.data;
+        if (cfData.success && cfData.application) {
+          log.info('[CloudFunction] Application submitted successfully:', cfData.application.id);
+
+          // Increment the job's applications_count via Cloud Function
+          try {
+            await callable({ action: 'incrementCount', jobId });
+          } catch (countError) {
+            log.warn('[CloudFunction] Failed to increment applications count:', countError.message);
+          }
+
+          return { data: cfData.application, error: null };
+        }
+      } catch (cfError) {
+        log.warn('[CloudFunction] jobApplicationManage failed, falling back to direct GraphQL:', cfError.message);
+      }
+
+      // FALLBACK: Direct GraphQL mutation
+      const { data, errors } = await apolloClient.mutate({
         mutation: SubmitApplicationDocument,
         variables: { data: applicationPayload },
       });
+
+      if (errors && errors.length > 0) {
+        const errMsg = errors.map(e => e.message).join('; ');
+        log.error('[GraphQL] Application submission errors:', errMsg);
+        return { data: null, error: new Error(errMsg) };
+      }
+
+      if (!data?.insert_applications_one) {
+        return { data: null, error: new Error('Application submission failed. You may not have permission. Please contact support.') };
+      }
+
+      // Increment the job's applications_count
+      try {
+        await apolloClient.mutate({
+          mutation: IncrementApplicationsCountDocument,
+          variables: { jobId },
+        });
+      } catch (countError) {
+        log.warn('[GraphQL] Failed to increment applications count:', countError.message);
+      }
 
       log.info('[GraphQL] Application submitted successfully:', data.insert_applications_one.id);
       return { data: data.insert_applications_one, error: null };

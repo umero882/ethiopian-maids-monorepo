@@ -136,11 +136,12 @@ const Jobs = () => {
       tempJobs = tempJobs.filter((job) => job.country === filters.country);
     }
     if (filters.jobType !== 'all') {
-      tempJobs = tempJobs.filter((job) => job.jobType === filters.jobType);
+      tempJobs = tempJobs.filter((job) => (job.job_type || job.jobType || '').toLowerCase() === filters.jobType.toLowerCase());
     }
     if (filters.accommodation !== 'all') {
+      const wantLiveIn = filters.accommodation.toLowerCase() === 'live-in';
       tempJobs = tempJobs.filter(
-        (job) => job.accommodation === filters.accommodation
+        (job) => job.live_in_required === wantLiveIn
       );
     }
     if (filters.visaStatusRequired !== 'all') {
@@ -227,10 +228,8 @@ const Jobs = () => {
       navigate('/register');
       return;
     }
-    toast({
-      title: 'ðŸš§ Feature In Progress',
-      description: `Apply for ${job.title} is coming soon!`,
-    });
+    // Navigate to job detail page where the apply dialog is
+    navigate(`/jobs/${job.id}`);
   };
 
   const handleSaveJob = (job) => {

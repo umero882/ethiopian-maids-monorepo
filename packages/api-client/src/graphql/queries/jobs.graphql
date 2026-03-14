@@ -58,6 +58,13 @@ query GetJobComplete($id: uuid!) {
     applications_count
     views_count
 
+    # Real application count (applications_count may be stale)
+    applications_aggregate {
+      aggregate {
+        count
+      }
+    }
+
     # Timestamps
     created_at
     updated_at
@@ -87,6 +94,7 @@ query GetJobComplete($id: uuid!) {
       # Maid who applied
       maid_profile {
         id
+        full_name
         first_name
         last_name
         profile_photo_url
@@ -301,9 +309,12 @@ query GetMaidApplications(
 query GetApplicationById($id: uuid!) {
   applications_by_pk(id: $id) {
     id
+    job_id
+    maid_id
     status
     application_status
     cover_letter
+    message
     notes
     match_score
     offer_amount

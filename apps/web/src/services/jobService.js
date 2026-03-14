@@ -91,6 +91,11 @@ export async function getSponsorJobStats(sponsorId) {
   return graphqlJobService.getSponsorJobStats(sponsorId);
 }
 
+export async function getJobViews(jobId) {
+  log.debug('Fetching job views via GraphQL', { jobId });
+  return graphqlJobService.getJobViews(jobId);
+}
+
 // Export as default object for backwards compatibility
 export default {
   getJobs,
@@ -109,4 +114,5 @@ export default {
   addApplicationNotes,
   withdrawApplication,
   getSponsorJobStats,
+  getJobViews,
 };

@@ -29,7 +29,7 @@ const JobFilters = ({ filters, setFilters, allRequirements, allLanguages }) => {
 
   const countries = [
     { value: 'all', label: 'All Countries' },
-    { value: 'UAE', label: 'UAE' },
+    { value: 'United Arab Emirates', label: 'UAE' },
     { value: 'Saudi Arabia', label: 'Saudi Arabia' },
     { value: 'Qatar', label: 'Qatar' },
     { value: 'Kuwait', label: 'Kuwait' },
@@ -39,17 +39,16 @@ const JobFilters = ({ filters, setFilters, allRequirements, allLanguages }) => {
 
   const jobTypes = [
     { value: 'all', label: 'All Job Types' },
-    { value: 'Full-time', label: 'Full-time' },
-    { value: 'Part-time', label: 'Part-time' },
-    { value: 'Contract', label: 'Contract' },
-    { value: 'Hourly', label: 'Hourly' },
+    { value: 'full-time', label: 'Full-time' },
+    { value: 'part-time', label: 'Part-time' },
+    { value: 'contract', label: 'Contract' },
+    { value: 'hourly', label: 'Hourly' },
   ];
 
   const accommodationTypes = [
     { value: 'all', label: 'Any Accommodation' },
-    { value: 'Live-in', label: 'Live-in' },
-    { value: 'Live-out', label: 'Live-out' },
-    { value: 'Hourly (Not Live-in)', label: 'Hourly (Not Live-in)' },
+    { value: 'live-in', label: 'Live-in' },
+    { value: 'live-out', label: 'Live-out' },
   ];
 
   const visaStatusesRequired = [

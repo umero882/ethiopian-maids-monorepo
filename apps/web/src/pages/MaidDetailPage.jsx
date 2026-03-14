@@ -600,11 +600,11 @@ const MaidDetailPage = () => {
                       {getCountryFlag(maid.iso_country_code, maid.nationality)}
                     </span>
                     <span className="text-gray-600">{maid.nationality}</span>
-                    {maid.current_location && (
+                    {(maid.current_location || maid.country) && (
                       <>
                         <span className="text-gray-300">|</span>
                         <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">{maid.current_location}</span>
+                        <span className="text-gray-600">{maid.current_location || maid.country}</span>
                       </>
                     )}
                   </div>
@@ -800,7 +800,7 @@ const MaidDetailPage = () => {
                         <InfoItem icon={Calendar} label="Age" value={age ? `${age} years old` : null} />
                         <InfoItem icon={CalendarDays} label="Date of Birth" value={maid.date_of_birth ? formatDate(maid.date_of_birth) : null} />
                         <InfoItem icon={Globe} label="Nationality" value={maid.nationality} />
-                        <InfoItem icon={MapPin} label="Current Location" value={maid.current_location} />
+                        <InfoItem icon={MapPin} label="Current Location" value={maid.current_location || maid.country} />
                         <InfoItem icon={Users} label="Marital Status" value={maid.marital_status} />
                         <InfoItem icon={Baby} label="Children" value={maid.children_count !== null && maid.children_count !== undefined ? `${maid.children_count} ${maid.children_count === 1 ? 'child' : 'children'}` : null} />
                         <InfoItem icon={Church} label="Religion" value={maid.religion} />
@@ -1058,13 +1058,13 @@ const MaidDetailPage = () => {
                     {/* Document Verification Status Grid - Shows only if documents are verified, no previews for safety */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Passport */}
-                      <div className={`p-4 rounded-xl border-2 ${maid.passport_number || documents.some(d => d.document_type === 'passport') ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'}`}>
+                      <div className={`p-4 rounded-xl border-2 ${maid.passport_number || documents.some(d => d.document_type?.startsWith('passport')) ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'}`}>
                         <div className="flex items-center gap-3">
-                          <FileCheck className={`w-6 h-6 ${maid.passport_number || documents.some(d => d.document_type === 'passport') ? 'text-emerald-600' : 'text-gray-400'}`} />
+                          <FileCheck className={`w-6 h-6 ${maid.passport_number || documents.some(d => d.document_type?.startsWith('passport')) ? 'text-emerald-600' : 'text-gray-400'}`} />
                           <div>
                             <p className="font-medium text-gray-900">Passport</p>
-                            <p className={`text-sm ${maid.passport_number || documents.some(d => d.document_type === 'passport') ? 'text-emerald-600' : 'text-gray-500'}`}>
-                              {maid.passport_number || documents.some(d => d.document_type === 'passport') ? 'Verified' : 'Not provided'}
+                            <p className={`text-sm ${maid.passport_number || documents.some(d => d.document_type?.startsWith('passport')) ? 'text-emerald-600' : 'text-gray-500'}`}>
+                              {maid.passport_number || documents.some(d => d.document_type?.startsWith('passport')) ? 'Verified' : 'Not provided'}
                             </p>
                           </div>
                         </div>

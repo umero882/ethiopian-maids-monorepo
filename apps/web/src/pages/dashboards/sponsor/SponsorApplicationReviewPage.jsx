@@ -66,7 +66,7 @@ const SponsorApplicationReviewPage = () => {
       if (error) throw error;
 
       setApplication(data);
-      setNotes(data.sponsor_notes || '');
+      setNotes(data.notes || '');
     } catch (error) {
       console.error('Error loading application:', error);
       toast({
@@ -202,7 +202,7 @@ const SponsorApplicationReviewPage = () => {
   return (
     <div className='space-y-6'>
       <SEO
-        title={`Application from ${application.maid?.name} | Ethiopian Maids`}
+        title={`Application from ${application.maid_profile?.full_name || 'Applicant'} | Ethiopian Maids`}
         description='Review job application'
       />
 
@@ -239,29 +239,43 @@ const SponsorApplicationReviewPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='flex items-start gap-4'>
-                <Avatar className='h-16 w-16'>
-                  <AvatarImage src={application.maid?.avatar_url} />
-                  <AvatarFallback>{application.maid?.name?.charAt(0) || 'M'}</AvatarFallback>
-                </Avatar>
-                <div className='flex-1'>
-                  <h3 className='text-xl font-semibold text-gray-900'>{application.maid?.name}</h3>
-                  <div className='space-y-2 mt-3'>
-                    <div className='flex items-center gap-2 text-gray-600'>
-                      <Mail className='h-4 w-4' />
-                      <span>{application.maid?.email}</span>
-                    </div>
-                    {application.availability_date && (
-                      <div className='flex items-center gap-2 text-gray-600'>
-                        <Calendar className='h-4 w-4' />
-                        <span>
-                          Available from: {format(new Date(application.availability_date), 'MMM dd, yyyy')}
-                        </span>
+              {(() => {
+                const maid = application.maid_profile;
+                const maidName = maid
+                  ? (maid.full_name || `${maid.first_name || ''} ${maid.last_name || ''}`.trim() || 'Unnamed')
+                  : 'Unknown Applicant';
+                return (
+                  <div className='flex items-start gap-4'>
+                    <Avatar className='h-16 w-16'>
+                      <AvatarImage src={maid?.profile_photo_url} />
+                      <AvatarFallback>{maidName.charAt(0) || 'M'}</AvatarFallback>
+                    </Avatar>
+                    <div className='flex-1'>
+                      <h3 className='text-xl font-semibold text-gray-900'>{maidName}</h3>
+                      {maid?.verification_status === 'verified' && (
+                        <Badge variant='outline' className='text-xs text-green-600 border-green-300 mt-1'>
+                          <CheckCircle className='h-3 w-3 mr-1' />
+                          Verified
+                        </Badge>
+                      )}
+                      <div className='space-y-2 mt-3'>
+                        {application.message && (
+                          <div className='flex items-center gap-2 text-gray-600'>
+                            <Calendar className='h-4 w-4' />
+                            <span>{application.message}</span>
+                          </div>
+                        )}
+                        {application.offer_amount && (
+                          <div className='flex items-center gap-2 text-gray-600'>
+                            <DollarSign className='h-4 w-4' />
+                            <span>Expected salary: {application.offer_amount} {application.offer_currency || ''}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
             </CardContent>
           </Card>
 
@@ -281,7 +295,7 @@ const SponsorApplicationReviewPage = () => {
           )}
 
           {/* Proposed Salary */}
-          {application.proposed_salary && (
+          {application.offer_amount && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -291,14 +305,14 @@ const SponsorApplicationReviewPage = () => {
               </CardHeader>
               <CardContent>
                 <p className='text-2xl font-bold text-gray-900'>
-                  {application.proposed_salary} {application.proposed_currency || 'AED'}
+                  {application.offer_amount} {application.offer_currency || 'AED'}
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {/* Notes from Maid */}
-          {application.maid_notes && (
+          {/* Notes/Message from Maid */}
+          {application.message && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -307,7 +321,7 @@ const SponsorApplicationReviewPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className='text-gray-700 whitespace-pre-wrap'>{application.maid_notes}</p>
+                <p className='text-gray-700 whitespace-pre-wrap'>{application.message}</p>
               </CardContent>
             </Card>
           )}

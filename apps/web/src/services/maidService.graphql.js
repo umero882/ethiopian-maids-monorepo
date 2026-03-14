@@ -27,7 +27,10 @@ const GET_MAID_DOCUMENTS = gql`
       document_url
       file_url
       file_path
-      status
+      verified
+      title
+      document_name
+      uploaded_at
       created_at
     }
   }
@@ -133,8 +136,69 @@ export const graphqlMaidService = {
     try {
       log.debug('[GraphQL] Fetching maid by ID:', id);
 
+      // Use inline query to include all fields (generated document may be stale)
+      const GET_MAID_COMPLETE = gql`
+        query GetMaidProfileCompleteInline($id: String!) {
+          maid_profiles_by_pk(id: $id) {
+            id
+            full_name
+            first_name
+            last_name
+            date_of_birth
+            nationality
+            country
+            current_location
+            marital_status
+            children_count
+            iso_country_code
+            religion
+            phone_number
+            experience_years
+            previous_countries
+            skills
+            special_skills
+            languages
+            education_level
+            primary_profession
+            primary_profession_other
+            key_responsibilities
+            work_history
+            preferred_salary_min
+            preferred_salary_max
+            preferred_currency
+            available_from
+            contract_duration_preference
+            live_in_preference
+            work_preferences
+            passport_number
+            passport_expiry
+            visa_status
+            medical_certificate_valid
+            police_clearance_valid
+            availability_status
+            profile_completion_percentage
+            verification_status
+            is_agency_managed
+            agency_id
+            hired_status
+            hired_by_sponsor_id
+            profile_views
+            total_applications
+            successful_placements
+            average_rating
+            about_me
+            profile_photo_url
+            introduction_video_url
+            additional_notes
+            additional_services
+            created_at
+            updated_at
+          }
+        }
+      `;
+
       const { data, error } = await apolloClient.query({
-        query: GetMaidProfileCompleteDocument,
+        query: GET_MAID_COMPLETE,
         variables: { id },
         fetchPolicy: 'network-only',
       });
@@ -474,8 +538,35 @@ export const graphqlMaidService = {
     try {
       log.debug('[GraphQL] Incrementing profile views:', maidId);
 
+      // Use Cloud Function to bypass Hasura row-level permission
+      // (viewers can't update other users' maid_profiles rows)
+      try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const functions = getFunctions();
+        const callable = httpsCallable(functions, 'profileIncrementViews');
+        const result = await callable({ maidId });
+        const newViewCount = result.data?.profile_views;
+        log.info('[GraphQL] Profile views incremented via CF:', newViewCount);
+        return { data: { profile_views: newViewCount }, error: null };
+      } catch (cfError) {
+        log.warn('[GraphQL] CF increment failed, trying direct mutation:', cfError.message);
+      }
+
+      // Fallback: direct GraphQL (works only if user has permission)
+      const INCREMENT_VIEWS = gql`
+        mutation IncrementMaidProfileViewsInline($id: String!) {
+          update_maid_profiles_by_pk(
+            pk_columns: { id: $id }
+            _inc: { profile_views: 1 }
+          ) {
+            id
+            profile_views
+          }
+        }
+      `;
+
       const { data, error } = await apolloClient.mutate({
-        mutation: IncrementMaidProfileViewsDocument,
+        mutation: INCREMENT_VIEWS,
         variables: { id: maidId },
       });
 

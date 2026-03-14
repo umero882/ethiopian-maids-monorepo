@@ -48,6 +48,8 @@ import {
   Tag,
 } from 'lucide-react';
 import { getJobById, submitApplication } from '@/services/jobService';
+import { apolloClient } from '@ethio/api-client';
+import { IncrementJobViewsDocument } from '@ethio/api-client';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import SEO from '@/components/global/SEO';
@@ -69,6 +71,39 @@ const JobDetailPage = () => {
 
   useEffect(() => {
     loadJobDetails();
+    // Increment view count + record who viewed
+    apolloClient.mutate({
+      mutation: IncrementJobViewsDocument,
+      variables: { id: jobId },
+    }).catch(() => {});
+
+    // Record detailed view in job_views table
+    if (user?.id || user?.uid) {
+      const recordView = async () => {
+        try {
+          const { gql } = await import('@apollo/client');
+          await apolloClient.mutate({
+            mutation: gql`
+              mutation RecordJobView($data: job_views_insert_input!) {
+                insert_job_views_one(object: $data) { id }
+              }
+            `,
+            variables: {
+              data: {
+                job_id: jobId,
+                viewer_id: user.id || user.uid,
+                viewer_role: user.role || 'user',
+                viewer_name: user.displayName || user.full_name || null,
+                viewer_avatar_url: user.photoURL || user.avatar_url || null,
+              },
+            },
+          });
+        } catch (e) {
+          // Non-critical - don't block page
+        }
+      };
+      recordView();
+    }
   }, [jobId]);
 
   const loadJobDetails = async () => {
@@ -623,7 +658,7 @@ const JobDetailPage = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Applications</span>
                     <span className="font-semibold">
-                      {job.applications_count || 0}
+                      {job.applications_aggregate?.aggregate?.count || job.applications_count || 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
