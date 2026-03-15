@@ -45,14 +45,34 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm nx reset || true
-      - name: Run tests (exclude web until test infra is CI-ready)
-        run: pnpm nx run-many --target=test --exclude=web --parallel=3 --coverage
+      - name: Run tests
+        run: pnpm nx run-many --target=test --parallel=3 --coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Audit dependencies for vulnerabilities
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+      - name: Audit Firebase Functions dependencies
+        run: cd tools/firebase-functions && npm audit --audit-level=high
+        continue-on-error: true
 
   build:
     name: Build

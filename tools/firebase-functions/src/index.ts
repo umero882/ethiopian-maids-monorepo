@@ -57,6 +57,9 @@ import { sendWhatsAppNotificationHandler } from './notifications/sendWhatsAppNot
 // Import handlers - Onboarding Welcome Notifications
 import { sendOnboardingWelcomeHandler } from './notifications/sendOnboardingWelcome';
 
+// Import middleware
+import { withSecurityHeaders } from './middleware/securityHeaders';
+
 // Import handlers - WhatsApp Flows
 import { whatsappFlowEndpointHandler } from './whatsapp/flowEndpoint';
 
@@ -70,13 +73,16 @@ import { manageApplication } from './jobs/manageApplication';
 // Import handlers - Profile
 import { incrementViews } from './profiles/incrementViews';
 
+// Import handlers - Video
+import { createVideoCallHandler } from './video/createVideoCall';
+
 // =====================================================
 // STRIPE FUNCTIONS
 // =====================================================
 
 export const stripeCreateCheckoutSession = functions.https.onCall(createCheckoutSession);
 export const stripeCreatePortalSession = functions.https.onCall(createPortalSession);
-export const stripeWebhook = functions.https.onRequest(handleStripeWebhook);
+export const stripeWebhook = functions.https.onRequest(withSecurityHeaders(handleStripeWebhook));
 export const stripeCancelSubscription = functions.https.onCall(cancelSubscription);
 export const stripeHandlePaymentSuccess = functions.https.onCall(handlePaymentSuccess);
 
@@ -299,14 +305,14 @@ export const notificationSendOnboardingWelcome = functions.https.onCall(sendOnbo
  * Receives encrypted requests from Meta, decrypts, processes, encrypts response.
  * Used for interactive onboarding (maid/sponsor/agency registration via WhatsApp).
  */
-export const whatsappFlowEndpoint = functions.https.onRequest(whatsappFlowEndpointHandler);
+export const whatsappFlowEndpoint = functions.https.onRequest(withSecurityHeaders(whatsappFlowEndpointHandler));
 
 /**
  * HTTP endpoint: WhatsApp Webhook for auto-reply.
  * GET: Webhook verification (hub.verify_token challenge)
  * POST: Incoming message processing → auto-reply with welcome + registration flow
  */
-export const whatsappWebhook = functions.https.onRequest(whatsappWebhookHandler);
+export const whatsappWebhook = functions.https.onRequest(withSecurityHeaders(whatsappWebhookHandler));
 
 /**
  * Scheduled: Error digest every 6 hours
@@ -470,6 +476,16 @@ export const monitorMaintenance = functions.pubsub
   });
 
 // =====================================================
+// VIDEO CALL FUNCTIONS
+// =====================================================
+
+/**
+ * Callable: Create a Daily.co video call room + video_interviews record
+ * Server-side to avoid CORS issues with Daily.co API.
+ */
+export const videoCreateCall = functions.https.onCall(createVideoCallHandler);
+
+// =====================================================
 // HEALTH CHECK
 // =====================================================
 
@@ -477,11 +493,13 @@ export const monitorMaintenance = functions.pubsub
  * HTTP endpoint: Health check for monitoring and load balancer probes.
  * GET /healthCheck -> { status: 'ok', timestamp, version, environment }
  */
-export const healthCheck = functions.https.onRequest((_req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'production',
-  });
-});
+export const healthCheck = functions.https.onRequest(
+  withSecurityHeaders((_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'production',
+    });
+  })
+);
