@@ -48,7 +48,7 @@ jobs:
       - name: Run tests
         run: pnpm nx run-many --target=test --parallel=3 --coverage
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
